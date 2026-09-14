@@ -1,4 +1,3 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
@@ -10,6 +9,13 @@ export default defineNuxtConfig({
 
   css: ["~/assets/css/main.css"],
 
+  components: [
+    {
+      path: "~/components",
+      extensions: ["vue"],
+    },
+  ],
+
   vite: {
     plugins: [
       tailwindcss(),
@@ -20,6 +26,6 @@ export default defineNuxtConfig({
 
   shadcn: {
     prefix: "",
-    componentDir: "./components/ui",
+    componentDir: "./app/components/ui",
   },
 });

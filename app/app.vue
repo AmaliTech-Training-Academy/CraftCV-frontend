@@ -1,6 +1,6 @@
 <template>
-  <div>
+  <div class="font-sans bg-stone-50 text-stone-900 min-h-screen">
     <NuxtRouteAnnouncer />
-    <h1 class="text-5xl font-bold underline">Hello world!</h1>
+    <NuxtPage />
   </div>
 </template>
