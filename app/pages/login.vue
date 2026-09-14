@@ -1,6 +1,5 @@
 <template>
   <div class="flex min-h-screen">
-    <div class="flex w-full">
       <div
         class="relative hidden md:flex md:w-[70%] flex-shrink-0 bg-brand-900 overflow-hidden rounded-r-[2.5rem] ring-1 ring-brand-700/60"
       >
@@ -13,17 +12,14 @@
           class="absolute inset-0 w-full h-full object-cover"
         />
 
-        <div class="relative z-10 flex flex-col justify-between w-full p-8">
-          <div class="flex items-center gap-2">
-            <div
-              class="w-8 h-8 bg-brand-600 rounded-[6px] flex items-center justify-center flex-shrink-0"
-            >
-              <span
-                class="text-white font-display font-semibold text-sm leading-none"
-                >C</span
-              >
-            </div>
-            <span class="text-white font-semibold text-base tracking-tight"
+        <div class="relative z-10 flex flex-col w-full p-8">
+          <div class="flex items-center gap-3">
+            <NuxtImg
+              src="/craftcv-logo.png"
+              alt="CraftCV"
+              class="h-10 w-auto mix-blend-multiply"
+            />
+            <span class="font-display text-stone-900 font-semibold text-xl tracking-tight"
               >CraftCV</span
             >
           </div>
@@ -33,8 +29,15 @@
       <div
         class="flex flex-col justify-center w-full md:w-[55%] bg-white px-8 py-10 sm:px-12"
       >
+        <div class="flex items-center justify-center gap-3 mb-8 md:hidden">
+          <NuxtImg src="/craftcv-logo.png" alt="CraftCV" class="h-8 w-auto" />
+          <span class="font-display text-stone-900 font-semibold text-lg tracking-tight"
+            >CraftCV</span
+          >
+        </div>
+
         <div class="w-full max-w-sm mx-auto">
-          <div class="mb-8">
+          <div class="mb-8 text-center md:text-left">
             <h1
               class="font-display text-4xl font-semibold text-stone-900 leading-tight mb-2"
             >
@@ -220,7 +223,6 @@
           </p>
         </div>
       </div>
-    </div>
   </div>
 </template>
 
