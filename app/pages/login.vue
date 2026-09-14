@@ -1,7 +1,7 @@
 <template>
   <div class="flex min-h-screen">
       <div
-        class="relative hidden md:flex md:w-[70%] flex-shrink-0 bg-brand-900 overflow-hidden rounded-r-[2.5rem] ring-1 ring-brand-700/60"
+        class="relative hidden md:flex md:w-[70%] flex-shrink-0 bg-stone-100 overflow-hidden rounded-r-[2.5rem] ring-1 ring-stone-200"
       >
         <video
           src="/craft-cv animation.mp4"
@@ -9,6 +9,7 @@
           loop
           muted
           playsinline
+          preload="auto"
           class="absolute inset-0 w-full h-full object-cover"
         />
 
@@ -233,6 +234,14 @@ useHead({
     {
       name: "description",
       content: "Sign in to your CraftCV account to access your CV dashboard.",
+    },
+  ],
+  link: [
+    {
+      rel: "preload",
+      as: "video",
+      href: "/craft-cv animation.mp4",
+      type: "video/mp4",
     },
   ],
 });
