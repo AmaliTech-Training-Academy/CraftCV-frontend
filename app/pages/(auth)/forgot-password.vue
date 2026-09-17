@@ -92,7 +92,7 @@
         <!-- ============================================== -->
         <!-- STEP 1: EMAIL REQUEST -->
         <!-- ============================================== -->
-        <div v-if="step === 1" class="w-full flex flex-col items-center animate-in fade-in zoom-in-95 duration-300">
+        <div v-if="step === 1" class="w-full flex flex-col items-center">
           <!-- Envelope Badge -->
           <div class="w-14 h-14 rounded-full bg-[#FBE4D9] flex items-center justify-center mb-6 text-[#E2673D] transition-transform duration-200 hover:scale-105">
             <Mail class="w-7 h-7 stroke-[1.75]" />
@@ -369,10 +369,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { Mail, KeyRound, Eye, EyeOff, AlertCircle, Check } from '@lucide/vue'
-
-const router = useRouter()
 
 const step = ref(1)
 const otp = ref(['', '', '', '', '', ''])
@@ -383,7 +380,6 @@ const newPassword = ref('')
 const confirmPassword = ref('')
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
-const passwordError = ref('')
 
 // Live check: are the two passwords mismatched (only show after confirm has content)
 const confirmMismatch = computed(() =>
