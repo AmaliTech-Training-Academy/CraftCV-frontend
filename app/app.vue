@@ -1,8 +1,8 @@
 <template>
-  <div>
-    <NuxtRouteAnnouncer />
-    <h1 class="text-5xl font-bold underline">
-      Hello world!
-    </h1>
-  </div>
+  <NuxtRouteAnnouncer />
+  <NuxtPage />
 </template>
+
+<style lang="css">
+@import "/assets/css/main.css";
+</style>
