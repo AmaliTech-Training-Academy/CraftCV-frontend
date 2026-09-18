@@ -5,7 +5,7 @@
     <header class="w-full px-6 py-6 sm:px-10 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <NuxtLink aria-label="CraftCV Home" class="flex items-center gap-2.5 group transition-opacity hover:opacity-90" to="/">
-          <img src="/logo.png" alt="CraftCV logo" class="w-8 h-8 object-contain" />
+          <img src="/logo.png" alt="CraftCV logo" class="w-8 h-8 object-contain" >
           <span class="font-['Poppins'] font-semibold text-[18px] text-[#2B2622] tracking-tight">Craft<span class="text-[#E2673D]">CV</span></span>
         </NuxtLink>
       </div>
@@ -82,9 +82,9 @@
             </ol>
             <!-- Progress Bars -->
             <div class="grid grid-cols-3 gap-2 w-full" aria-hidden="true">
-              <div class="h-1 rounded-full transition-colors duration-300" :style="{ backgroundColor: step > 1 ? '#17B26A' : step === 1 ? '#E2673D' : '#E5DDD1' }"></div>
-              <div class="h-1 rounded-full transition-colors duration-300" :style="{ backgroundColor: step > 2 ? '#17B26A' : step === 2 ? '#E2673D' : '#E5DDD1' }"></div>
-              <div class="h-1 rounded-full transition-colors duration-300" :style="{ backgroundColor: step > 3 ? '#17B26A' : step === 3 ? '#E2673D' : '#E5DDD1' }"></div>
+              <div class="h-1 rounded-full transition-colors duration-300" :style="{ backgroundColor: step > 1 ? '#17B26A' : step === 1 ? '#E2673D' : '#E5DDD1' }"/>
+              <div class="h-1 rounded-full transition-colors duration-300" :style="{ backgroundColor: step > 2 ? '#17B26A' : step === 2 ? '#E2673D' : '#E5DDD1' }"/>
+              <div class="h-1 rounded-full transition-colors duration-300" :style="{ backgroundColor: step > 3 ? '#17B26A' : step === 3 ? '#E2673D' : '#E5DDD1' }"/>
             </div>
           </nav>
 
@@ -108,7 +108,7 @@
           </div>
 
           <!-- Form -->
-          <form @submit.prevent="onSendCode" class="w-full space-y-4">
+          <form class="w-full space-y-4" @submit.prevent="onSendCode">
             <div class="flex flex-col gap-1.5">
               <Label for="email" class="text-[12px] font-medium text-[#57504A]">
                 Email address
@@ -182,7 +182,7 @@
           </div>
 
           <!-- Form -->
-          <form @submit.prevent="onVerifyCode" class="w-full space-y-4">
+          <form class="w-full space-y-4" @submit.prevent="onVerifyCode">
             <div class="flex flex-col gap-1.5">
               <Label class="text-[12px] font-medium text-[#57504A] text-center">
                 Verification code
@@ -193,15 +193,15 @@
                   :key="index"
                   ref="otpInputs"
                   v-model="otp[index]"
-                  @input="handleOtpInput($event, index)"
-                  @keydown="handleOtpKeydown($event, index)"
-                  @paste="handleOtpPaste"
                   type="text"
                   inputmode="numeric"
                   autocomplete="one-time-code"
                   :aria-label="`Digit ${index + 1} of 6`"
                   class="w-[48px] h-[56px] rounded-[10px] border-[1.5px] border-[#E5DDD1] bg-white text-[24px] font-bold text-center text-[#2B2622] focus:outline-none focus:ring-[3px] focus:ring-[#FBE4D9] focus:border-[#E2673D] transition-shadow shadow-sm"
-                />
+                  @input="handleOtpInput($event, index)"
+                  @keydown="handleOtpKeydown($event, index)"
+                  @paste="handleOtpPaste"
+                >
               </div>
             </div>
 
@@ -241,8 +241,8 @@
                 <button
                   v-else
                   type="button"
-                  @click="onResendCode"
                   class="text-[14px] text-[#948573] hover:text-[#57504A] transition-colors duration-150"
+                  @click="onResendCode"
                 >
                   Didn't receive a code?
                   <span class="text-[#E2673D] hover:text-[#C9552F] underline underline-offset-4 decoration-[#F5C7AE]">Resend</span>
@@ -252,8 +252,8 @@
               <div class="pt-0.5">
                 <button
                   type="button"
-                  @click="step = 1"
                   class="text-[13px] font-medium text-[#948573] hover:text-[#57504A] transition-colors"
+                  @click="step = 1"
                 >
                   {{ resendAttempts >= MAX_RESEND_ATTEMPTS ? 'Try a different email' : 'Use a different email' }}
                 </button>
@@ -276,7 +276,7 @@
             </p>
           </div>
 
-          <form @submit.prevent="onResetPassword" class="w-full space-y-4" novalidate>
+          <form class="w-full space-y-4" novalidate @submit.prevent="onResetPassword">
 
             <!-- New Password -->
             <div class="flex flex-col gap-1.5 text-left">
@@ -297,12 +297,12 @@
                   style="display:block; width:100%; height:44px; border-radius:10px; border:1.5px solid #E5DDD1; background:#fff; font-size:14px; color:#2B2622; padding:0 44px 0 14px; box-sizing:border-box; outline:none; transition:border-color 0.15s, box-shadow 0.15s;"
                   @focus="(e) => { (e.target as HTMLInputElement).style.borderColor='#E2673D'; (e.target as HTMLInputElement).style.boxShadow='0 0 0 3px #FBE4D9'; }"
                   @blur="(e) => { (e.target as HTMLInputElement).style.borderColor='#E5DDD1'; (e.target as HTMLInputElement).style.boxShadow='none'; }"
-                />
+                >
                 <button
                   type="button"
                   :aria-label="showPassword ? 'Hide password' : 'Show password'"
-                  @click="showPassword = !showPassword"
                   style="position:absolute; top:0; bottom:0; right:0; width:40px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; cursor:pointer; color:#B5A695;"
+                  @click="showPassword = !showPassword"
                 >
                   <EyeOff v-if="!showPassword" style="width:16px; height:16px;" />
                   <Eye v-else style="width:16px; height:16px;" />
@@ -379,12 +379,12 @@
                     border: confirmMismatch ? '1.5px solid #E2673D' : '1.5px solid #E5DDD1',
                     boxShadow: confirmMismatch ? '0 0 0 3px #FBE4D9' : 'none'
                   }"
-                />
+                >
                 <button
                   type="button"
                   :aria-label="showConfirmPassword ? 'Hide password' : 'Show password'"
-                  @click="showConfirmPassword = !showConfirmPassword"
                   style="position:absolute; top:0; bottom:0; right:0; width:40px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; cursor:pointer; color:#B5A695;"
+                  @click="showConfirmPassword = !showConfirmPassword"
                 >
                   <EyeOff v-if="!showConfirmPassword" style="width:16px; height:16px;" />
                   <Eye v-else style="width:16px; height:16px;" />
@@ -421,13 +421,11 @@
     </main>
 
 
-  </div>
-
-  <!-- ============================================== -->
-  <!-- SUCCESS MODAL (shown after password reset)     -->
-  <!-- ============================================== -->
-  <Teleport to="body">
-    <Transition
+    <!-- ============================================== -->
+    <!-- SUCCESS MODAL (shown after password reset)     -->
+    <!-- ============================================== -->
+    <Teleport to="body">
+      <Transition
       enter-active-class="transition-all duration-300 ease-out"
       enter-from-class="opacity-0"
       enter-to-class="opacity-100"
@@ -487,9 +485,9 @@
             <!-- CTA -->
             <button
               type="button"
-              @click="goToLoginNow"
               class="w-full h-[46px] rounded-[10px] font-semibold text-sm tracking-wide text-white transition-all duration-150 active:scale-[0.98]"
               style="background: #E2673D;"
+              @click="goToLoginNow"
               @mouseenter="(e) => (e.currentTarget as HTMLElement).style.background = '#C9552F'"
               @mouseleave="(e) => (e.currentTarget as HTMLElement).style.background = '#E2673D'"
             >
@@ -506,6 +504,7 @@
     </Transition>
   </Teleport>
 
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -542,7 +541,7 @@ function validateEmail(value: string): string {
   const tld = domain.split('.').pop() ?? ''
   if (tld.length < 2) return 'Email domain extension must be at least 2 characters (e.g. .com).'
   if (!/^[a-zA-Z]+$/.test(tld)) return 'Email domain extension must contain only letters.'
-  const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
   if (!emailRegex.test(trimmed)) return 'Please enter a valid email address (e.g. you@example.com).'
   return ''
 }
