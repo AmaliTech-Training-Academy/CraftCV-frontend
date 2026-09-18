@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineNuxtConfig({
   // @nuxt/eslint and @nuxt/test-utils/module removed from modules until packages are installed
   // Re-add them once: npm install @nuxt/eslint @nuxt/test-utils
-  modules: ['shadcn-nuxt'],
+  modules: ['shadcn-nuxt', '@nuxt/eslint', '@nuxt/test-utils/module'],
 
   devtools: {
     enabled: true,
