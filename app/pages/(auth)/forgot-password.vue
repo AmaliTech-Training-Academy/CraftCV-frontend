@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-white text-[#2B2622] flex flex-col justify-between selection:bg-[#FBE4D9] selection:text-[#C9552F] font-['Inter']">
-    
+
     <!-- Header -->
     <header class="w-full px-6 py-6 sm:px-10 flex items-center justify-between">
       <div class="flex items-center gap-2">
@@ -14,7 +14,7 @@
     <!-- Main Content -->
     <main class="flex-grow flex items-center justify-center px-4 py-8 sm:py-12">
       <div class="w-full max-w-[420px] mx-auto flex flex-col items-center">
-        
+
           <!-- Step Markers (Dynamic based on 'step' state) -->
           <!-- Pattern: completed = green+checkmark, active = orange+number, future = grey+number -->
           <!-- Step indicator: semantic nav > ol > li with aria-current for screen readers -->
@@ -266,7 +266,7 @@
         <!-- STEP 3: NEW PASSWORD -->
         <!-- ============================================== -->
         <div v-else-if="step === 3" class="w-full flex flex-col items-center animate-in fade-in zoom-in-95 duration-300">
-          
+
           <div class="text-center mb-7">
             <h1 class="font-['Poppins'] font-semibold text-[30px] sm:text-[32px] text-[#2B2622] leading-tight mb-2 tracking-tight">
               Set a new password.
@@ -277,7 +277,7 @@
           </div>
 
           <form @submit.prevent="onResetPassword" class="w-full space-y-4" novalidate>
-            
+
             <!-- New Password -->
             <div class="flex flex-col gap-1.5 text-left">
               <label
@@ -413,7 +413,7 @@
                 Reset password
               </Button>
             </div>
-            
+
           </form>
         </div>
 
@@ -680,11 +680,11 @@ const strengthHex = computed(() => {
 function handleOtpInput(event: Event, index: number) {
   const target = event.target as HTMLInputElement
   const value = target.value
-  
+
   if (value) {
     // only keep the last typed character
     otp.value[index] = value.substring(value.length - 1)
-    
+
     // move focus to next input if we're not at the end
     if (index < 5) {
       otpInputs.value[index + 1]?.focus()
@@ -706,12 +706,12 @@ function handleOtpPaste(event: ClipboardEvent) {
   event.preventDefault()
   const pastedData = event.clipboardData?.getData('text')
   if (!pastedData) return
-  
+
   const numbers = pastedData.replace(/\D/g, '').substring(0, 6).split('')
   for (let i = 0; i < numbers.length; i++) {
     otp.value[i] = numbers[i] ?? ''
   }
-  
+
   // Focus the next empty box, or the last box
   const nextFocusIndex = Math.min(numbers.length, 5)
   otpInputs.value[nextFocusIndex]?.focus()
