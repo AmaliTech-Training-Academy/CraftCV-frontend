@@ -217,7 +217,7 @@
               <p aria-live="polite" aria-atomic="true" class="sr-only">{{ resendAnnouncement }}</p>
 
               <!-- State: cooling down -->
-              <p v-if="resendCooldown > 0" class="text-[13px] text-[#948573] flex items-center justify-center gap-1.5">
+              <p v-if="resendCooldown > 0 && resendStatus !== 'sent'" class="text-[13px] text-[#948573] flex items-center justify-center gap-1.5">
                 <Clock class="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                 Resend in
                 <span class="font-semibold tabular-nums text-[#57504A] min-w-[2.5ch] inline-block">{{ resendCooldown }}s</span>
