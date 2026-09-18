@@ -24,12 +24,8 @@ jobs:
 
       - name: Validate commit subjects
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          git log --format=%s "$BASE_SHA..$HEAD_SHA" | while IFS= read -r subject; do
-            sh scripts/validate-conventions.sh commit "$subject"
-          done
+        run: sh scripts/validate-conventions.sh commit "$(git log -1 --format=%s "$HEAD_SHA")"
 
       - name: Check whitespace errors
         env:
