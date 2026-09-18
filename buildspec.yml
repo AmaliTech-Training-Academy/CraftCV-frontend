@@ -70,8 +70,29 @@ phases:
       - sh scripts/check.sh test
       - sh scripts/check.sh build
 
+      # check.sh build runs `nuxt build`, which produces a server bundle.
+      # What nginx serves is the static site, so generate it explicitly.
+      # This is the artifact that gets deployed - built once, here, and
+      # never rebuilt on the instance.
+      - npx nuxt generate
+      - test -f .output/public/index.html || { echo "nuxt generate produced no index.html"; exit 1; }
+
   post_build:
     commands:
+      # --- Upload the artifact ----------------------------------------------
+      # Uploaded on every green build, including pull requests: it costs a
+      # few hundred KB, and it means a build can be promoted later without
+      # rebuilding it.
+      - |
+        if [ "${CODEBUILD_BUILD_SUCCEEDING:-0}" != "1" ]; then
+          echo "Build failed - nothing to upload."
+          exit 0
+        fi
+        COMMIT="${CODEBUILD_RESOLVED_SOURCE_VERSION:-unknown}"
+        echo "Uploading .output/public to s3://${ARTIFACT_BUCKET}/builds/${COMMIT}/"
+        aws s3 sync .output/public "s3://${ARTIFACT_BUCKET}/builds/${COMMIT}/"           --region "$AWS_DEFAULT_REGION" --only-show-errors --delete
+        echo "Uploaded $(find .output/public -type f | wc -l) files"
+
       # --- Deploy -----------------------------------------------------------
       # Same gate as the backend and it fails closed: a red build, a pull
       # request build, or a push to any branch other than develop all skip.
