@@ -151,7 +151,7 @@
             </div>
 
             <div class="text-center pt-2">
-              <NuxtLink to="/auth/login" class="inline-block text-[14px] font-medium text-[#E2673D] hover:text-[#C9552F] underline underline-offset-4 decoration-[#F5C7AE] hover:decoration-[#E2673D] transition-colors duration-150">
+              <NuxtLink to="/login" class="inline-block text-[14px] font-medium text-[#E2673D] hover:text-[#C9552F] underline underline-offset-4 decoration-[#F5C7AE] hover:decoration-[#E2673D] transition-colors duration-150">
                 Back to login
               </NuxtLink>
             </div>
