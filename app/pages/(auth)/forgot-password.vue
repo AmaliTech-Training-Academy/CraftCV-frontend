@@ -5,18 +5,10 @@
     <header class="w-full px-6 py-6 sm:px-10 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <NuxtLink aria-label="CraftCV Home" class="flex items-center gap-2.5 group transition-opacity hover:opacity-90" to="/">
-          <div class="w-8 h-8 rounded-lg bg-[#E2673D] flex items-center justify-center text-white font-['Poppins'] font-bold text-lg shadow-sm">
-            C
-          </div>
+          <img src="/logo.png" alt="CraftCV logo" class="w-8 h-8 object-contain" />
           <span class="font-['Poppins'] font-semibold text-[18px] text-[#2B2622] tracking-tight">Craft<span class="text-[#E2673D]">CV</span></span>
         </NuxtLink>
       </div>
-      <a class="text-xs font-medium text-[#948573] hover:text-[#3A342F] transition-colors flex items-center gap-1.5" href="#">
-        <span>Need assistance?</span>
-        <svg class="w-3.5 h-3.5 stroke-current" fill="none" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M12 18h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-      </a>
     </header>
 
     <!-- Main Content -->
@@ -428,10 +420,6 @@
       </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="w-full py-5 text-center text-[12px] text-[#B5A695]">
-      <p>© 2025 CraftCV. Thoughtfully crafted for professional careers.</p>
-    </footer>
 
   </div>
 
