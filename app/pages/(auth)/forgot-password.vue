@@ -25,12 +25,14 @@
         
           <!-- Step Markers (Dynamic based on 'step' state) -->
           <!-- Pattern: completed = green+checkmark, active = orange+number, future = grey+number -->
-          <div aria-label="Step Indicator" class="w-full mb-8">
-            <div class="flex items-center justify-between text-xs font-medium mb-2.5 px-0.5">
+          <!-- Step indicator: semantic nav > ol > li with aria-current for screen readers -->
+          <nav aria-label="Progress" class="w-full mb-8">
+            <ol class="flex items-center justify-between text-xs font-medium mb-2.5 px-0.5 m-0 p-0 list-none">
               <!-- Step 1: Email -->
-              <div
+              <li
                 class="flex items-center gap-1.5 transition-colors duration-300"
                 :style="{ color: step > 1 ? '#17B26A' : step === 1 ? '#E2673D' : '#B5A695', fontWeight: step >= 1 ? '600' : '400' }"
+                :aria-current="step === 1 ? 'step' : undefined"
               >
                 <span
                   class="w-5 h-5 rounded-full flex items-center justify-center leading-none transition-all duration-300"
@@ -38,17 +40,19 @@
                     backgroundColor: step > 1 ? '#17B26A' : step === 1 ? '#E2673D' : '#E5DDD1',
                     color: step >= 1 ? '#fff' : '#78716C'
                   }"
+                  aria-hidden="true"
                 >
                   <Check v-if="step > 1" style="width:11px; height:11px; stroke-width:3;" />
                   <span v-else style="font-size:10px;">1</span>
                 </span>
                 <span>Email</span>
-              </div>
+              </li>
 
               <!-- Step 2: Verification -->
-              <div
+              <li
                 class="flex items-center gap-1.5 transition-colors duration-300"
                 :style="{ color: step > 2 ? '#17B26A' : step === 2 ? '#E2673D' : '#B5A695', fontWeight: step >= 2 ? '600' : '400' }"
+                :aria-current="step === 2 ? 'step' : undefined"
               >
                 <span
                   class="w-5 h-5 rounded-full flex items-center justify-center leading-none transition-all duration-300"
@@ -56,17 +60,19 @@
                     backgroundColor: step > 2 ? '#17B26A' : step === 2 ? '#E2673D' : '#E5DDD1',
                     color: step >= 2 ? '#fff' : '#78716C'
                   }"
+                  aria-hidden="true"
                 >
                   <Check v-if="step > 2" style="width:11px; height:11px; stroke-width:3;" />
                   <span v-else style="font-size:10px;">2</span>
                 </span>
                 <span>Verification</span>
-              </div>
+              </li>
 
               <!-- Step 3: New Password -->
-              <div
+              <li
                 class="flex items-center gap-1.5 transition-colors duration-300"
                 :style="{ color: step > 3 ? '#17B26A' : step === 3 ? '#E2673D' : '#B5A695', fontWeight: step >= 3 ? '600' : '400' }"
+                :aria-current="step === 3 ? 'step' : undefined"
               >
                 <span
                   class="w-5 h-5 rounded-full flex items-center justify-center leading-none transition-all duration-300"
@@ -74,20 +80,21 @@
                     backgroundColor: step > 3 ? '#17B26A' : step === 3 ? '#E2673D' : '#E5DDD1',
                     color: step >= 3 ? '#fff' : '#78716C'
                   }"
+                  aria-hidden="true"
                 >
                   <Check v-if="step > 3" style="width:11px; height:11px; stroke-width:3;" />
                   <span v-else style="font-size:10px;">3</span>
                 </span>
                 <span>New password</span>
-              </div>
+              </li>
+            </ol>
+            <!-- Progress Bars -->
+            <div class="grid grid-cols-3 gap-2 w-full" aria-hidden="true">
+              <div class="h-1 rounded-full transition-colors duration-300" :style="{ backgroundColor: step > 1 ? '#17B26A' : step === 1 ? '#E2673D' : '#E5DDD1' }"></div>
+              <div class="h-1 rounded-full transition-colors duration-300" :style="{ backgroundColor: step > 2 ? '#17B26A' : step === 2 ? '#E2673D' : '#E5DDD1' }"></div>
+              <div class="h-1 rounded-full transition-colors duration-300" :style="{ backgroundColor: step > 3 ? '#17B26A' : step === 3 ? '#E2673D' : '#E5DDD1' }"></div>
             </div>
-          <!-- Progress Bars -->
-          <div class="grid grid-cols-3 gap-2 w-full">
-            <div class="h-1 rounded-full transition-colors duration-300" :style="{ backgroundColor: step > 1 ? '#17B26A' : step === 1 ? '#E2673D' : '#E5DDD1' }"></div>
-            <div class="h-1 rounded-full transition-colors duration-300" :style="{ backgroundColor: step > 2 ? '#17B26A' : step === 2 ? '#E2673D' : '#E5DDD1' }"></div>
-            <div class="h-1 rounded-full transition-colors duration-300" :style="{ backgroundColor: step > 3 ? '#17B26A' : step === 3 ? '#E2673D' : '#E5DDD1' }"></div>
-          </div>
-        </div>
+          </nav>
 
         <!-- ============================================== -->
         <!-- STEP 1: EMAIL REQUEST -->
@@ -114,17 +121,35 @@
               <Label for="email" class="text-[12px] font-medium text-[#57504A]">
                 Email address
               </Label>
-              <Input 
-                id="email" 
-                name="email" 
-                placeholder="you@example.com" 
-                required 
+              <Input
+                id="email"
+                v-model="email"
+                name="email"
+                placeholder="you@example.com"
+                required
                 type="email"
-                class="w-full h-11 rounded-[10px] border border-[#E5DDD1] bg-white text-[14px] text-[#2B2622] placeholder:text-[#B5A695] focus-visible:border-[#E2673D] focus-visible:ring-[3px] focus-visible:ring-[#FBE4D9] focus-visible:ring-offset-0 px-3.5"
+                autocomplete="email"
+                :aria-invalid="emailError ? 'true' : 'false'"
+                aria-describedby="email-error"
+                :class="[
+                  'w-full h-11 rounded-[10px] border bg-white text-[14px] text-[#2B2622] placeholder:text-[#B5A695] focus-visible:ring-[3px] focus-visible:ring-offset-0 px-3.5 transition-colors',
+                  emailError
+                    ? 'border-[#E2673D] focus-visible:border-[#E2673D] focus-visible:ring-[#FBE4D9]'
+                    : 'border-[#E5DDD1] focus-visible:border-[#E2673D] focus-visible:ring-[#FBE4D9]'
+                ]"
+                @blur="onEmailBlur"
+                @input="onEmailInput"
               />
-              <p class="text-[12px] text-[#948573] font-normal pt-0.5">
-                We'll only use this to send your reset code.
-              </p>
+              <!-- Inline error / hint –– reserves height so layout doesn't jump -->
+              <div id="email-error" role="alert" aria-live="polite" style="min-height: 18px;">
+                <p v-if="emailError" class="text-[12px] text-[#E2673D] flex items-center gap-1 mt-0.5">
+                  <AlertCircle style="width:13px; height:13px; flex-shrink:0;" />
+                  {{ emailError }}
+                </p>
+                <p v-else class="text-[12px] text-[#948573] font-normal">
+                  We'll only use this to send your reset code.
+                </p>
+              </div>
             </div>
 
             <div class="pt-1.5">
@@ -156,7 +181,11 @@
               Check your email
             </h1>
             <p class="text-[#78716C] text-[14px] leading-relaxed max-w-[340px] mx-auto font-normal mt-2">
-              We sent a 6-digit verification code to your email. Enter it below to verify your identity.
+              We sent a 6-digit verification code to
+              <span class="inline-flex items-center gap-1 mt-1.5 mx-auto px-2.5 py-0.5 rounded-full bg-[#FBE4D9] text-[#C9552F] font-medium text-[13px] font-mono tracking-tight">
+                <svg class="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                {{ email }}
+              </span>
             </p>
           </div>
 
@@ -166,9 +195,9 @@
               <Label class="text-[12px] font-medium text-[#57504A] text-center">
                 Verification code
               </Label>
-              <div class="flex justify-between gap-2 w-full mt-1">
-                <input 
-                  v-for="(digit, index) in otp" 
+              <div class="flex justify-between gap-2 w-full mt-1" role="group" aria-label="6-digit verification code">
+                <input
+                  v-for="(digit, index) in otp"
                   :key="index"
                   ref="otpInputs"
                   v-model="otp[index]"
@@ -177,6 +206,8 @@
                   @paste="handleOtpPaste"
                   type="text"
                   inputmode="numeric"
+                  autocomplete="one-time-code"
+                  :aria-label="`Digit ${index + 1} of 6`"
                   class="w-[48px] h-[56px] rounded-[10px] border-[1.5px] border-[#E5DDD1] bg-white text-[24px] font-bold text-center text-[#2B2622] focus:outline-none focus:ring-[3px] focus:ring-[#FBE4D9] focus:border-[#E2673D] transition-shadow shadow-sm"
                 />
               </div>
@@ -188,15 +219,53 @@
               </Button>
             </div>
 
-            <div class="text-center pt-2">
-              <button type="button" @click="onResendCode" class="inline-block text-[14px] font-medium text-[#E2673D] hover:text-[#C9552F] underline underline-offset-4 decoration-[#F5C7AE] hover:decoration-[#E2673D] transition-colors duration-150">
-                Didn't receive a code? Resend
-              </button>
-            </div>
-            <div class="text-center mt-2">
-              <button type="button" @click="step = 1" class="text-[13px] font-medium text-[#948573] hover:text-[#57504A] transition-colors">
-                Use a different email
-              </button>
+            <!-- Resend section with cooldown, attempt limit, and accessible live region -->
+            <div class="text-center pt-3 space-y-2">
+              <!-- sr-only live region: announces state changes to screen readers -->
+              <p aria-live="polite" aria-atomic="true" class="sr-only">{{ resendAnnouncement }}</p>
+
+              <!-- State: cooling down -->
+              <p v-if="resendCooldown > 0" class="text-[13px] text-[#948573] flex items-center justify-center gap-1.5">
+                <Clock class="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                Resend in
+                <span class="font-semibold tabular-nums text-[#57504A] min-w-[2.5ch] inline-block">{{ resendCooldown }}s</span>
+              </p>
+
+              <!-- State: max attempts reached -->
+              <p v-else-if="resendAttempts >= MAX_RESEND_ATTEMPTS" class="text-[13px] text-[#948573] leading-relaxed text-center">
+                Too many resend attempts.
+              </p>
+
+              <!-- State: ready or just sent -->
+              <template v-else>
+                <p
+                  v-if="resendStatus === 'sent'"
+                  class="text-[13px] text-[#17B26A] flex items-center justify-center gap-1 font-medium"
+                  aria-live="polite"
+                >
+                  <CheckCircle class="w-4 h-4 shrink-0" aria-hidden="true" />
+                  Code sent! Check your inbox.
+                </p>
+                <button
+                  v-else
+                  type="button"
+                  @click="onResendCode"
+                  class="text-[14px] text-[#948573] hover:text-[#57504A] transition-colors duration-150"
+                >
+                  Didn't receive a code?
+                  <span class="text-[#E2673D] hover:text-[#C9552F] underline underline-offset-4 decoration-[#F5C7AE]">Resend</span>
+                </button>
+              </template>
+
+              <div class="pt-0.5">
+                <button
+                  type="button"
+                  @click="step = 1"
+                  class="text-[13px] font-medium text-[#948573] hover:text-[#57504A] transition-colors"
+                >
+                  {{ resendAttempts >= MAX_RESEND_ATTEMPTS ? 'Try a different email' : 'Use a different email' }}
+                </button>
+              </div>
             </div>
           </form>
         </div>
@@ -365,13 +434,186 @@
     </footer>
 
   </div>
+
+  <!-- ============================================== -->
+  <!-- SUCCESS MODAL (shown after password reset)     -->
+  <!-- ============================================== -->
+  <Teleport to="body">
+    <Transition
+      enter-active-class="transition-all duration-300 ease-out"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-all duration-200 ease-in"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="showSuccessModal"
+        class="fixed inset-0 z-50 flex items-center justify-center px-4"
+        style="background: rgba(43,38,34,0.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="success-modal-title"
+        aria-describedby="success-modal-desc"
+      >
+        <Transition
+          enter-active-class="transition-all duration-300 ease-out"
+          enter-from-class="opacity-0 scale-95 translate-y-2"
+          enter-to-class="opacity-100 scale-100 translate-y-0"
+        >
+          <div
+            v-if="showSuccessModal"
+            class="relative w-full max-w-[400px] bg-white rounded-2xl shadow-2xl flex flex-col items-center text-center px-8 py-10"
+            style="box-shadow: 0 24px 48px -8px rgba(43,38,34,0.18), 0 0 0 1px #E5DDD1;"
+          >
+            <!-- Animated check circle -->
+            <div
+              class="w-[72px] h-[72px] rounded-full flex items-center justify-center mb-6"
+              style="background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);"
+            >
+              <ShieldCheck
+                class="w-9 h-9"
+                style="color: #17B26A; stroke-width: 1.75;"
+                aria-hidden="true"
+              />
+            </div>
+
+            <!-- Heading -->
+            <h2
+              id="success-modal-title"
+              class="font-['Poppins'] font-semibold text-[22px] text-[#2B2622] leading-snug mb-2 tracking-tight"
+            >
+              Password reset!
+            </h2>
+
+            <!-- Description -->
+            <p
+              id="success-modal-desc"
+              class="text-[14px] text-[#78716C] leading-relaxed max-w-[300px] mb-6"
+            >
+              Your password has been successfully reset. You'll be redirected to login in
+              <span class="font-semibold tabular-nums text-[#2B2622]">{{ redirectCountdown }}s</span>.
+            </p>
+
+
+            <!-- CTA -->
+            <button
+              type="button"
+              @click="goToLoginNow"
+              class="w-full h-[46px] rounded-[10px] font-semibold text-sm tracking-wide text-white transition-all duration-150 active:scale-[0.98]"
+              style="background: #E2673D;"
+              @mouseenter="(e) => (e.currentTarget as HTMLElement).style.background = '#C9552F'"
+              @mouseleave="(e) => (e.currentTarget as HTMLElement).style.background = '#E2673D'"
+            >
+              Go to login
+            </button>
+
+            <!-- Subtle note -->
+            <p class="text-[12px] text-[#B5A695] mt-4">
+              Redirecting automatically in {{ redirectCountdown }}s…
+            </p>
+          </div>
+        </Transition>
+      </div>
+    </Transition>
+  </Teleport>
+
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { Mail, KeyRound, Eye, EyeOff, AlertCircle, Check } from '@lucide/vue'
+import { ref, computed, watch, onUnmounted, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
+import { Mail, KeyRound, Eye, EyeOff, AlertCircle, Check, CheckCircle, Clock, ShieldCheck } from '@lucide/vue'
 
 const step = ref(1)
+
+// ── Step 1: Email state & validation ──────────────────────────────────────────
+const email = ref('')
+const emailError = ref('')
+const emailTouched = ref(false)
+
+/**
+ * Validates an email address with a practical RFC-5321-compatible regex.
+ * Returns an error string, or '' if valid.
+ */
+function validateEmail(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed) return 'Email address is required.'
+  if (/\s/.test(trimmed)) return 'Email address must not contain spaces.'
+  const atCount = (trimmed.match(/@/g) || []).length
+  if (atCount === 0) return 'Email address must include an @ symbol.'
+  if (atCount > 1) return 'Email address must contain only one @ symbol.'
+  const [local, domain] = trimmed.split('@')
+  if (!local) return 'Email address is missing the part before @.'
+  if (local.startsWith('.') || local.endsWith('.')) return 'Email address cannot start or end with a dot before @.'
+  if (/\.\.\./.test(local)) return 'Email address cannot have consecutive dots.'
+  if (!domain) return 'Email address is missing the domain (e.g. gmail.com).'
+  if (!domain.includes('.')) return 'Email domain must include a dot (e.g. gmail.com).'
+  if (domain.startsWith('.') || domain.endsWith('.')) return 'Email domain cannot start or end with a dot.'
+  if (/\.\.\./.test(domain)) return 'Email domain cannot have consecutive dots.'
+  const tld = domain.split('.').pop() ?? ''
+  if (tld.length < 2) return 'Email domain extension must be at least 2 characters (e.g. .com).'
+  if (!/^[a-zA-Z]+$/.test(tld)) return 'Email domain extension must contain only letters.'
+  const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/
+  if (!emailRegex.test(trimmed)) return 'Please enter a valid email address (e.g. you@example.com).'
+  return ''
+}
+
+function onEmailBlur() {
+  emailTouched.value = true
+  emailError.value = validateEmail(email.value)
+}
+
+function onEmailInput() {
+  // Live-clear the error once the user starts correcting
+  if (emailError.value) emailError.value = validateEmail(email.value)
+}
+
+// ── Step 2: Resend-code state ─────────────────────────────────────────────────
+const RESEND_COOLDOWN_SECS = 60
+const MAX_RESEND_ATTEMPTS = 3
+
+const resendCooldown = ref(0)                      // seconds remaining; 0 = ready
+const resendAttempts = ref(0)                      // how many times user has resent
+const resendStatus = ref<'idle' | 'sent'>('idle')  // drives the "Code sent!" flash
+const resendAnnouncement = ref('')                 // sr-only live region text
+
+let cooldownInterval: ReturnType<typeof setInterval> | null = null
+let sentFlashTimeout: ReturnType<typeof setTimeout> | null = null
+
+function startCooldown() {
+  resendCooldown.value = RESEND_COOLDOWN_SECS
+  if (cooldownInterval) clearInterval(cooldownInterval)
+  cooldownInterval = setInterval(() => {
+    if (resendCooldown.value > 0) {
+      resendCooldown.value--
+      if (resendCooldown.value === 0) {
+        resendAnnouncement.value = 'You can now resend the verification code.'
+        clearInterval(cooldownInterval!)
+        cooldownInterval = null
+      }
+    }
+  }, 1000)
+}
+
+// Start cooldown automatically whenever the user enters step 2
+watch(
+  () => step.value,
+  (newStep) => {
+    if (newStep === 2) {
+      resendAttempts.value = 0
+      resendStatus.value = 'idle'
+      startCooldown()
+    }
+  }
+)
+
+onUnmounted(() => {
+  if (cooldownInterval) clearInterval(cooldownInterval)
+  if (sentFlashTimeout) clearTimeout(sentFlashTimeout)
+})
+// ─────────────────────────────────────────────────────────────────────────────
+
 const otp = ref(['', '', '', '', '', ''])
 const otpInputs = ref<HTMLInputElement[]>([])
 
@@ -479,7 +721,7 @@ function handleOtpPaste(event: ClipboardEvent) {
   
   const numbers = pastedData.replace(/\D/g, '').substring(0, 6).split('')
   for (let i = 0; i < numbers.length; i++) {
-    otp.value[i] = numbers[i]
+    otp.value[i] = numbers[i] ?? ''
   }
   
   // Focus the next empty box, or the last box
@@ -488,7 +730,9 @@ function handleOtpPaste(event: ClipboardEvent) {
 }
 
 function onSendCode() {
-  console.log("Send code clicked! Progressing to Step 2...")
+  emailTouched.value = true
+  emailError.value = validateEmail(email.value)
+  if (emailError.value) return // block progression until valid
   step.value = 2
 }
 
@@ -499,8 +743,23 @@ function onVerifyCode() {
 }
 
 function onResendCode() {
-  console.log("Resend code clicked!")
+  if (resendCooldown.value > 0 || resendAttempts.value >= MAX_RESEND_ATTEMPTS) return
+  resendAttempts.value++
+  resendStatus.value = 'sent'
+  resendAnnouncement.value = `Verification code resent to ${email.value}.`
+  otp.value = ['', '', '', '', '', '']
+  nextTick(() => otpInputs.value[0]?.focus())
+  startCooldown()
+  if (sentFlashTimeout) clearTimeout(sentFlashTimeout)
+  sentFlashTimeout = setTimeout(() => { resendStatus.value = 'idle' }, 3000)
 }
+
+const passwordError = ref('')
+const showSuccessModal = ref(false)
+const redirectCountdown = ref(5)
+let redirectInterval: ReturnType<typeof setInterval> | null = null
+
+const router = useRouter()
 
 function onResetPassword() {
   if (newPassword.value !== confirmPassword.value) {
@@ -508,7 +767,25 @@ function onResetPassword() {
     return
   }
   passwordError.value = ''
-  console.log('Reset password clicked!')
-  // router.push('/auth/login')
+  showSuccessModal.value = true
+  redirectCountdown.value = 5
+
+  redirectInterval = setInterval(() => {
+    redirectCountdown.value--
+    if (redirectCountdown.value <= 0) {
+      clearInterval(redirectInterval!)
+      redirectInterval = null
+      router.push('/auth/login')
+    }
+  }, 1000)
 }
+
+function goToLoginNow() {
+  if (redirectInterval) clearInterval(redirectInterval)
+  router.push('/auth/login')
+}
+
+onUnmounted(() => {
+  if (redirectInterval) clearInterval(redirectInterval)
+})
 </script>
