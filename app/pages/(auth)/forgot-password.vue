@@ -534,7 +534,7 @@ function validateEmail(value: string): string {
   const [local, domain] = trimmed.split('@')
   if (!local) return 'Email address is missing the part before @.'
   if (local.startsWith('.') || local.endsWith('.')) return 'Email address cannot start or end with a dot before @.'
-  if (/\.\.\./.test(local)) return 'Email address cannot have consecutive dots.'
+  if (/\.\./.test(local)) return 'Email address cannot have consecutive dots.'
   if (!domain) return 'Email address is missing the domain (e.g. gmail.com).'
   if (!domain.includes('.')) return 'Email domain must include a dot (e.g. gmail.com).'
   if (domain.startsWith('.') || domain.endsWith('.')) return 'Email domain cannot start or end with a dot.'
