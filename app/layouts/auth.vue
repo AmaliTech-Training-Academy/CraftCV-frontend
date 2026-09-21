@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
 
-const isRegister = computed(() => route.path === '/auth/register')
+const isRegister = computed(() => route.path === '/register' || route.path === '/auth/register')
 
 const bgImage = computed(() => {
   if (isRegister.value) {
@@ -9,82 +9,99 @@ const bgImage = computed(() => {
   }
   return '/login-bg.jpg'
 })
-
-const logoTextColor = computed(() => {
-  return 'text-white'
-})
-
-const testimonialTitle = computed(() => {
-  return isRegister.value
-    ? 'Build a CV That Gets You Hired'
-    : 'Your Professional Dashboard Awaits'
-})
-
-const testimonialBody = computed(() => {
-  return isRegister.value
-    ? 'Join CraftCV to unlock premium, ATS-optimized templates and intelligent formatting tools. Craft a tailored resume that highlights your unique strengths, track multiple CV versions for different roles, and export pixel-perfect PDFs in seconds.'
-    : 'Log back in to securely access your saved resumes and cover letters. From your dashboard, you can quickly duplicate existing CVs to tailor them for new applications, tweak your designs, and download high-quality PDFs instantly.'
-})
 </script>
 
 <template>
-  <div class="flex min-h-screen">
-    <div
-      class="relative hidden md:flex md:w-[70%] flex-shrink-0 bg-stone-100 overflow-hidden rounded-r-[2.5rem] ring-1 ring-stone-200"
-    >
-      <img
-        :src="bgImage"
-        alt="CraftCV background"
-        class="absolute inset-0 w-full h-full object-cover transition-all duration-500"
-      >
-
-      <div
-        class="relative z-10 flex flex-col justify-between w-full h-full p-10"
-      >
-        <div class="flex items-center gap-3">
-          <NuxtImg
-            src="/craftcv-logo.png"
-            alt="CraftCV"
-            class="h-10 w-auto mix-blend-multiply brightness-0 invert"
-          />
-          <span
-            class="font-display font-semibold text-xl tracking-tight transition-colors"
-            :class="logoTextColor"
-          >CraftCV</span>
-        </div>
-
-        <div
-          class="w-full bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 lg:p-10 shadow-2xl text-white"
-        >
-          <h2
-            class="font-display text-2xl lg:text-3xl font-semibold text-white tracking-tight mb-3"
-          >
-            {{ testimonialTitle }}
-          </h2>
-          <p class="text-stone-200 text-sm lg:text-base leading-relaxed">
-            {{ testimonialBody }}
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div
-      class="flex flex-col justify-center w-full md:w-[30%] bg-white px-8 py-10 sm:px-12"
-    >
-      <div class="flex items-center justify-center gap-3 mb-8 md:hidden">
+  <div class="min-h-screen flex flex-col justify-between py-3 sm:py-5 lg:py-6 bg-white px-4 sm:px-8 lg:px-12">
+    <!-- Top Bar Header with CraftCV logo -->
+    <header class="w-full max-w-7xl mx-auto px-6 sm:px-12">
+      <div class="inline-flex items-center gap-2.5">
         <NuxtImg
           src="/craftcv-logo.png"
           alt="CraftCV"
           class="h-8 w-auto"
         />
-        <span
-          class="font-display text-stone-900 font-semibold text-lg tracking-tight"
-        >CraftCV</span>
+        <span class="font-display font-semibold text-xl tracking-tight text-stone-900">
+          CraftCV
+        </span>
+      </div>
+    </header>
+
+    <!-- Parent container with items-center justify-center -->
+    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col lg:flex-row items-center justify-center py-2 sm:py-4">
+      <!-- Testimonial Image Panel on the LEFT (w-[40%], flex-shrink-0, hidden <1024px) -->
+      <div
+        class="hidden lg:flex lg:w-[40%] flex-shrink-0 h-[min(620px,82vh)] rounded-2xl overflow-hidden p-6 relative bg-stone-900 shadow-xl flex-col justify-end"
+      >
+        <img
+          :src="bgImage"
+          alt="CraftCV background"
+          class="absolute inset-0 w-full h-full object-cover object-top opacity-90 transition-all duration-500"
+        >
+
+        <!-- Testimonial Overlay Card -->
+        <div
+          class="relative z-10 rounded-xl bg-black/60 backdrop-blur-md p-5 border border-white/10 text-white"
+        >
+          <p class="text-sm font-medium leading-relaxed mb-4 text-stone-100">
+            “CraftCV is my go-to website for all my CVs. I get free high-quality CVs, what more could I ask for?”
+          </p>
+
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-xs font-semibold text-white tracking-wider flex-shrink-0"
+              >
+                MW
+              </div>
+              <div>
+                <h4 class="font-semibold text-sm text-white leading-tight">
+                  Mark Williams
+                </h4>
+                <p class="text-xs text-stone-300">
+                  Product Manager | Capsule
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              aria-label="Next testimonial"
+              class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-colors flex-shrink-0"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-4 h-4 text-white"
+              >
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div class="w-full max-w-sm mx-auto">
-        <slot />
+      <!-- Registration Form Container on the RIGHT (w-[60%], centered content) -->
+      <div
+        class="w-full lg:w-[60%] flex items-center justify-center px-6 sm:px-12"
+      >
+        <div class="w-full max-w-[400px]">
+          <slot />
+        </div>
       </div>
-    </div>
+    </main>
+
+    <!-- Footer for vertical balance -->
+    <footer class="w-full max-w-7xl mx-auto px-6 sm:px-12 text-center text-xs text-stone-400">
+      <p>&copy; {{ new Date().getFullYear() }} CraftCV. All rights reserved.</p>
+    </footer>
   </div>
 </template>
