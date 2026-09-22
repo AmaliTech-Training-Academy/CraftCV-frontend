@@ -1,0 +1,155 @@
+# CI for CraftCV-frontend, executed by the craftcv-frontend-ci CodeBuild
+# project in eu-west-1. The project itself is defined in CraftCV-devops.
+#
+# This file defines no quality gates of its own. scripts/check.sh is already
+# the canonical gate - the Git hooks call it and so does this - so a green
+# local run and a green build mean the same thing.
+
+version: 0.2
+
+env:
+  variables:
+    # Keeps npm's cache inside the path declared under `cache` below.
+    npm_config_cache: /root/.npm
+    NODE_OPTIONS: --max-old-space-size=3072
+
+phases:
+  install:
+    runtime-versions:
+      # Matches .nvmrc.
+      nodejs: 22
+    commands:
+      # --- Repository conventions -----------------------------------------
+      # Runs first, before npm ci, because a badly named branch should cost
+      # seconds rather than minutes.
+      #
+      # Pull requests only: develop and main are protected branches whose
+      # history has already been through this check.
+      - |
+        case "${CODEBUILD_WEBHOOK_EVENT:-}" in
+          PULL_REQUEST_*)
+            BASE="${CODEBUILD_WEBHOOK_BASE_REF#refs/heads/}"
+            HEAD_BRANCH="${CODEBUILD_WEBHOOK_HEAD_REF#refs/heads/}"
+            echo "Checking conventions: ${HEAD_BRANCH} -> ${BASE}"
+
+            sh scripts/validate-conventions.sh branch "$HEAD_BRANCH" || exit 1
+
+            # No `git fetch`: CodeBuild discards its clone credentials, and a
+            # full clone (git_clone_depth = 0) already has every remote ref.
+            BASE_REF="origin/${BASE}"
+            git rev-parse --verify --quiet "$BASE_REF" >/dev/null \
+              || { echo "base ref ${BASE_REF} is not in the clone"; exit 1; }
+            MERGE_BASE=$(git merge-base "$BASE_REF" HEAD)
+            echo "Comparing ${MERGE_BASE}..HEAD"
+
+            # Read from a file, not a pipe: a pipeline would put the loop in a
+            # subshell and swallow the failing exit status.
+            git log --format=%s "${MERGE_BASE}..HEAD" > /tmp/subjects
+            while IFS= read -r subject; do
+              [ -n "$subject" ] || continue
+              sh scripts/validate-conventions.sh commit "$subject" || exit 1
+            done < /tmp/subjects
+
+            git diff --check "${MERGE_BASE}..HEAD" || { echo "whitespace errors above"; exit 1; }
+            echo "Conventions OK"
+            ;;
+          *)
+            echo "Not a pull request - skipping convention checks."
+            ;;
+        esac
+
+      # npm ci, not npm install: it installs exactly the lockfile and fails if
+      # package.json and package-lock.json disagree.
+      - npm ci
+
+  build:
+    commands:
+      # The same four gates the Git hooks run, in the same order.
+      - sh scripts/check.sh lint
+      - sh scripts/check.sh typecheck
+      - sh scripts/check.sh test
+      - sh scripts/check.sh build
+
+      # check.sh build runs `nuxt build`, which produces a server bundle.
+      # What nginx serves is the static site, so generate it explicitly.
+      # This is the artifact that gets deployed - built once, here, and
+      # never rebuilt on the instance.
+      - npx nuxt generate
+      - test -f .output/public/index.html || { echo "nuxt generate produced no index.html"; exit 1; }
+
+  post_build:
+    commands:
+      # --- Upload the artifact ----------------------------------------------
+      # Uploaded on every green build, including pull requests: it costs a
+      # few hundred KB, and it means a build can be promoted later without
+      # rebuilding it.
+      - |
+        if [ "${CODEBUILD_BUILD_SUCCEEDING:-0}" != "1" ]; then
+          echo "Build failed - nothing to upload."
+          exit 0
+        fi
+        COMMIT="${CODEBUILD_RESOLVED_SOURCE_VERSION:-unknown}"
+        echo "Uploading .output/public to s3://${ARTIFACT_BUCKET}/builds/${COMMIT}/"
+        aws s3 sync .output/public "s3://${ARTIFACT_BUCKET}/builds/${COMMIT}/"           --region "$AWS_DEFAULT_REGION" --only-show-errors --delete
+        echo "Uploaded $(find .output/public -type f | wc -l) files"
+
+      # --- Deploy -----------------------------------------------------------
+      # Same gate as the backend and it fails closed: a red build, a pull
+      # request build, or a push to any branch other than develop all skip.
+      - |
+        if [ "${CODEBUILD_BUILD_SUCCEEDING:-0}" != "1" ]; then
+          echo "DEPLOY SKIPPED: build failed."
+          exit 0
+        fi
+
+        EVENT="${CODEBUILD_WEBHOOK_EVENT:-}"
+        if [ -n "$EVENT" ]; then
+          if [ "$EVENT" != "PUSH" ]; then
+            echo "DEPLOY SKIPPED: event ${EVENT} is not a push."
+            exit 0
+          fi
+          if [ "${CODEBUILD_WEBHOOK_HEAD_REF:-}" != "refs/heads/${DEPLOY_BRANCH}" ]; then
+            echo "DEPLOY SKIPPED: push to ${CODEBUILD_WEBHOOK_HEAD_REF:-unknown}, not ${DEPLOY_BRANCH}."
+            exit 0
+          fi
+        else
+          if [ "${CODEBUILD_SOURCE_VERSION:-}" != "${DEPLOY_BRANCH}" ]; then
+            echo "DEPLOY SKIPPED: manual build of ${CODEBUILD_SOURCE_VERSION:-unknown}, not ${DEPLOY_BRANCH}."
+            exit 0
+          fi
+        fi
+
+        COMMIT="${CODEBUILD_RESOLVED_SOURCE_VERSION:-unknown}"
+        echo "Deploying ${COMMIT} to ${DEPLOY_INSTANCE_ID} via ${DEPLOY_DOCUMENT_NAME}"
+        CMD_ID=$(aws ssm send-command           --region "$AWS_DEFAULT_REGION"           --document-name "$DEPLOY_DOCUMENT_NAME"           --instance-ids "$DEPLOY_INSTANCE_ID"           --comment "CodeBuild ${CODEBUILD_BUILD_NUMBER:-manual} ${COMMIT}"           --parameters "CommitSha=${COMMIT}"           --query 'Command.CommandId' --output text)
+        echo "SSM command: ${CMD_ID}"
+
+        # npm ci plus a Nuxt build on a 1GB instance is slow, so allow well
+        # over the document's own 1800s timeout before giving up here.
+        STATUS=Pending
+        for i in $(seq 1 200); do
+          STATUS=$(aws ssm get-command-invocation             --region "$AWS_DEFAULT_REGION"             --command-id "$CMD_ID" --instance-id "$DEPLOY_INSTANCE_ID"             --query 'Status' --output text 2>/dev/null || echo Pending)
+          case "$STATUS" in
+            Success|Failed|Cancelled|TimedOut) break ;;
+          esac
+          sleep 10
+        done
+
+        echo "----- deploy output -----"
+        aws ssm get-command-invocation --region "$AWS_DEFAULT_REGION"           --command-id "$CMD_ID" --instance-id "$DEPLOY_INSTANCE_ID"           --query 'StandardOutputContent' --output text || true
+        ERRS=$(aws ssm get-command-invocation --region "$AWS_DEFAULT_REGION"           --command-id "$CMD_ID" --instance-id "$DEPLOY_INSTANCE_ID"           --query 'StandardErrorContent' --output text || true)
+        [ -n "$ERRS" ] && { echo "----- deploy stderr -----"; echo "$ERRS"; }
+        echo "-------------------------"
+
+        if [ "$STATUS" != "Success" ]; then
+          echo "DEPLOY FAILED (${STATUS})"
+          exit 1
+        fi
+        echo "DEPLOY OK: ${DEPLOY_BRANCH} is now at ${COMMIT}"
+
+# No reports: section. vitest is not configured to emit JUnit XML here; add a
+# reporter and a reports block together if that becomes useful.
+
+cache:
+  paths:
+    - /root/.npm/**/*
