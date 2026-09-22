@@ -1,8 +1,8 @@
 #!/bin/sh
 
 # Rejects a push whose branch name or commit subjects break the conventions in
-# CONTRIBUTING.md, then type checks, tests and builds. Git feeds one line per
-# pushed ref on stdin:
+# CONTRIBUTING.md, then type checks, tests, builds and generates. Git feeds one
+# line per pushed ref on stdin:
 #   <local ref> <local sha> <remote ref> <remote sha>
 
 set -u
@@ -61,6 +61,7 @@ fi
 sh "$repo_root/scripts/check.sh" typecheck || status=1
 sh "$repo_root/scripts/check.sh" test || status=1
 sh "$repo_root/scripts/check.sh" build || status=1
+sh "$repo_root/scripts/check.sh" generate || status=1
 
 if [ "$status" -ne 0 ]; then
   printf '\n%s\n' "Push rejected: a check failed. Fix it and push again." >&2

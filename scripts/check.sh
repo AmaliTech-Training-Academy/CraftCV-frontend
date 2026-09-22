@@ -9,7 +9,8 @@
 #   sh scripts/check.sh typecheck       vue-tsc through nuxt typecheck
 #   sh scripts/check.sh test            vitest unit tests, once
 #   sh scripts/check.sh build           nuxt production build
-#   sh scripts/check.sh all             lint, typecheck, test and build
+#   sh scripts/check.sh generate        static site, prerendering every route
+#   sh scripts/check.sh all             lint, typecheck, test, build and generate
 
 set -eu
 
@@ -117,6 +118,20 @@ run_build() {
   "$bin_dir/nuxt" build
 }
 
+# nuxt build produces a server bundle; what nginx serves is the static site.
+# Generating it here rather than only in CI is deliberate: the prerenderer
+# crawls every link it renders and fails on one that 404s, which is a class of
+# break that lint, typecheck and the unit tests all pass straight over.
+run_generate() {
+  require_bin nuxt
+
+  step 'generate: nuxt generate'
+  "$bin_dir/nuxt" generate
+
+  [ -f "$repo_root/.output/public/index.html" ] ||
+    fail "generate produced no .output/public/index.html"
+}
+
 # A change to these needs no test of its own: generated code, build
 # configuration, styling, and type declarations with no behaviour to assert.
 test_exempt() {
@@ -202,7 +217,7 @@ EOF
 }
 
 [ "$#" -ge 1 ] ||
-  fail "Usage: $0 lint [--staged] | tests-required [path...] | typecheck | test | build | all"
+  fail "Usage: $0 lint [--staged] | tests-required [path...] | typecheck | test | build | generate | all"
 
 case "$1" in
   lint) shift; run_lint "$@" ;;
@@ -210,6 +225,7 @@ case "$1" in
   typecheck) run_typecheck ;;
   test) run_test ;;
   build) run_build ;;
-  all) run_lint; run_typecheck; run_test; run_build ;;
-  *) fail "Unknown check '$1'. Use lint, tests-required, typecheck, test, build, or all." ;;
+  generate) run_generate ;;
+  all) run_lint; run_typecheck; run_test; run_build; run_generate ;;
+  *) fail "Unknown check '$1'. Use lint, tests-required, typecheck, test, build, generate, or all." ;;
 esac
