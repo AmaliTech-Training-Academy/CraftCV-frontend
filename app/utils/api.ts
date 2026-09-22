@@ -31,7 +31,7 @@ export const $api = async <T>(
       if (!refreshToken.value) {
         authToken.value = null
         refreshToken.value = null
-        await navigateTo('/auth/login')
+        await navigateTo('/(auth)/login')
         throw error
       }
 
@@ -55,7 +55,7 @@ export const $api = async <T>(
         authToken.value = null
         refreshToken.value = null
 
-        await navigateTo('/auth/login')
+        await navigateTo('/(auth)/login')
 
         throw refreshError
       }

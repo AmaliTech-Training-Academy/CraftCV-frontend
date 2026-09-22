@@ -1,25 +1,20 @@
 <template>
   <div>
-    <div class="mb-8 text-center md:text-left">
-      <h1
-        class="font-display text-4xl font-semibold text-stone-900 leading-tight mb-2"
-      >
-        Welcome back.
-      </h1>
-      <p class="text-stone-600 text-sm">
-        Enter your email and password to continue.
-      </p>
-    </div>
+    <h1 class="font-display text-[32px] font-bold text-stone-900 leading-tight mb-2 text-center lg:text-left">
+      Welcome <span class="text-brand-600">back.</span>
+    </h1>
+    <p class="text-[15px] text-stone-500 mb-8 text-center lg:text-left">
+      Enter your email and password to continue.
+    </p>
 
     <form
       novalidate
-      class="space-y-5"
       @submit.prevent="handleSubmit"
     >
-      <div class="space-y-1.5">
+      <div class="mb-5">
         <label
           for="email"
-          class="block text-sm font-medium text-stone-800"
+          class="block text-[14px] font-medium text-stone-800 mb-2"
         >Email address</label>
         <input
           id="email"
@@ -30,7 +25,7 @@
           :aria-invalid="!!fieldError('email')"
           :aria-describedby="fieldError('email') ? 'email-error' : undefined"
           :class="[
-            'w-full rounded-[10px] border bg-white px-4 py-3 text-sm text-stone-900 placeholder-stone-400 outline-none transition',
+            'w-full h-[44px] px-[14px] text-[15px] rounded-lg border bg-white text-stone-900 placeholder-stone-400 outline-none transition',
             fieldError('email')
               ? 'border-error focus:ring-2 focus:ring-error/30'
               : 'border-stone-200 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20',
@@ -40,16 +35,16 @@
         <p
           v-if="fieldError('email')"
           id="email-error"
-          class="text-xs text-error"
+          class="mt-1.5 text-xs text-error"
         >
-          {{ fieldError("email") }}
+          {{ fieldError('email') }}
         </p>
       </div>
 
-      <div class="space-y-1.5">
+      <div class="mb-4">
         <label
           for="password"
-          class="block text-sm font-medium text-stone-800"
+          class="block text-[14px] font-medium text-stone-800 mb-2"
         >Password</label>
         <div class="relative">
           <input
@@ -57,13 +52,11 @@
             v-model="form.password"
             :type="showPassword ? 'text' : 'password'"
             autocomplete="current-password"
-            placeholder="••••••••"
+            placeholder="Your password"
             :aria-invalid="!!fieldError('password')"
-            :aria-describedby="
-              fieldError('password') ? 'password-error' : undefined
-            "
+            :aria-describedby="fieldError('password') ? 'password-error' : undefined"
             :class="[
-              'w-full rounded-[10px] border bg-white px-4 py-3 pr-11 text-sm text-stone-900 placeholder-stone-400 outline-none transition',
+              'w-full h-[44px] px-[14px] pr-11 text-[15px] rounded-lg border bg-white text-stone-900 placeholder-stone-400 outline-none transition',
               fieldError('password')
                 ? 'border-error focus:ring-2 focus:ring-error/30'
                 : 'border-stone-200 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20',
@@ -72,7 +65,7 @@
           >
           <button
             type="button"
-            class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+            class="absolute right-[14px] top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
             :aria-label="showPassword ? 'Hide password' : 'Show password'"
             :aria-pressed="showPassword"
             @click="showPassword = !showPassword"
@@ -126,19 +119,15 @@
         <p
           v-if="fieldError('password')"
           id="password-error"
-          class="text-xs text-error"
+          class="mt-1.5 text-xs text-error"
         >
-          {{ fieldError("password") }}
+          {{ fieldError('password') }}
         </p>
       </div>
 
-      <div class="flex items-center justify-between">
-        <label
-          for="remember"
-          class="flex items-center gap-2 cursor-pointer select-none"
-        >
+      <div class="flex items-center justify-between mb-6">
+        <label class="flex items-center gap-2 cursor-pointer select-none">
           <input
-            id="remember"
             v-model="form.rememberMe"
             type="checkbox"
             class="w-4 h-4 rounded border-stone-300 accent-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
@@ -147,27 +136,26 @@
         </label>
         <a
           href="#"
-          class="text-sm text-brand-600 hover:text-brand-700 font-medium transition"
+          class="text-[14px] font-medium text-brand-600 hover:text-brand-700 transition"
         >Forgot password?</a>
       </div>
 
       <div
         v-if="serverError"
+        class="mb-4 flex items-start gap-2.5 rounded-lg border border-error/20 bg-error/5 p-3"
         role="alert"
-        aria-live="assertive"
-        class="flex items-center gap-2 rounded-[10px] bg-error-tint border border-error/20 px-4 py-3"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
           height="16"
           fill="none"
-          stroke="#c9564a"
-          stroke-width="2"
+          stroke="currentColor"
+          stroke-width="1.8"
           stroke-linecap="round"
           stroke-linejoin="round"
           viewBox="0 0 24 24"
-          class="flex-shrink-0"
+          class="flex-shrink-0 mt-0.5 text-error"
         >
           <circle
             cx="12"
@@ -192,11 +180,11 @@
         </p>
       </div>
 
-      <Button
+      <button
         id="login-submit-btn"
         type="submit"
         :disabled="loading"
-        class="w-full bg-brand-600 hover:bg-brand-700 active:bg-brand-800 rounded-[10px] py-3"
+        class="w-full h-12 rounded-lg bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white text-base font-semibold flex items-center justify-center gap-2 transition disabled:opacity-60 disabled:cursor-not-allowed"
       >
         <svg
           v-if="loading"
@@ -219,15 +207,21 @@
             d="M4 12a8 8 0 018-8v8H4z"
           />
         </svg>
-        <span>{{ loading ? "Signing in…" : "Sign in" }}</span>
-      </Button>
+        {{ loading ? 'Signing in\u2026' : 'Sign in' }}
+      </button>
     </form>
 
-    <p class="mt-8 text-center text-sm text-stone-600">
+    <div class="mt-6 flex items-center gap-3">
+      <div class="h-px flex-1 bg-stone-200" />
+      <span class="text-sm text-stone-400 whitespace-nowrap">or continue with</span>
+      <div class="h-px flex-1 bg-stone-200" />
+    </div>
+
+    <p class="mt-6 text-center text-[14px] text-stone-600">
       Don't have an account?
       <NuxtLink
         to="/(auth)/register"
-        class="text-brand-600 hover:text-brand-700 font-medium transition"
+        class="font-medium text-brand-600 hover:text-brand-700 transition"
       >Sign up</NuxtLink>
     </p>
   </div>
@@ -235,7 +229,7 @@
 
 <script setup lang="ts">
 useHead({
-  title: 'Sign in — CraftCV',
+  title: 'Sign in \u2014 CraftCV',
   meta: [
     {
       name: 'description',
@@ -284,7 +278,7 @@ async function handleSubmit() {
     )
   }
   catch {
-    // login errors are surfaced through serverError.value by useAuth
+    // useAuth surfaces errors via serverError
   }
 }
 </script>
