@@ -220,7 +220,7 @@
     <p class="mt-6 text-center text-[14px] text-stone-600">
       Don't have an account?
       <NuxtLink
-        to="/(auth)/register"
+        to="/register"
         class="font-medium text-brand-600 hover:text-brand-700 transition"
       >Sign up</NuxtLink>
     </p>
