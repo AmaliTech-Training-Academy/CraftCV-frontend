@@ -99,7 +99,7 @@ onUnmounted(() => {
         <img
           :src="bgImage"
           alt="CraftCV background"
-          class="absolute inset-0 object-cover object-top opacity-90 transition-all duration-500"
+          class="absolute inset-0 w-full h-full object-cover object-top opacity-90 transition-all duration-500"
         >
 
         <div
