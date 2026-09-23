@@ -13,6 +13,20 @@ export default defineNuxtConfig({
     enabled: true,
   },
 
+  app: {
+    head: {
+      link: [
+        { rel: 'icon', type: 'image/png', href: '/favicon.png' },
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap',
+        },
+      ],
+    },
+  },
+
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
@@ -30,17 +44,12 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2025-07-15',
 
-  app: {
-    head: {
-      link: [
-        { rel: 'icon', type: 'image/png', href: '/favicon.png' },
-        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        {
-          rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap',
-        },
-      ],
+  nitro: {
+    prerender: {
+      // /login is not yet implemented (owned by a separate PR).
+      // Ignore it so `nuxt generate` does not fail on the 404.
+      // Remove this entry once app/pages/(auth)/login.vue is merged.
+      ignore: ['/login'],
     },
   },
 
@@ -67,14 +76,5 @@ export default defineNuxtConfig({
   shadcn: {
     prefix: '',
     componentDir: './app/components/ui',
-  },
-
-  nitro: {
-    prerender: {
-      // /login is not yet implemented (owned by a separate PR).
-      // Ignore it so `nuxt generate` does not fail on the 404.
-      // Remove this entry once app/pages/(auth)/login.vue is merged.
-      ignore: ['/login'],
-    },
   },
 })
