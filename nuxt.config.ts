@@ -30,6 +30,14 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2025-07-15',
 
+  nitro: {
+    prerender: {
+      crawlLinks: true,
+      failOnError: false,
+      ignore: ['/login'],
+    },
+  },
+
   vite: {
     plugins: [
       tailwindcss(),
