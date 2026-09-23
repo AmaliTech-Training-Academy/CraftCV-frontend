@@ -17,10 +17,18 @@ const { isLoggedIn } = useAuth()
 
     <!-- Navigation -->
     <nav class="absolute left-1/2 -translate-x-1/2 flex items-center gap-8 text-[13px] font-semibold text-gray-500">
-      <!-- Active Link (Templates) -->
+      <NuxtLink
+        to="/"
+        class="hover:text-gray-900 transition-colors"
+        active-class="text-[#F26438] border-b-2 border-[#F26438] pb-1 hover:text-[#F26438]"
+        exact
+      >
+        My Resumes
+      </NuxtLink>
       <NuxtLink
         to="/templates"
-        class="text-[#F26438] border-b-2 border-[#F26438] pb-1"
+        class="hover:text-gray-900 transition-colors"
+        active-class="text-[#F26438] border-b-2 border-[#F26438] pb-1 hover:text-[#F26438]"
       >
         Templates
       </NuxtLink>
