@@ -2,9 +2,12 @@
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineNuxtConfig({
-  // @nuxt/eslint and @nuxt/test-utils/module removed from modules until packages are installed
-  // Re-add them once: npm install @nuxt/eslint @nuxt/test-utils
-  modules: ['shadcn-nuxt', '@nuxt/eslint', '@nuxt/test-utils/module'],
+  modules: [
+    'shadcn-nuxt',
+    '@nuxt/eslint',
+    '@nuxt/test-utils/module',
+    '@nuxt/image',
+  ],
 
   devtools: {
     enabled: true,
@@ -47,8 +50,19 @@ export default defineNuxtConfig({
     ],
   },
 
-  // eslint config (restore when @nuxt/eslint is installed):
-  // eslint: { config: { stylistic: true } },
+  typescript: {
+    tsConfig: {
+      include: [
+        '../tests/**/*.ts',
+      ],
+    },
+  },
+
+  eslint: {
+    config: {
+      stylistic: true,
+    },
+  },
 
   shadcn: {
     prefix: '',
