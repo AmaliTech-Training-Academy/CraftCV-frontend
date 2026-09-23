@@ -1,5 +1,8 @@
 import { ref } from 'vue'
-import type { ResolvedCvData } from '~/types/cv'
+
+// Inline shape for mock template data — will be replaced by the real CvData type
+// once ~/types/cv is defined in the shared types package.
+type MockCvData = Record<string, unknown>
 
 // Mock list of templates for the selector gallery
 export const useTemplates = () => {
@@ -24,7 +27,7 @@ export const useTemplates = () => {
         experiences: [],
         educations: [],
         skills: [],
-      } as Partial<ResolvedCvData>,
+      } as MockCvData,
     },
     {
       id: 'template-2',
@@ -46,7 +49,7 @@ export const useTemplates = () => {
         experiences: [],
         educations: [],
         skills: [],
-      } as Partial<ResolvedCvData>,
+      } as MockCvData,
     },
   ])
 

@@ -17,12 +17,6 @@ const { isLoggedIn } = useAuth()
 
     <!-- Navigation -->
     <nav class="absolute left-1/2 -translate-x-1/2 flex items-center gap-8 text-[13px] font-semibold text-gray-500">
-      <NuxtLink
-        to="/"
-        class="hover:text-gray-900 transition-colors"
-      >
-        My Resumes
-      </NuxtLink>
       <!-- Active Link (Templates) -->
       <NuxtLink
         to="/templates"

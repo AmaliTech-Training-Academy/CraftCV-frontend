@@ -33,13 +33,24 @@ const toggleSidebar = () => {
         :aria-label="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
         @click="toggleSidebar"
       >
-        <PanelLeftOpen v-if="isCollapsed" class="w-4 h-4" aria-hidden="true" />
-        <PanelLeftClose v-else class="w-4 h-4" aria-hidden="true" />
+        <PanelLeftOpen
+          v-if="isCollapsed"
+          class="w-4 h-4"
+          aria-hidden="true"
+        />
+        <PanelLeftClose
+          v-else
+          class="w-4 h-4"
+          aria-hidden="true"
+        />
       </button>
     </div>
 
     <!-- Nav -->
-    <nav class="flex-1 overflow-y-auto py-3" aria-label="Template categories">
+    <nav
+      class="flex-1 overflow-y-auto py-3"
+      aria-label="Template categories"
+    >
       <ul class="space-y-0.5 px-2">
         <!-- "All" — the only category -->
         <li>

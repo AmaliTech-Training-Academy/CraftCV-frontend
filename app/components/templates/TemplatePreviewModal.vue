@@ -19,9 +19,9 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  close: []
+  'close': []
   'use-template': [template: Template]
-  navigate: [template: Template]
+  'navigate': [template: Template]
 }>()
 
 const { templates } = useTemplates()
@@ -34,10 +34,12 @@ const hasPrev = computed(() => currentIndex.value > 0)
 const hasNext = computed(() => currentIndex.value < templates.value.length - 1)
 
 const navigatePrev = () => {
-  if (hasPrev.value) emit('navigate', templates.value[currentIndex.value - 1])
+  // hasPrev guard ensures index is in bounds; ! asserts non-undefined for TS
+  if (hasPrev.value) emit('navigate', templates.value[currentIndex.value - 1]!)
 }
 const navigateNext = () => {
-  if (hasNext.value) emit('navigate', templates.value[currentIndex.value + 1])
+  // hasNext guard ensures index is in bounds; ! asserts non-undefined for TS
+  if (hasNext.value) emit('navigate', templates.value[currentIndex.value + 1]!)
 }
 
 const handleOpenChange = (open: boolean) => {
@@ -60,7 +62,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
-  <DialogRoot :open="isOpen" @update:open="handleOpenChange">
+  <DialogRoot
+    :open="isOpen"
+    @update:open="handleOpenChange"
+  >
     <DialogPortal>
       <DialogOverlay class="craftcv-overlay fixed inset-0 z-50 bg-black/30 backdrop-blur-sm" />
 
@@ -69,14 +74,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           {{ template.name }} Template Preview
         </DialogTitle>
 
-
-
         <!-- ═══════════ LEFT PANE (58%) ═══════════ -->
         <div class="relative flex-[58] bg-[#F0EDE8] flex items-center justify-center">
-
           <!-- Template Preview -->
           <div class="w-[78%] aspect-[3/4] bg-white rounded-xl shadow-md overflow-hidden relative group">
-            
             <!-- Enlarge Icon (Floating, appears on hover) -->
             <button
               class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200

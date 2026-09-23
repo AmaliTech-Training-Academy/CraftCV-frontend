@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { LayoutTemplate } from '@lucide/vue'
-import type { useTemplates } from '~/composables/useTemplates'
+import { useTemplates } from '~/composables/useTemplates'
 
 type Template = ReturnType<typeof useTemplates>['templates']['value'][number]
 
