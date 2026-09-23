@@ -17,8 +17,8 @@ fi
 
 git diff --cached --check
 
-# Lint is fast, so it runs on every commit. Type checking, tests and the build
-# run on push.
+# Lint is fast, so it runs on every commit. Type checking, tests, the build and
+# the static generate run on push.
 sh "$repo_root/scripts/check.sh" lint --staged
 
 # A behaviour change without a test is rejected here, while the code is still

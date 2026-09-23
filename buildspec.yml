@@ -64,7 +64,7 @@ phases:
 
   build:
     commands:
-      # The same four gates the Git hooks run, in the same order.
+      # The same five gates the Git hooks run, in the same order.
       - sh scripts/check.sh lint
       - sh scripts/check.sh typecheck
       - sh scripts/check.sh test
@@ -73,9 +73,10 @@ phases:
       # check.sh build runs `nuxt build`, which produces a server bundle.
       # What nginx serves is the static site, so generate it explicitly.
       # This is the artifact that gets deployed - built once, here, and
-      # never rebuilt on the instance.
-      - npx nuxt generate
-      - test -f .output/public/index.html || { echo "nuxt generate produced no index.html"; exit 1; }
+      # never rebuilt on the instance. It goes through check.sh like every
+      # other gate so that CI and the Git hooks cannot drift apart; the
+      # index.html assertion now lives in run_generate.
+      - sh scripts/check.sh generate
 
   post_build:
     commands:
