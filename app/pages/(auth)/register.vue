@@ -17,6 +17,7 @@
       <div
         v-if="serverError"
         class="rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-600"
+        role="alert"
       >
         {{ serverError }}
       </div>
@@ -24,6 +25,7 @@
       <div
         v-if="successMessage"
         class="rounded-lg bg-green-50 border border-green-200 p-3 text-xs text-green-700"
+        role="status"
       >
         {{ successMessage }}
       </div>
@@ -357,11 +359,18 @@ async function handleSubmit() {
   successMessage.value = ''
 
   try {
-    await register({
-      email: form.email.trim(),
-      password: form.password,
-      agreeToTerms: form.agreeTerms,
-    })
+    await register(
+      {
+        email: form.email.trim(),
+        password: form.password,
+        agreeToTerms: form.agreeTerms,
+      },
+      { autoNavigate: false },
+    )
+
+    successMessage.value = 'Account created successfully! Redirecting...'
+    await new Promise(resolve => setTimeout(resolve, 600))
+    await navigateTo('/dashboard')
   }
   catch {
     serverError.value = authError.value || 'Failed to create account. Please try again.'

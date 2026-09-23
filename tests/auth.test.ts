@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useAuth } from '../app/composables/useAuth'
+import { useAuth, extractErrorMessage } from '../app/composables/useAuth'
 import authMiddleware from '../app/middleware/auth'
 
 const { mockApi, cookies, mockNavigateTo, getCookieRef } = vi.hoisted(() => {
@@ -141,7 +141,7 @@ describe('Authentication Flow', () => {
       expect(mockNavigateTo).toHaveBeenCalledWith('/dashboard')
     })
 
-    it('sets error message on failed registration response', async () => {
+    it('sets error message on failed registration response with field errors', async () => {
       mockApi.mockRejectedValueOnce({
         data: { email: ['A user with that email already exists.'] },
       })
@@ -174,6 +174,62 @@ describe('Authentication Flow', () => {
       expect(cookies['refresh_token']?.value).toBeNull()
       expect(isAuthenticated.value).toBe(false)
       expect(mockNavigateTo).toHaveBeenCalledWith('/login')
+    })
+  })
+
+  describe('extractErrorMessage', () => {
+    it('returns network error message when no response or data exists', () => {
+      expect(extractErrorMessage(new Error('Network error'))).toBe(
+        'Unable to connect to the server. Please check your internet connection and try again.',
+      )
+      expect(extractErrorMessage(null)).toBe(
+        'Unable to connect to the server. Please check your internet connection and try again.',
+      )
+    })
+
+    it('returns system error message on 5xx status codes', () => {
+      expect(extractErrorMessage({ statusCode: 500, data: {} })).toBe(
+        'System error. Please try again after some time.',
+      )
+      expect(extractErrorMessage({ status: 503, response: { _data: {} } })).toBe(
+        'System error. Please try again after some time.',
+      )
+    })
+
+    it('returns detail message when detail string is present', () => {
+      expect(extractErrorMessage({ data: { detail: 'Custom error detail.' } })).toBe(
+        'Custom error detail.',
+      )
+    })
+
+    it('extracts email error from array or string', () => {
+      expect(extractErrorMessage({ data: { email: ['Email already exists'] } })).toBe(
+        'Email already exists',
+      )
+      expect(extractErrorMessage({ data: { email: 'Email invalid' } })).toBe(
+        'Email invalid',
+      )
+    })
+
+    it('extracts password error from array or string', () => {
+      expect(extractErrorMessage({ data: { password: ['Password too short'] } })).toBe(
+        'Password too short',
+      )
+      expect(extractErrorMessage({ data: { password: 'Password too short' } })).toBe(
+        'Password too short',
+      )
+    })
+
+    it('extracts non_field_errors from array or string', () => {
+      expect(extractErrorMessage({ data: { non_field_errors: ['Invalid payload'] } })).toBe(
+        'Invalid payload',
+      )
+    })
+
+    it('returns fallback message for other 4xx errors without matching keys', () => {
+      expect(extractErrorMessage({ statusCode: 400, data: { other: 'error' } })).toBe(
+        'Registration failed. Please check your details and try again.',
+      )
     })
   })
 
