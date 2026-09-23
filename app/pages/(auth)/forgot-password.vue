@@ -625,8 +625,8 @@
                 id="success-modal-desc"
                 class="text-[14px] text-[#78716C] leading-relaxed max-w-[300px] mb-6"
               >
-                Your password has been successfully reset. You'll be redirected to login in
-                <span class="font-semibold tabular-nums text-[#2B2622]">{{ redirectCountdown }}s</span>.
+                Your password has been successfully reset. Redirecting to login in
+                <span class="font-semibold tabular-nums text-[#2B2622]">{{ redirectCountdown }}s</span>...
               </p>
 
               <!-- CTA -->
@@ -641,10 +641,7 @@
                 Go to login
               </button>
 
-              <!-- Subtle note -->
-              <p class="text-[12px] text-[#B5A695] mt-4">
-                Redirecting automatically in {{ redirectCountdown }}s…
-              </p>
+
             </div>
           </Transition>
         </div>

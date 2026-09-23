@@ -45,6 +45,11 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
 
   nitro: {
+    routeRules: {
+      '/api/**': {
+        proxy: 'http://ec2-63-32-123-101.eu-west-1.compute.amazonaws.com/api/**',
+      },
+    },
     prerender: {
       // /login is not yet implemented (owned by a separate PR).
       // Ignore it so `nuxt generate` does not fail on the 404.
