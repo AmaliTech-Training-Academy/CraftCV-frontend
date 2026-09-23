@@ -44,6 +44,14 @@ export default defineNuxtConfig({
     ],
   },
 
+  typescript: {
+    tsConfig: {
+      include: [
+        '../tests/**/*.ts',
+      ],
+    },
+  },
+
   eslint: {
     config: {
       stylistic: true,

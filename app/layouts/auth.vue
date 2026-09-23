@@ -2,7 +2,7 @@
 const route = useRoute()
 
 const isRegister = computed(
-  () => route.path === '/register' || route.path === '/(auth)/register' || route.path === '/auth/register',
+  () => route.path === '/register' || route.path === '/(auth)/register',
 )
 
 const bgImage = computed(() => {
@@ -72,7 +72,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col justify-between py-3 sm:py-5 lg:py-6 bg-white px-4 sm:px-8 lg:px-12">
+  <div
+    class="min-h-screen flex flex-col justify-between py-3 sm:py-5 lg:py-6 bg-white px-4 sm:px-8 lg:px-12"
+  >
     <header class="hidden lg:block w-full max-w-7xl mx-auto">
       <div class="inline-flex items-center gap-2.5">
         <NuxtImg
@@ -80,28 +82,38 @@ onUnmounted(() => {
           alt="CraftCV"
           class="h-8 w-auto"
         />
-        <span class="font-display font-semibold text-xl tracking-tight text-stone-900">
+        <span
+          class="font-display font-semibold text-xl tracking-tight text-stone-900"
+        >
           CraftCV
         </span>
       </div>
     </header>
 
-    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col lg:flex-row items-center justify-center py-2 sm:py-4">
-      <div class="hidden lg:flex lg:w-[40%] flex-shrink-0 h-[min(620px,82vh)] rounded-2xl overflow-hidden p-6 relative bg-stone-900 shadow-xl flex-col justify-end">
+    <main
+      class="w-full max-w-7xl mx-auto flex-1 flex flex-col lg:flex-row items-center justify-center py-2 sm:py-4"
+    >
+      <div
+        class="hidden lg:flex lg:w-[40%] flex-shrink-0 h-[min(620px,82vh)] rounded-2xl overflow-hidden p-6 relative bg-stone-900 shadow-xl flex-col justify-end"
+      >
         <img
           :src="bgImage"
           alt="CraftCV background"
           class="absolute inset-0 w-full h-full object-cover object-top opacity-90 transition-all duration-500"
         >
 
-        <div class="relative z-10 rounded-xl bg-black/60 backdrop-blur-md p-5 border border-white/10 text-white">
+        <div
+          class="relative z-10 rounded-xl bg-black/60 backdrop-blur-md p-5 border border-white/10 text-white"
+        >
           <p class="text-sm font-medium leading-relaxed mb-4 text-stone-100">
             "{{ currentFeature.quote }}"
           </p>
 
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-xs font-semibold text-white tracking-wider flex-shrink-0">
+              <div
+                class="w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-xs font-semibold text-white tracking-wider flex-shrink-0"
+              >
                 {{ currentFeature.initials }}
               </div>
               <div>
@@ -177,7 +189,9 @@ onUnmounted(() => {
       </div>
     </main>
 
-    <footer class="w-full max-w-7xl mx-auto px-6 sm:px-12 text-center text-xs text-stone-400">
+    <footer
+      class="w-full max-w-7xl mx-auto px-6 sm:px-12 text-center text-xs text-stone-400"
+    >
       <p>&copy; {{ new Date().getFullYear() }} CraftCV. All rights reserved.</p>
     </footer>
   </div>
