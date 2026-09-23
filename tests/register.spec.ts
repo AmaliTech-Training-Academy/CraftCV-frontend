@@ -1,9 +1,17 @@
 // @vitest-environment nuxt
 
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import RegisterPage from '../app/pages/(auth)/register.vue'
+
+const { mockApi } = vi.hoisted(() => ({
+  mockApi: vi.fn(),
+}))
+
+vi.mock('../app/utils/api', () => ({
+  $api: mockApi,
+}))
 
 function mountRegisterPage() {
   return mountSuspended(RegisterPage, {
@@ -20,6 +28,11 @@ function mountRegisterPage() {
 }
 
 describe('register.vue', () => {
+  beforeEach(() => {
+    mockApi.mockReset()
+    mockApi.mockResolvedValue({ access: 'fake-access', refresh: 'fake-refresh' })
+  })
+
   describe('Route Registration', () => {
     it('resolves /register route in Nuxt router to (auth) register page', () => {
       const router = useRouter()
@@ -177,6 +190,11 @@ describe('register.vue', () => {
     })
 
     it('toggles loading state on submit and prevents duplicate submissions while loading', async () => {
+      let resolveApi!: (val: unknown) => void
+      mockApi.mockReturnValueOnce(new Promise((resolve) => {
+        resolveApi = resolve
+      }))
+
       const wrapper = await mountRegisterPage()
 
       await wrapper.find('#email').setValue('user@example.com')
@@ -192,7 +210,6 @@ describe('register.vue', () => {
       const submitPromise = form.trigger('submit')
 
       await nextTick()
-      await new Promise(r => setTimeout(r, 20))
 
       // Enters loading state after DOM update
       expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
@@ -205,6 +222,7 @@ describe('register.vue', () => {
       expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
       expect(submitBtn.attributes('disabled')).toBeDefined()
 
+      resolveApi({ access: 'fake-access-token', refresh: 'fake-refresh-token' })
       await submitPromise
     })
   })

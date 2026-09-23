@@ -113,6 +113,55 @@ describe('Authentication Flow', () => {
       expect(error.value).toBe('Invalid email or password.')
     })
 
+    it('posts to /auth/register/ with agree_to_terms and redirects to dashboard on registration', async () => {
+      mockApi.mockResolvedValueOnce({
+        access: 'fake-register-access',
+        refresh: 'fake-register-refresh',
+      })
+
+      const { register, token, isAuthenticated } = useAuth()
+
+      await register({
+        email: 'newuser@example.com',
+        password: 'Password123!',
+        agreeToTerms: true,
+      })
+
+      expect(mockApi).toHaveBeenCalledWith('/auth/register/', {
+        method: 'POST',
+        body: {
+          email: 'newuser@example.com',
+          password: 'Password123!',
+          agree_to_terms: true,
+        },
+      })
+
+      expect(token.value).toBe('fake-register-access')
+      expect(isAuthenticated.value).toBe(true)
+      expect(mockNavigateTo).toHaveBeenCalledWith('/dashboard')
+    })
+
+    it('sets error message on failed registration response', async () => {
+      mockApi.mockRejectedValueOnce({
+        data: { email: ['A user with that email already exists.'] },
+      })
+
+      const { register, error } = useAuth()
+
+      try {
+        await register({
+          email: 'existing@example.com',
+          password: 'Password123!',
+          agreeToTerms: true,
+        })
+      }
+      catch {
+        // error is rethrown
+      }
+
+      expect(error.value).toBe('A user with that email already exists.')
+    })
+
     it('clears authentication tokens on logout', async () => {
       cookies['auth_token'] = { value: 'fake-access-token' }
       cookies['refresh_token'] = { value: 'fake-refresh-token' }
