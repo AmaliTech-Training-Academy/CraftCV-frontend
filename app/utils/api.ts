@@ -5,7 +5,7 @@ export const $api = async <T>(
   options?: NitroFetchOptions<NitroFetchRequest>,
 ): Promise<T> => {
   const config = useRuntimeConfig()
-  const baseURL = config.public.apiBaseUrl as string
+  const baseURL = config.public.apiBase as string
 
   const authToken = useCookie('auth_token')
   const refreshToken = useCookie('refresh_token')
@@ -31,7 +31,7 @@ export const $api = async <T>(
       if (!refreshToken.value) {
         authToken.value = null
         refreshToken.value = null
-        await navigateTo('/(auth)/login')
+        await navigateTo('/login')
         throw error
       }
 
@@ -55,7 +55,7 @@ export const $api = async <T>(
         authToken.value = null
         refreshToken.value = null
 
-        await navigateTo('/(auth)/login')
+        await navigateTo('/login')
 
         throw refreshError
       }
