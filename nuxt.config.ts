@@ -33,8 +33,6 @@ export default defineNuxtConfig({
   nitro: {
     prerender: {
       crawlLinks: true,
-      failOnError: false,
-      ignore: ['/login'],
     },
   },
 
