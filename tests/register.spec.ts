@@ -20,6 +20,15 @@ function mountRegisterPage() {
 }
 
 describe('register.vue', () => {
+  describe('Route Registration', () => {
+    it('resolves /register route in Nuxt router to (auth) register page', () => {
+      const router = useRouter()
+      const resolved = router.resolve('/register')
+      expect(resolved.matched.length).toBeGreaterThan(0)
+      expect(resolved.matched.some(r => r.components?.default === RegisterPage || r.path === '/register')).toBe(true)
+    })
+  })
+
   describe('Rendering & Baseline', () => {
     it('renders heading, subtext, all input fields, terms checkbox, and login link', async () => {
       const wrapper = await mountRegisterPage()

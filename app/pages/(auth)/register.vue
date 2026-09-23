@@ -287,7 +287,6 @@ useHead({
 
 definePageMeta({
   layout: 'auth',
-  alias: ['/register'],
 })
 
 const router = useRouter()
@@ -362,7 +361,7 @@ async function handleSubmit() {
 
   try {
     await new Promise(resolve => setTimeout(resolve, 600))
-    router.push('/login')
+    router.push('/dashboard')
   }
   catch {
     serverError.value = 'Failed to create account. Please try again.'
