@@ -9,7 +9,7 @@ defineProps<{
 }>()
 defineEmits<{
   'update:modelValue': [value: string]
-  'remove'?: []
+  'remove': []
 }>()
 </script>
 

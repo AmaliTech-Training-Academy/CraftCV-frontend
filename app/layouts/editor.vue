@@ -12,7 +12,6 @@ import {
   Circle,
   Pencil,
   Download,
-  Plus,
   PanelLeftClose,
   PanelLeftOpen,
   X,
@@ -42,7 +41,6 @@ const activeTemplateComponent = computed(() => {
 
 const isPreviewModalOpen = ref(false)
 const isSidebarExpanded = ref(true)
-const isSaving = ref(false)
 
 const steps = computed(() => [
   { id: 'personal', name: 'Personal Details', icon: User, status: getPersonalStatus(), path: '/editor/personal' },
