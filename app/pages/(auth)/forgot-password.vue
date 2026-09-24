@@ -141,7 +141,11 @@
 
           <!-- Heading -->
           <div class="text-center mb-7">
-            <h1 class="font-['Poppins'] font-semibold text-[30px] sm:text-[32px] text-[#2B2622] leading-tight mb-2 tracking-tight">
+            <h1
+              ref="stepHeading"
+              tabindex="-1"
+              class="font-['Poppins'] font-semibold text-[30px] sm:text-[32px] text-[#2B2622] leading-tight mb-2 tracking-tight"
+            >
               Forgot your password?
             </h1>
             <p class="text-[#78716C] text-[14px] leading-relaxed max-w-[340px] mx-auto font-normal mt-2">
@@ -183,12 +187,12 @@
               <!-- Inline error / hint –– reserves height so layout doesn't jump -->
               <div
                 id="email-error"
-                role="alert"
                 aria-live="polite"
                 style="min-height: 18px;"
               >
                 <p
                   v-if="emailError"
+                  role="alert"
                   class="text-[12px] text-[#E2673D] flex items-center gap-1 mt-0.5"
                 >
                   <AlertCircle style="width:13px; height:13px; flex-shrink:0;" />
@@ -238,7 +242,11 @@
 
           <!-- Heading -->
           <div class="text-center mb-7">
-            <h1 class="font-['Poppins'] font-semibold text-[30px] sm:text-[32px] text-[#2B2622] leading-tight mb-2 tracking-tight">
+            <h1
+              ref="stepHeading"
+              tabindex="-1"
+              class="font-['Poppins'] font-semibold text-[30px] sm:text-[32px] text-[#2B2622] leading-tight mb-2 tracking-tight"
+            >
               Check your email
             </h1>
             <p class="text-[#78716C] text-[14px] leading-relaxed max-w-[340px] mx-auto font-normal mt-2">
@@ -383,7 +391,11 @@
           class="w-full flex flex-col items-center animate-in fade-in zoom-in-95 duration-300"
         >
           <div class="text-center mb-7">
-            <h1 class="font-['Poppins'] font-semibold text-[30px] sm:text-[32px] text-[#2B2622] leading-tight mb-2 tracking-tight">
+            <h1
+              ref="stepHeading"
+              tabindex="-1"
+              class="font-['Poppins'] font-semibold text-[30px] sm:text-[32px] text-[#2B2622] leading-tight mb-2 tracking-tight"
+            >
               Set a new password.
             </h1>
             <p class="text-[#78716C] text-[14px] leading-relaxed max-w-[340px] mx-auto font-normal mt-2">
@@ -410,7 +422,7 @@
                   placeholder="Create a new password"
                   autocomplete="new-password"
                   required
-                  aria-describedby="strength-hint"
+                  :aria-describedby="newPassword ? 'strength-hint' : undefined"
                   aria-required="true"
                   style="display:block; width:100%; height:44px; border-radius:10px; border:1.5px solid #E5DDD1; background:#fff; font-size:14px; color:#2B2622; padding:0 44px 0 14px; box-sizing:border-box; outline:none; transition:border-color 0.15s, box-shadow 0.15s;"
                   @focus="(e) => { (e.target as HTMLInputElement).style.borderColor='#E2673D'; (e.target as HTMLInputElement).style.boxShadow='0 0 0 3px #FBE4D9'; }"
@@ -633,6 +645,7 @@
 
               <!-- CTA -->
               <button
+                ref="loginBtn"
                 type="button"
                 class="w-full h-[46px] rounded-[10px] font-semibold text-sm tracking-wide text-white transition-all duration-150 active:scale-[0.98]"
                 style="background: #E2673D;"
@@ -663,6 +676,8 @@ const isLoading = ref(false)
 const otpError = ref('')
 
 const step = ref(1)
+const stepHeading = ref<HTMLHeadingElement | null>(null)
+watch(step, () => nextTick(() => stepHeading.value?.focus()))
 
 // ── Step 1: Email state & validation ──────────────────────────────────────────
 const email = ref('')
@@ -934,6 +949,10 @@ async function onResendCode() {
 
 const passwordError = ref('')
 const showSuccessModal = ref(false)
+const loginBtn = ref<HTMLButtonElement | null>(null)
+watch(showSuccessModal, (open) => {
+  if (open) nextTick(() => loginBtn.value?.focus())
+})
 const redirectCountdown = ref(5)
 let redirectInterval: ReturnType<typeof setInterval> | null = null
 
