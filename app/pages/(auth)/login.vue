@@ -1,6 +1,8 @@
 <template>
   <div>
-    <h1 class="font-display text-[32px] font-bold text-stone-900 leading-tight mb-2 text-center lg:text-left">
+    <h1
+      class="font-display text-[32px] font-bold text-stone-900 leading-tight mb-2 text-center lg:text-left"
+    >
       Welcome <span class="text-brand-600">back.</span>
     </h1>
     <p class="text-[15px] text-stone-500 mb-8 text-center lg:text-left">
@@ -37,7 +39,7 @@
           id="email-error"
           class="mt-1.5 text-xs text-error"
         >
-          {{ fieldError('email') }}
+          {{ fieldError("email") }}
         </p>
       </div>
 
@@ -54,7 +56,9 @@
             autocomplete="current-password"
             placeholder="Your password"
             :aria-invalid="!!fieldError('password')"
-            :aria-describedby="fieldError('password') ? 'password-error' : undefined"
+            :aria-describedby="
+              fieldError('password') ? 'password-error' : undefined
+            "
             :class="[
               'w-full h-[44px] px-[14px] pr-11 text-[15px] rounded-lg border bg-white text-stone-900 placeholder-stone-400 outline-none transition',
               fieldError('password')
@@ -121,7 +125,7 @@
           id="password-error"
           class="mt-1.5 text-xs text-error"
         >
-          {{ fieldError('password') }}
+          {{ fieldError("password") }}
         </p>
       </div>
 
@@ -134,10 +138,11 @@
           >
           <span class="text-sm text-stone-600">Remember me</span>
         </label>
-        <a
-          href="#"
+        <NuxtLink
+          to="/forgot-password"
           class="text-[14px] font-medium text-brand-600 hover:text-brand-700 transition"
-        >Forgot password?</a>
+        >Forgot password?
+        </NuxtLink>
       </div>
 
       <div
@@ -207,7 +212,7 @@
             d="M4 12a8 8 0 018-8v8H4z"
           />
         </svg>
-        {{ loading ? 'Signing in\u2026' : 'Sign in' }}
+        {{ loading ? "Signing in\u2026" : "Sign in" }}
       </button>
     </form>
 
