@@ -40,7 +40,6 @@ const formatDescription = (text: string | undefined) => {
       </h2>
     </header>
 
-
     <div class="flex flex-col sm:flex-row">
       <!-- SIDEBAR -->
       <aside class="sm:w-[32%] bg-[#e6e7eb] text-gray-800 py-10 px-6 sm:px-8 flex flex-col shrink-0 min-h-[800px]">
@@ -85,7 +84,25 @@ const formatDescription = (text: string | undefined) => {
               v-if="data.personal_details.linkedin"
               class="flex items-center gap-3"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-gray-600 shrink-0"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-4 h-4 text-gray-600 shrink-0"
+              ><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect
+                width="4"
+                height="12"
+                x="2"
+                y="9"
+              /><circle
+                cx="4"
+                cy="4"
+                r="2"
+              /></svg>
               <a
                 :href="data.personal_details.linkedin.startsWith('http') ? data.personal_details.linkedin : `https://${data.personal_details.linkedin}`"
                 class="break-all hover:underline"

@@ -20,5 +20,7 @@
     "lib": "@/lib",
     "composables": "@/composables"
   },
+  "menuColor": "default",
+  "menuAccent": "subtle",
   "registries": {}
 }
