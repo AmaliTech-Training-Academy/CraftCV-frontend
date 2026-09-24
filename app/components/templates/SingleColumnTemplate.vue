@@ -257,7 +257,7 @@ const formatDescription = (text: string | undefined) => {
             :key="lang.id"
             class="text-sm text-gray-700 flex items-center"
           >
-            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-2"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-2" />
             <span>
               <span class="font-medium">{{ lang.name }}</span>
               <span

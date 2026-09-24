@@ -2,7 +2,7 @@
 import { UserCircle } from '@lucide/vue'
 import { useAuth } from '~/composables/useAuth'
 
-const { isLoggedIn } = useAuth()
+const { isAuthenticated } = useAuth()
 </script>
 
 <template>
@@ -37,7 +37,7 @@ const { isLoggedIn } = useAuth()
     <!-- Account (Conditional) -->
     <div class="flex items-center gap-4">
       <button
-        v-if="isLoggedIn"
+        v-if="isAuthenticated"
         class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors text-gray-600"
         title="Account"
       >
