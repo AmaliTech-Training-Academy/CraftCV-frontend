@@ -14,7 +14,7 @@ const toggleSidebar = () => {
 <template>
   <aside
     :class="[
-      'bg-[#111827] rounded-tr-[15px] transition-all duration-300 ease-in-out flex flex-col relative z-10 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.15)]',
+      'bg-[#B64A22] rounded-tr-[15px] transition-all duration-300 ease-in-out flex flex-col relative z-10 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.15)]',
       isCollapsed ? 'w-16' : 'w-64',
     ]"
   >
@@ -67,7 +67,7 @@ const toggleSidebar = () => {
             <!-- Expanded label -->
             <span
               v-if="!isCollapsed"
-              class="text-sm font-semibold text-[#111827]"
+              class="text-sm font-semibold text-[#B64A22]"
             >
               All
             </span>
@@ -78,7 +78,7 @@ const toggleSidebar = () => {
               :class="[
                 isCollapsed
                   ? 'bg-white/20 text-white px-1.5 py-1'
-                  : 'bg-[#111827]/10 text-[#111827] px-2.5 py-1',
+                  : 'bg-[#B64A22]/10 text-[#B64A22] px-2.5 py-1',
               ]"
             >
               {{ templates.length }}
