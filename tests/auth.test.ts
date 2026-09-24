@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useAuth, extractErrorMessage } from '../app/composables/useAuth'
+import { useAuth } from '../app/composables/useAuth'
+import { extractErrorMessage } from '../app/utils/api'
 import authMiddleware from '../app/middleware/auth'
 
 const { mockApi, cookies, mockNavigateTo, getCookieRef } = vi.hoisted(() => {
@@ -59,9 +60,13 @@ vi.mock('#app/nuxt', () => ({
   useRuntimeConfig: () => ({ app: { baseURL: '/' } }),
 }))
 
-vi.mock('../app/utils/api', () => ({
-  $api: mockApi,
-}))
+vi.mock('../app/utils/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../app/utils/api')>()
+  return {
+    ...actual,
+    $api: mockApi,
+  }
+})
 
 vi.mock('#imports', () => ({
   navigateTo: mockNavigateTo,
@@ -278,13 +283,42 @@ describe('Authentication Flow', () => {
 
     it('returns fallback message for unknown internal string fields', () => {
       expect(
-        extractErrorMessage({ statusCode: 400, data: { internal_debug: 'Cannot find route' } }),
+        extractErrorMessage({ statusCode: 400, data: { internal_debug: 'Cannot find route' } }, 'Registration failed. Please check your details and try again.'),
       ).toBe('Registration failed. Please check your details and try again.')
     })
 
     it('returns fallback message for other 4xx errors without matching keys', () => {
-      expect(extractErrorMessage({ statusCode: 400, data: {} })).toBe(
+      expect(extractErrorMessage({ statusCode: 400, data: {} }, 'Registration failed. Please check your details and try again.')).toBe(
         'Registration failed. Please check your details and try again.',
+      )
+    })
+
+    it('returns the fallback when the response is raw HTML', () => {
+      const htmlBody = '<!DOCTYPE html><html><body>502 Bad Gateway</body></html>'
+      expect(extractErrorMessage({ statusCode: 502, data: htmlBody })).toBe(
+        'System error. Please try again after some time.',
+      )
+      expect(extractErrorMessage({ data: htmlBody })).toBe(
+        'An unexpected error occurred. Please try again.',
+      )
+    })
+
+    it('returns the fallback when err.message contains a raw endpoint URL', () => {
+      const err = new Error('FetchError: Failed to fetch http://api.craftcv.com/auth/register')
+      expect(extractErrorMessage(err)).toBe('An unexpected error occurred. Please try again.')
+    })
+
+    it('correctly aggregates multiple field errors when valid DRF validation objects are provided', () => {
+      expect(
+        extractErrorMessage({
+          data: { email: ['Email already exists.'], password: ['Password too short.'] },
+        }),
+      ).toBe('Email already exists. Password too short.')
+    })
+
+    it('correctly handles clean string error responses that do not contain HTML or URLs', () => {
+      expect(extractErrorMessage({ data: 'Invalid credentials provided.' })).toBe(
+        'Invalid credentials provided.',
       )
     })
   })

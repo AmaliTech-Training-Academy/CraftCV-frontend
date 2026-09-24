@@ -9,9 +9,13 @@ const { mockApi } = vi.hoisted(() => ({
   mockApi: vi.fn(),
 }))
 
-vi.mock('../app/utils/api', () => ({
-  $api: mockApi,
-}))
+vi.mock('../app/utils/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../app/utils/api')>()
+  return {
+    ...actual,
+    $api: mockApi,
+  }
+})
 
 function mountRegisterPage() {
   return mountSuspended(RegisterPage, {
