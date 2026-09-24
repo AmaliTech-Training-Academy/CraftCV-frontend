@@ -118,7 +118,7 @@ const steps = computed(() => [
         :class="isSidebarExpanded ? 'w-[260px]' : 'w-[80px]'"
       >
         <!-- Optional spacing at top if needed, or remove completely -->
-        <div class="h-4 shrink-0"></div>
+        <div class="h-4 shrink-0" />
 
         <nav class="flex-1 px-3 py-6 flex flex-col gap-1">
           <div
@@ -167,8 +167,14 @@ const steps = computed(() => [
             :title="isSidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'"
             @click="isSidebarExpanded = !isSidebarExpanded"
           >
-            <component :is="isSidebarExpanded ? PanelLeftClose : PanelLeftOpen" class="w-5 h-5 flex-shrink-0" />
-            <span v-if="isSidebarExpanded" class="text-[13px] font-semibold whitespace-nowrap">Collapse Sidebar</span>
+            <component
+              :is="isSidebarExpanded ? PanelLeftClose : PanelLeftOpen"
+              class="w-5 h-5 flex-shrink-0"
+            />
+            <span
+              v-if="isSidebarExpanded"
+              class="text-[13px] font-semibold whitespace-nowrap"
+            >Collapse Sidebar</span>
           </button>
         </div>
       </aside>
