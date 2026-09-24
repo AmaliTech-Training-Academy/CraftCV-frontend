@@ -155,7 +155,16 @@ export const useAuth = () => {
         },
       })
 
-      if (response && typeof response === 'object' && 'access' in response && 'refresh' in response) {
+      const res = response as Record<string, unknown> | null | undefined
+      const tokensObj = res?.tokens as Record<string, unknown> | undefined
+      const accessToken = (typeof res?.access === 'string' ? res.access : undefined)
+        || (typeof tokensObj?.access === 'string' ? tokensObj.access : undefined)
+        || (typeof res?.token === 'string' ? res.token : undefined)
+      const refreshToken = (typeof res?.refresh === 'string' ? res.refresh : undefined)
+        || (typeof tokensObj?.refresh === 'string' ? tokensObj.refresh : undefined)
+      const hasTokens = Boolean(accessToken && refreshToken)
+
+      if (hasTokens) {
         const authCookie = useCookie('auth_token', {
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',
@@ -164,12 +173,12 @@ export const useAuth = () => {
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',
         })
-        authCookie.value = (response as LoginResponse).access
-        refreshCookie.value = (response as LoginResponse).refresh
+        authCookie.value = accessToken
+        refreshCookie.value = refreshToken
       }
 
       if (options.autoNavigate !== false) {
-        await navigateTo('/dashboard')
+        await navigateTo(hasTokens ? '/dashboard' : '/login')
       }
       return response
     }

@@ -141,6 +141,46 @@ describe('Authentication Flow', () => {
       expect(mockNavigateTo).toHaveBeenCalledWith('/dashboard')
     })
 
+    it('supports nested tokens response contract and redirects to dashboard', async () => {
+      mockApi.mockResolvedValueOnce({
+        tokens: {
+          access: 'nested-access-token',
+          refresh: 'nested-refresh-token',
+        },
+      })
+
+      const { register, token, isAuthenticated } = useAuth()
+
+      await register({
+        email: 'nested@example.com',
+        password: 'Password123!',
+        agreeToTerms: true,
+      })
+
+      expect(token.value).toBe('nested-access-token')
+      expect(cookies['refresh_token']?.value).toBe('nested-refresh-token')
+      expect(isAuthenticated.value).toBe(true)
+      expect(mockNavigateTo).toHaveBeenCalledWith('/dashboard')
+    })
+
+    it('redirects to login when registration response lacks tokens', async () => {
+      mockApi.mockResolvedValueOnce({
+        message: 'Account created. Please sign in.',
+      })
+
+      const { register, token, isAuthenticated } = useAuth()
+
+      await register({
+        email: 'notokens@example.com',
+        password: 'Password123!',
+        agreeToTerms: true,
+      })
+
+      expect(token.value).toBeFalsy()
+      expect(isAuthenticated.value).toBe(false)
+      expect(mockNavigateTo).toHaveBeenCalledWith('/login')
+    })
+
     it('sets error message on failed registration response with field errors', async () => {
       mockApi.mockRejectedValueOnce({
         data: { email: ['A user with that email already exists.'] },

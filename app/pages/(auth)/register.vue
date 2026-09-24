@@ -211,24 +211,25 @@
         </p>
       </div>
 
-      <div class="pt-1">
-        <label class="flex items-center gap-2 cursor-pointer select-none">
-          <input
-            id="agreeTerms"
-            v-model="form.agreeTerms"
-            type="checkbox"
-            class="w-4 h-4 rounded border-stone-300 text-[#EA580C] focus:ring-[#EA580C] cursor-pointer"
-            @change="touch('agreeTerms')"
-          >
-          <span class="text-xs sm:text-sm text-stone-600 leading-snug">
-            I agree to the
-            <NuxtLink
-              to="/terms"
-              target="_blank"
-              class="text-[#EA580C] font-medium underline hover:text-[#c2410c] transition"
-            >Terms and Privacy Policy</NuxtLink>
-          </span>
+      <div class="pt-1 flex items-center gap-1.5 text-xs sm:text-sm text-stone-600 leading-snug">
+        <input
+          id="agreeTerms"
+          v-model="form.agreeTerms"
+          type="checkbox"
+          class="w-4 h-4 rounded border-stone-300 text-[#EA580C] focus:ring-[#EA580C] cursor-pointer"
+          @change="touch('agreeTerms')"
+        >
+        <label
+          for="agreeTerms"
+          class="cursor-pointer select-none"
+        >
+          I agree to the
         </label>
+        <NuxtLink
+          to="/terms"
+          target="_blank"
+          class="text-[#EA580C] font-medium underline hover:text-[#c2410c] transition"
+        >Terms and Privacy Policy</NuxtLink>
       </div>
 
       <div class="pt-1">
@@ -362,7 +363,7 @@ async function handleSubmit() {
   successMessage.value = ''
 
   try {
-    await register(
+    const response = await register(
       {
         email: form.email.trim(),
         password: form.password,
@@ -371,10 +372,19 @@ async function handleSubmit() {
       { autoNavigate: false },
     )
 
+    const res = response as Record<string, unknown> | null | undefined
+    const tokensObj = res?.tokens as Record<string, unknown> | undefined
+    const accessToken = (typeof res?.access === 'string' ? res.access : undefined)
+      || (typeof tokensObj?.access === 'string' ? tokensObj.access : undefined)
+      || (typeof res?.token === 'string' ? res.token : undefined)
+    const refreshToken = (typeof res?.refresh === 'string' ? res.refresh : undefined)
+      || (typeof tokensObj?.refresh === 'string' ? tokensObj.refresh : undefined)
+    const hasTokens = Boolean(accessToken && refreshToken)
+
     isRedirecting.value = true
     successMessage.value = 'Account created successfully! Redirecting...'
     await new Promise(resolve => setTimeout(resolve, 600))
-    await navigateTo('/dashboard')
+    await navigateTo(hasTokens ? '/dashboard' : '/login')
   }
   catch {
     isRedirecting.value = false

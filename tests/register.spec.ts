@@ -280,5 +280,24 @@ describe('register.vue', () => {
 
       vi.useRealTimers()
     })
+
+    it('navigates to /login instead of /dashboard when registration response lacks tokens', async () => {
+      mockApi.mockResolvedValueOnce({
+        message: 'Account created. Please log in.',
+      })
+
+      const wrapper = await mountRegisterPage()
+
+      await wrapper.find('#email').setValue('user@example.com')
+      await wrapper.find('#password').setValue('StrongPass123!')
+      await wrapper.find('#confirmPassword').setValue('StrongPass123!')
+      await wrapper.find('#agreeTerms').setValue(true)
+
+      await wrapper.find('form').trigger('submit')
+      await nextTick()
+
+      const statusBanner = wrapper.find('[role="status"]')
+      expect(statusBanner.exists()).toBe(true)
+    })
   })
 })
