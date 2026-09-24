@@ -141,8 +141,7 @@
         <NuxtLink
           to="/forgot-password"
           class="text-[14px] font-medium text-brand-600 hover:text-brand-700 transition"
-        >Forgot password?
-        </NuxtLink>
+        >Forgot password?</NuxtLink>
       </div>
 
       <div

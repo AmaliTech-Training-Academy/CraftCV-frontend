@@ -14,6 +14,7 @@ export const useTemplates = () => {
       description: 'A two-column layout built for product leaders and engineers. Packs depth and metrics into a clean, scannable format — no visual clutter.',
       bestFor: ['Product Managers', 'Engineers', 'Tech Leads'],
       component: 'TwoColumnTemplate',
+      image: '/templates/Double-col.png',
       mockData: {
         title: 'Senior Product Lead',
         professional_summary: 'Experienced product leader specializing in cross-functional team management and scaling SaaS platforms.',
@@ -36,6 +37,7 @@ export const useTemplates = () => {
       description: 'A clean, single-column layout that lets your story speak. Trusted by professionals in industries where clarity and restraint matter most.',
       bestFor: ['Finance', 'Law', 'Consulting', 'Academia'],
       component: 'SingleColumnTemplate',
+      image: '/templates/Single-col.png',
       mockData: {
         title: 'Full-Stack Systems Architect',
         professional_summary: 'Architecting scalable microservices for enterprise fintech solutions.',

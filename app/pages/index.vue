@@ -1,3 +1,6 @@
+<script setup lang="ts">
+</script>
+
 <template>
   <div
     class="relative min-h-screen bg-stone-50 text-stone-900 selection:bg-brand-500 selection:text-white font-sans overflow-x-hidden"
@@ -589,6 +592,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useIntersectionObserver } from '@vueuse/core'
+
+definePageMeta({
+  redirect: '/login',
+})
 
 const isLoaded = ref(false)
 
