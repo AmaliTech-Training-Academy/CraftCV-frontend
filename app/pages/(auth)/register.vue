@@ -222,9 +222,11 @@
           >
           <span class="text-xs sm:text-sm text-stone-600 leading-snug">
             I agree to the
-            <span class="text-[#EA580C] font-medium hover:underline cursor-pointer">Terms</span>
-            &amp;
-            <span class="text-[#EA580C] font-medium hover:underline cursor-pointer">Privacy Policy</span>
+            <NuxtLink
+              to="/terms"
+              target="_blank"
+              class="text-[#EA580C] font-medium underline hover:text-[#c2410c] transition"
+            >Terms and Privacy Policy</NuxtLink>
           </span>
         </label>
       </div>
@@ -237,7 +239,7 @@
           :class="isSubmitDisabled ? 'bg-[#EA580C]/50 text-white cursor-not-allowed hover:bg-[#EA580C]/50' : 'bg-[#EA580C] text-white hover:bg-[#c2410c] cursor-pointer shadow-sm'"
         >
           <svg
-            v-if="loading"
+            v-if="loading || isRedirecting"
             class="animate-spin w-4 h-4 text-white"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -257,7 +259,7 @@
               d="M4 12a8 8 0 018-8v8H4z"
             />
           </svg>
-          <span class="text-white font-medium">{{ loading ? 'Creating account…' : 'Create account' }}</span>
+          <span class="text-white font-medium">{{ loading || isRedirecting ? 'Creating account…' : 'Create account' }}</span>
         </Button>
       </div>
     </form>
@@ -307,6 +309,7 @@ const touched = reactive({
 
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
+const isRedirecting = ref(false)
 const { register, loading, error: authError } = useAuth()
 const serverError = ref('')
 const successMessage = ref('')
@@ -343,10 +346,10 @@ const isFormValid = computed(() => {
   return Boolean(isEmailValid && isPasswordValid && isConfirmValid && form.agreeTerms)
 })
 
-const isSubmitDisabled = computed(() => loading.value || !isFormValid.value)
+const isSubmitDisabled = computed(() => loading.value || isRedirecting.value || !isFormValid.value)
 
 async function handleSubmit() {
-  if (loading.value) return
+  if (loading.value || isRedirecting.value) return
 
   touch('email')
   touch('password')
@@ -368,11 +371,13 @@ async function handleSubmit() {
       { autoNavigate: false },
     )
 
+    isRedirecting.value = true
     successMessage.value = 'Account created successfully! Redirecting...'
     await new Promise(resolve => setTimeout(resolve, 600))
     await navigateTo('/dashboard')
   }
   catch {
+    isRedirecting.value = false
     serverError.value = authError.value || 'Failed to create account. Please try again.'
   }
 }

@@ -34,7 +34,12 @@ export function extractErrorMessage(err: any): string {
   }
 
   // 3. User input / Validation errors (4xx)
-  if (data) {
+  if (Array.isArray(data)) {
+    const firstString = data.find(item => typeof item === 'string')
+    if (firstString) return firstString
+  }
+
+  if (data && typeof data === 'object') {
     // DRF detail message: { "detail": "..." }
     if (typeof data.detail === 'string') {
       return data.detail
@@ -42,16 +47,24 @@ export function extractErrorMessage(err: any): string {
 
     // Specific field errors: { "email": ["..."] } or { "password": ["..."] }
     if (data.email) {
-      return Array.isArray(data.email) ? data.email[0] : data.email
+      const emailMsg = Array.isArray(data.email) ? data.email[0] : data.email
+      if (typeof emailMsg === 'string') return emailMsg
     }
     if (data.password) {
-      return Array.isArray(data.password) ? data.password[0] : data.password
+      const passMsg = Array.isArray(data.password) ? data.password[0] : data.password
+      if (typeof passMsg === 'string') return passMsg
     }
 
     // Non-field validation errors: { "non_field_errors": ["..."] }
     if (data.non_field_errors) {
-      return Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : data.non_field_errors
+      const nonFieldMsg = Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : data.non_field_errors
+      if (typeof nonFieldMsg === 'string') return nonFieldMsg
     }
+
+    // Flatten any other object field error shapes like { agree_to_terms: ["..."] } or custom fields
+    const flatValues = Object.values(data as Record<string, unknown>).flat()
+    const firstString = flatValues.find(item => typeof item === 'string')
+    if (firstString) return firstString as string
   }
 
   // 4. Safe fallback for other client-side 4xx errors

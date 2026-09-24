@@ -54,6 +54,11 @@ describe('register.vue', () => {
       expect(wrapper.find('input#confirmPassword').exists()).toBe(true)
       expect(wrapper.find('input#agreeTerms').exists()).toBe(true)
 
+      const termsLink = wrapper.findAll('a').find(link => link.text().includes('Terms and Privacy Policy'))
+      expect(termsLink).toBeDefined()
+      expect(termsLink?.attributes('href')).toBe('/terms')
+      expect(termsLink?.attributes('target')).toBe('_blank')
+
       const signInLink = wrapper.findAll('a').find(link => link.text().includes('Sign in'))
       expect(signInLink).toBeDefined()
       expect(signInLink?.attributes('href')).toBe('/login')
@@ -224,6 +229,56 @@ describe('register.vue', () => {
 
       resolveApi({ access: 'fake-access-token', refresh: 'fake-refresh-token' })
       await submitPromise
+    })
+
+    it('renders server error alert when API registration is rejected', async () => {
+      mockApi.mockRejectedValueOnce({
+        data: { email: ['A user with that email already exists.'] },
+      })
+
+      const wrapper = await mountRegisterPage()
+
+      await wrapper.find('#email').setValue('existing@example.com')
+      await wrapper.find('#password').setValue('StrongPass123!')
+      await wrapper.find('#confirmPassword').setValue('StrongPass123!')
+      await wrapper.find('#agreeTerms').setValue(true)
+
+      await wrapper.find('form').trigger('submit')
+      await nextTick()
+      await nextTick()
+
+      const alertBanner = wrapper.find('[role="alert"]')
+      expect(alertBanner.exists()).toBe(true)
+      expect(alertBanner.text()).toContain('A user with that email already exists.')
+    })
+
+    it('renders success feedback banner and keeps submit disabled during redirect window', async () => {
+      vi.useFakeTimers()
+      mockApi.mockResolvedValueOnce({
+        access: 'fake-access',
+        refresh: 'fake-refresh',
+      })
+
+      const wrapper = await mountRegisterPage()
+
+      await wrapper.find('#email').setValue('user@example.com')
+      await wrapper.find('#password').setValue('StrongPass123!')
+      await wrapper.find('#confirmPassword').setValue('StrongPass123!')
+      await wrapper.find('#agreeTerms').setValue(true)
+
+      const submitPromise = wrapper.find('form').trigger('submit')
+      await vi.runAllTimersAsync()
+      await submitPromise
+      await nextTick()
+
+      const statusBanner = wrapper.find('[role="status"]')
+      expect(statusBanner.exists()).toBe(true)
+      expect(statusBanner.text()).toContain('Account created successfully! Redirecting...')
+
+      const submitBtn = wrapper.find('button[type="submit"]')
+      expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
+
+      vi.useRealTimers()
     })
   })
 })

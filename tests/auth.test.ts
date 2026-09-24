@@ -226,8 +226,14 @@ describe('Authentication Flow', () => {
       )
     })
 
+    it('extracts custom field dictionary errors', () => {
+      expect(extractErrorMessage({ data: { agree_to_terms: ['You must accept the terms.'] } })).toBe(
+        'You must accept the terms.',
+      )
+    })
+
     it('returns fallback message for other 4xx errors without matching keys', () => {
-      expect(extractErrorMessage({ statusCode: 400, data: { other: 'error' } })).toBe(
+      expect(extractErrorMessage({ statusCode: 400, data: {} })).toBe(
         'Registration failed. Please check your details and try again.',
       )
     })
