@@ -361,6 +361,8 @@ async function handleSubmit() {
 
   serverError.value = ''
   successMessage.value = ''
+  let isSuccess = false
+  let targetRoute = '/login'
 
   try {
     const response = await register(
@@ -381,14 +383,21 @@ async function handleSubmit() {
       || (typeof tokensObj?.refresh === 'string' ? tokensObj.refresh : undefined)
     const hasTokens = Boolean(accessToken && refreshToken)
 
+    isSuccess = true
+    targetRoute = hasTokens ? '/dashboard' : '/login'
+    successMessage.value = hasTokens
+      ? 'Account created successfully! Redirecting...'
+      : 'Account created! Please sign in to continue.'
     isRedirecting.value = true
-    successMessage.value = 'Account created successfully! Redirecting...'
-    await new Promise(resolve => setTimeout(resolve, 600))
-    await navigateTo(hasTokens ? '/dashboard' : '/login')
   }
   catch {
     isRedirecting.value = false
     serverError.value = authError.value || 'Failed to create account. Please try again.'
+  }
+
+  if (isSuccess) {
+    await new Promise(resolve => setTimeout(resolve, 600))
+    await navigateTo(targetRoute)
   }
 }
 </script>

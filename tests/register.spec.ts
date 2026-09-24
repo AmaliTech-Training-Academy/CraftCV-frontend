@@ -281,7 +281,8 @@ describe('register.vue', () => {
       vi.useRealTimers()
     })
 
-    it('navigates to /login instead of /dashboard when registration response lacks tokens', async () => {
+    it('renders please sign in message when registration response lacks tokens', async () => {
+      vi.useFakeTimers()
       mockApi.mockResolvedValueOnce({
         message: 'Account created. Please log in.',
       })
@@ -293,11 +294,16 @@ describe('register.vue', () => {
       await wrapper.find('#confirmPassword').setValue('StrongPass123!')
       await wrapper.find('#agreeTerms').setValue(true)
 
-      await wrapper.find('form').trigger('submit')
+      const submitPromise = wrapper.find('form').trigger('submit')
+      await vi.runAllTimersAsync()
+      await submitPromise
       await nextTick()
 
       const statusBanner = wrapper.find('[role="status"]')
       expect(statusBanner.exists()).toBe(true)
+      expect(statusBanner.text()).toContain('Account created! Please sign in to continue.')
+
+      vi.useRealTimers()
     })
   })
 })

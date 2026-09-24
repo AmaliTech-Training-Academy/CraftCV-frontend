@@ -90,6 +90,7 @@ describe('Authentication Flow', () => {
       expect(mockApi).toHaveBeenCalledWith('/auth/login/', {
         method: 'POST',
         body: { email: 'test@example.com', password: 'password123' },
+        unauthenticated: true,
       })
 
       expect(token.value).toBe('fake-access-token')
@@ -99,7 +100,7 @@ describe('Authentication Flow', () => {
     })
 
     it('sets generic error message on failed login response', async () => {
-      mockApi.mockRejectedValueOnce(new Error('Network error'))
+      mockApi.mockRejectedValueOnce({ status: 400, data: {} })
 
       const { login, error } = useAuth()
 
@@ -134,6 +135,7 @@ describe('Authentication Flow', () => {
           password: 'Password123!',
           agree_to_terms: true,
         },
+        unauthenticated: true,
       })
 
       expect(token.value).toBe('fake-register-access')
@@ -266,10 +268,18 @@ describe('Authentication Flow', () => {
       )
     })
 
-    it('extracts custom field dictionary errors', () => {
-      expect(extractErrorMessage({ data: { agree_to_terms: ['You must accept the terms.'] } })).toBe(
-        'You must accept the terms.',
-      )
+    it('combines multiple field error messages when present', () => {
+      expect(
+        extractErrorMessage({
+          data: { email: ['Email already exists.'], password: ['Password is too weak.'] },
+        }),
+      ).toBe('Email already exists. Password is too weak.')
+    })
+
+    it('returns fallback message for unknown internal string fields', () => {
+      expect(
+        extractErrorMessage({ statusCode: 400, data: { internal_debug: 'Cannot find route' } }),
+      ).toBe('Registration failed. Please check your details and try again.')
     })
 
     it('returns fallback message for other 4xx errors without matching keys', () => {

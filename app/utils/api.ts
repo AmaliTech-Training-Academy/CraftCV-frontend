@@ -1,8 +1,12 @@
 import type { NitroFetchOptions, NitroFetchRequest } from 'nitropack'
 
+export interface ApiFetchOptions<R extends NitroFetchRequest> extends NitroFetchOptions<R> {
+  unauthenticated?: boolean
+}
+
 export const $api = async <T>(
   request: NitroFetchRequest,
-  options?: NitroFetchOptions<NitroFetchRequest>,
+  options?: ApiFetchOptions<NitroFetchRequest>,
 ): Promise<T> => {
   const config = useRuntimeConfig()
   const baseURL = config.public.apiBase as string
@@ -11,8 +15,9 @@ export const $api = async <T>(
   const refreshToken = useCookie('refresh_token')
 
   const headers = new Headers(options?.headers)
+  const isUnauthenticated = Boolean(options?.unauthenticated)
 
-  if (authToken.value) {
+  if (!isUnauthenticated && authToken.value) {
     headers.set('Authorization', `Bearer ${authToken.value}`)
   }
 
@@ -21,13 +26,14 @@ export const $api = async <T>(
     baseURL,
     headers,
   }
+  delete (customOptions as Record<string, unknown>).unauthenticated
 
   try {
     return await $fetch<T>(request, customOptions)
   }
   catch (error: unknown) {
     const httpError = error as { response?: { status: number } }
-    if (httpError.response?.status === 401) {
+    if (!isUnauthenticated && httpError.response?.status === 401) {
       if (!refreshToken.value) {
         authToken.value = null
         refreshToken.value = null

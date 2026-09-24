@@ -18,80 +18,72 @@ interface LoginResponse {
   refresh: string
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function extractErrorMessage(err: any): string {
+export function extractErrorMessage(
+  err: unknown,
+  fallbackMessage: string = 'Registration failed. Please check your details and try again.',
+): string {
+  const e = err as {
+    response?: { status?: number, _data?: unknown }
+    statusCode?: number
+    status?: number
+    data?: unknown
+  } | null | undefined
+
   // 1. Network failure / Connection dropped / CORS issues
-  if (!err?.response && !err?.data) {
+  if (!e?.response && !e?.data) {
     return 'Unable to connect to the server. Please check your internet connection and try again.'
   }
 
-  const status = err?.statusCode || err?.status || err?.response?.status
-  const data = err?.data || err?.response?._data
+  const status = e?.statusCode || e?.status || e?.response?.status
+  const data = e?.data || e?.response?._data
 
   // 2. Internal server errors (5xx)
-  if (status >= 500) {
+  if (status && status >= 500) {
     return 'System error. Please try again after some time.'
   }
 
   // 3. User input / Validation errors (4xx)
-  if (Array.isArray(data)) {
-    const firstString = data.find(item => typeof item === 'string')
-    if (firstString) return firstString
-  }
-
-  if (data && typeof data === 'object') {
-    // DRF detail message: { "detail": "..." }
-    if (typeof data.detail === 'string') {
-      return data.detail
+  if (data) {
+    if (typeof data === 'string') {
+      return data
     }
-
-    // Specific field errors: { "email": ["..."] } or { "password": ["..."] }
-    if (data.email) {
-      const emailMsg = Array.isArray(data.email) ? data.email[0] : data.email
-      if (typeof emailMsg === 'string') return emailMsg
-    }
-    if (data.password) {
-      const passMsg = Array.isArray(data.password) ? data.password[0] : data.password
-      if (typeof passMsg === 'string') return passMsg
-    }
-
-    // Non-field validation errors: { "non_field_errors": ["..."] }
-    if (data.non_field_errors) {
-      const nonFieldMsg = Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : data.non_field_errors
-      if (typeof nonFieldMsg === 'string') return nonFieldMsg
-    }
-
-    // Flatten any other object field error shapes like { agree_to_terms: ["..."] } or custom fields
-    const flatValues = Object.values(data as Record<string, unknown>).flat()
-    const firstString = flatValues.find(item => typeof item === 'string')
-    if (firstString) return firstString as string
-  }
-
-  // 4. Safe fallback for other client-side 4xx errors
-  return 'Registration failed. Please check your details and try again.'
-}
-
-function parseApiError(data: unknown): string | null {
-  if (!data) return null
-  if (typeof data === 'string') return data
-
-  if (typeof data === 'object') {
-    const obj = data as Record<string, unknown>
-    if (typeof obj.message === 'string') return obj.message
-    if (typeof obj.detail === 'string') return obj.detail
-    if (typeof obj.error === 'string') return obj.error
 
     if (Array.isArray(data)) {
       const firstString = data.find(item => typeof item === 'string')
       if (firstString) return firstString
     }
 
-    const flatValues = Object.values(obj).flat()
-    const firstString = flatValues.find(item => typeof item === 'string')
-    if (firstString) return firstString
+    if (typeof data === 'object') {
+      const obj = data as Record<string, unknown>
+
+      // DRF detail message or direct message / error strings
+      if (typeof obj.detail === 'string') return obj.detail
+      if (typeof obj.message === 'string') return obj.message
+      if (typeof obj.error === 'string') return obj.error
+
+      // Known error fields
+      const knownFields = ['email', 'password', 'agree_to_terms', 'agreeTerms', 'non_field_errors']
+      const collectedMessages: string[] = []
+
+      for (const field of knownFields) {
+        const val = obj[field]
+        if (typeof val === 'string') {
+          collectedMessages.push(val)
+        }
+        else if (Array.isArray(val)) {
+          const firstStr = val.find(item => typeof item === 'string')
+          if (firstStr) collectedMessages.push(firstStr)
+        }
+      }
+
+      if (collectedMessages.length > 0) {
+        return collectedMessages.join(' ')
+      }
+    }
   }
 
-  return null
+  // 4. Safe fallback for other client-side 4xx errors
+  return fallbackMessage
 }
 
 export const useAuth = () => {
@@ -108,6 +100,7 @@ export const useAuth = () => {
       const response = await $api<LoginResponse>('/auth/login/', {
         method: 'POST',
         body: credentials,
+        unauthenticated: true,
       })
 
       const authCookie = useCookie('auth_token', {
@@ -128,8 +121,7 @@ export const useAuth = () => {
       await navigateTo('/dashboard')
     }
     catch (err: unknown) {
-      const e = err as { data?: unknown }
-      error.value = parseApiError(e?.data) || 'Invalid email or password.'
+      error.value = extractErrorMessage(err, 'Invalid email or password.')
 
       throw err
     }
@@ -153,6 +145,7 @@ export const useAuth = () => {
           password: payload.password,
           agree_to_terms: payload.agreeToTerms,
         },
+        unauthenticated: true,
       })
 
       const res = response as Record<string, unknown> | null | undefined
@@ -183,7 +176,7 @@ export const useAuth = () => {
       return response
     }
     catch (err: unknown) {
-      error.value = extractErrorMessage(err)
+      error.value = extractErrorMessage(err, 'Registration failed. Please check your details and try again.')
 
       throw err
     }
