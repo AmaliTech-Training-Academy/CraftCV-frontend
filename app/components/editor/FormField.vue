@@ -49,7 +49,7 @@ defineEmits<{
         :placeholder="placeholder"
         :value="modelValue"
         class="w-full h-12 rounded-xl border px-4 focus:outline-none focus:ring-2 transition-all text-[15px]"
-        :class="error ? 'border-red-400 focus:border-red-500 focus:ring-red-400/20' : 'border-gray-200 focus:border-[#C54A22] focus:ring-[#C54A22]/20'"
+        :class="error ? 'border-red-400 focus:border-red-500 focus:ring-red-400/20' : 'border-gray-300 focus:border-[#C54A22] focus:ring-[#C54A22]/20'"
         @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
       >
       <span
