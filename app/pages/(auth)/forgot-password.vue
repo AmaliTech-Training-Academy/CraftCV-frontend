@@ -640,8 +640,6 @@
               >
                 Go to login
               </button>
-
-
             </div>
           </Transition>
         </div>
