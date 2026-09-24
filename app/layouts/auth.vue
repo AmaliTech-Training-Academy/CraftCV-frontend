@@ -76,7 +76,7 @@ onUnmounted(() => {
     class="min-h-screen flex flex-col justify-between py-3 sm:py-5 lg:py-6 bg-white px-4 sm:px-8 lg:px-12"
   >
     <header class="hidden lg:block w-full max-w-7xl mx-auto">
-      <div class="inline-flex items-center gap-2.5">
+      <NuxtLink to="/" class="inline-flex items-center gap-2.5">
         <NuxtImg
           src="/craftcv-logo.png"
           alt="CraftCV"
@@ -87,7 +87,7 @@ onUnmounted(() => {
         >
           CraftCV
         </span>
-      </div>
+      </NuxtLink>
     </header>
 
     <main
@@ -176,14 +176,14 @@ onUnmounted(() => {
 
       <div class="w-full lg:w-[60%] flex items-center justify-center">
         <div class="w-full max-w-[400px] mx-auto">
-          <div class="flex flex-col items-center mb-8 lg:hidden">
+          <NuxtLink to="/" class="flex flex-col items-center mb-8 lg:hidden">
             <NuxtImg
               src="/craftcv-logo.png"
               alt="CraftCV"
               class="h-8 w-auto"
             />
             <span class="font-display font-semibold text-xl tracking-tight text-stone-900 mt-1">CraftCV</span>
-          </div>
+          </NuxtLink>
           <slot />
         </div>
       </div>
