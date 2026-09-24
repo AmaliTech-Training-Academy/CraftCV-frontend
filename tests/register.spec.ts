@@ -1,9 +1,21 @@
 // @vitest-environment nuxt
 
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import RegisterPage from '../app/pages/(auth)/register.vue'
+
+const { mockApi } = vi.hoisted(() => ({
+  mockApi: vi.fn(),
+}))
+
+vi.mock('../app/utils/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../app/utils/api')>()
+  return {
+    ...actual,
+    $api: mockApi,
+  }
+})
 
 function mountRegisterPage() {
   return mountSuspended(RegisterPage, {
@@ -20,6 +32,11 @@ function mountRegisterPage() {
 }
 
 describe('register.vue', () => {
+  beforeEach(() => {
+    mockApi.mockReset()
+    mockApi.mockResolvedValue({ access: 'fake-access', refresh: 'fake-refresh' })
+  })
+
   describe('Route Registration', () => {
     it('resolves /register route in Nuxt router to (auth) register page', () => {
       const router = useRouter()
@@ -40,6 +57,11 @@ describe('register.vue', () => {
       expect(wrapper.find('input#password').exists()).toBe(true)
       expect(wrapper.find('input#confirmPassword').exists()).toBe(true)
       expect(wrapper.find('input#agreeTerms').exists()).toBe(true)
+
+      const termsLink = wrapper.findAll('a').find(link => link.text().includes('Terms and Privacy Policy'))
+      expect(termsLink).toBeDefined()
+      expect(termsLink?.attributes('href')).toBe('/terms')
+      expect(termsLink?.attributes('target')).toBe('_blank')
 
       const signInLink = wrapper.findAll('a').find(link => link.text().includes('Sign in'))
       expect(signInLink).toBeDefined()
@@ -177,6 +199,11 @@ describe('register.vue', () => {
     })
 
     it('toggles loading state on submit and prevents duplicate submissions while loading', async () => {
+      let resolveApi!: (val: unknown) => void
+      mockApi.mockReturnValueOnce(new Promise((resolve) => {
+        resolveApi = resolve
+      }))
+
       const wrapper = await mountRegisterPage()
 
       await wrapper.find('#email').setValue('user@example.com')
@@ -192,7 +219,6 @@ describe('register.vue', () => {
       const submitPromise = form.trigger('submit')
 
       await nextTick()
-      await new Promise(r => setTimeout(r, 20))
 
       // Enters loading state after DOM update
       expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
@@ -205,7 +231,83 @@ describe('register.vue', () => {
       expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
       expect(submitBtn.attributes('disabled')).toBeDefined()
 
+      resolveApi({ access: 'fake-access-token', refresh: 'fake-refresh-token' })
       await submitPromise
+    })
+
+    it('renders server error alert when API registration is rejected', async () => {
+      mockApi.mockRejectedValueOnce({
+        data: { email: ['A user with that email already exists.'] },
+      })
+
+      const wrapper = await mountRegisterPage()
+
+      await wrapper.find('#email').setValue('existing@example.com')
+      await wrapper.find('#password').setValue('StrongPass123!')
+      await wrapper.find('#confirmPassword').setValue('StrongPass123!')
+      await wrapper.find('#agreeTerms').setValue(true)
+
+      await wrapper.find('form').trigger('submit')
+      await nextTick()
+      await nextTick()
+
+      const alertBanner = wrapper.find('[role="alert"]')
+      expect(alertBanner.exists()).toBe(true)
+      expect(alertBanner.text()).toContain('A user with that email already exists.')
+    })
+
+    it('renders success feedback banner and keeps submit disabled during redirect window', async () => {
+      vi.useFakeTimers()
+      mockApi.mockResolvedValueOnce({
+        access: 'fake-access',
+        refresh: 'fake-refresh',
+      })
+
+      const wrapper = await mountRegisterPage()
+
+      await wrapper.find('#email').setValue('user@example.com')
+      await wrapper.find('#password').setValue('StrongPass123!')
+      await wrapper.find('#confirmPassword').setValue('StrongPass123!')
+      await wrapper.find('#agreeTerms').setValue(true)
+
+      const submitPromise = wrapper.find('form').trigger('submit')
+      await vi.runAllTimersAsync()
+      await submitPromise
+      await nextTick()
+
+      const statusBanner = wrapper.find('[role="status"]')
+      expect(statusBanner.exists()).toBe(true)
+      expect(statusBanner.text()).toContain('Account created successfully! Redirecting...')
+
+      const submitBtn = wrapper.find('button[type="submit"]')
+      expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
+
+      vi.useRealTimers()
+    })
+
+    it('renders please sign in message when registration response lacks tokens', async () => {
+      vi.useFakeTimers()
+      mockApi.mockResolvedValueOnce({
+        message: 'Account created. Please log in.',
+      })
+
+      const wrapper = await mountRegisterPage()
+
+      await wrapper.find('#email').setValue('user@example.com')
+      await wrapper.find('#password').setValue('StrongPass123!')
+      await wrapper.find('#confirmPassword').setValue('StrongPass123!')
+      await wrapper.find('#agreeTerms').setValue(true)
+
+      const submitPromise = wrapper.find('form').trigger('submit')
+      await vi.runAllTimersAsync()
+      await submitPromise
+      await nextTick()
+
+      const statusBanner = wrapper.find('[role="status"]')
+      expect(statusBanner.exists()).toBe(true)
+      expect(statusBanner.text()).toContain('Account created! Please sign in to continue.')
+
+      vi.useRealTimers()
     })
   })
 })

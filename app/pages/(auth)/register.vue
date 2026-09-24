@@ -17,6 +17,7 @@
       <div
         v-if="serverError"
         class="rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-600"
+        role="alert"
       >
         {{ serverError }}
       </div>
@@ -24,6 +25,7 @@
       <div
         v-if="successMessage"
         class="rounded-lg bg-green-50 border border-green-200 p-3 text-xs text-green-700"
+        role="status"
       >
         {{ successMessage }}
       </div>
@@ -209,22 +211,25 @@
         </p>
       </div>
 
-      <div class="pt-1">
-        <label class="flex items-center gap-2 cursor-pointer select-none">
-          <input
-            id="agreeTerms"
-            v-model="form.agreeTerms"
-            type="checkbox"
-            class="w-4 h-4 rounded border-stone-300 text-[#EA580C] focus:ring-[#EA580C] cursor-pointer"
-            @change="touch('agreeTerms')"
-          >
-          <span class="text-xs sm:text-sm text-stone-600 leading-snug">
-            I agree to the
-            <span class="text-[#EA580C] font-medium hover:underline cursor-pointer">Terms</span>
-            &amp;
-            <span class="text-[#EA580C] font-medium hover:underline cursor-pointer">Privacy Policy</span>
-          </span>
+      <div class="pt-1 flex items-center gap-1.5 text-xs sm:text-sm text-stone-600 leading-snug">
+        <input
+          id="agreeTerms"
+          v-model="form.agreeTerms"
+          type="checkbox"
+          class="w-4 h-4 rounded border-stone-300 text-[#EA580C] focus:ring-[#EA580C] cursor-pointer"
+          @change="touch('agreeTerms')"
+        >
+        <label
+          for="agreeTerms"
+          class="cursor-pointer select-none"
+        >
+          I agree to the
         </label>
+        <NuxtLink
+          to="/terms"
+          target="_blank"
+          class="text-[#EA580C] font-medium underline hover:text-[#c2410c] transition"
+        >Terms and Privacy Policy</NuxtLink>
       </div>
 
       <div class="pt-1">
@@ -235,7 +240,7 @@
           :class="isSubmitDisabled ? 'bg-[#EA580C]/50 text-white cursor-not-allowed hover:bg-[#EA580C]/50' : 'bg-[#EA580C] text-white hover:bg-[#c2410c] cursor-pointer shadow-sm'"
         >
           <svg
-            v-if="loading"
+            v-if="loading || isRedirecting"
             class="animate-spin w-4 h-4 text-white"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -255,7 +260,7 @@
               d="M4 12a8 8 0 018-8v8H4z"
             />
           </svg>
-          <span class="text-white font-medium">{{ loading ? 'Creating account…' : 'Create account' }}</span>
+          <span class="text-white font-medium">{{ loading || isRedirecting ? 'Creating account…' : 'Create account' }}</span>
         </Button>
       </div>
     </form>
@@ -289,8 +294,6 @@ definePageMeta({
   layout: 'auth',
 })
 
-const router = useRouter()
-
 const form = reactive({
   email: '',
   password: '',
@@ -307,7 +310,8 @@ const touched = reactive({
 
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
-const loading = ref(false)
+const isRedirecting = ref(false)
+const { register, loading, error: authError } = useAuth()
 const serverError = ref('')
 const successMessage = ref('')
 
@@ -343,10 +347,10 @@ const isFormValid = computed(() => {
   return Boolean(isEmailValid && isPasswordValid && isConfirmValid && form.agreeTerms)
 })
 
-const isSubmitDisabled = computed(() => loading.value || !isFormValid.value)
+const isSubmitDisabled = computed(() => loading.value || isRedirecting.value || !isFormValid.value)
 
 async function handleSubmit() {
-  if (loading.value) return
+  if (loading.value || isRedirecting.value) return
 
   touch('email')
   touch('password')
@@ -355,19 +359,45 @@ async function handleSubmit() {
 
   if (!isFormValid.value) return
 
-  loading.value = true
   serverError.value = ''
   successMessage.value = ''
+  let isSuccess = false
+  let targetRoute = '/login'
 
   try {
-    await new Promise(resolve => setTimeout(resolve, 600))
-    router.push('/dashboard')
+    const response = await register(
+      {
+        email: form.email.trim(),
+        password: form.password,
+        agreeToTerms: form.agreeTerms,
+      },
+      { autoNavigate: false },
+    )
+
+    const res = response as Record<string, unknown> | null | undefined
+    const tokensObj = res?.tokens as Record<string, unknown> | undefined
+    const accessToken = (typeof res?.access === 'string' ? res.access : undefined)
+      || (typeof tokensObj?.access === 'string' ? tokensObj.access : undefined)
+      || (typeof res?.token === 'string' ? res.token : undefined)
+    const refreshToken = (typeof res?.refresh === 'string' ? res.refresh : undefined)
+      || (typeof tokensObj?.refresh === 'string' ? tokensObj.refresh : undefined)
+    const hasTokens = Boolean(accessToken && refreshToken)
+
+    isSuccess = true
+    targetRoute = hasTokens ? '/dashboard' : '/login'
+    successMessage.value = hasTokens
+      ? 'Account created successfully! Redirecting...'
+      : 'Account created! Please sign in to continue.'
+    isRedirecting.value = true
   }
   catch {
-    serverError.value = 'Failed to create account. Please try again.'
+    isRedirecting.value = false
+    serverError.value = authError.value || 'Failed to create account. Please try again.'
   }
-  finally {
-    loading.value = false
+
+  if (isSuccess) {
+    await new Promise(resolve => setTimeout(resolve, 600))
+    await navigateTo(targetRoute)
   }
 }
 </script>
