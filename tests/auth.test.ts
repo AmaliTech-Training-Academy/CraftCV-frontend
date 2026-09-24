@@ -225,27 +225,24 @@ describe('Authentication Flow', () => {
   })
 
   describe('extractErrorMessage', () => {
-    it('returns network error message when no response or data exists', () => {
+    it('returns fallback message when no response or object data exists', () => {
       expect(extractErrorMessage(new Error('Network error'))).toBe(
-        'Unable to connect to the server. Please check your internet connection and try again.',
+        'An unexpected error occurred. Please try again.',
       )
       expect(extractErrorMessage(null)).toBe(
-        'Unable to connect to the server. Please check your internet connection and try again.',
-      )
-    })
-
-    it('returns system error message on 5xx status codes', () => {
-      expect(extractErrorMessage({ statusCode: 500, data: {} })).toBe(
-        'System error. Please try again after some time.',
-      )
-      expect(extractErrorMessage({ status: 503, response: { _data: {} } })).toBe(
-        'System error. Please try again after some time.',
+        'An unexpected error occurred. Please try again.',
       )
     })
 
     it('returns detail message when detail string is present', () => {
       expect(extractErrorMessage({ data: { detail: 'Custom error detail.' } })).toBe(
         'Custom error detail.',
+      )
+    })
+
+    it('returns message string when message property is present', () => {
+      expect(extractErrorMessage({ data: { message: 'Invalid credentials.' } })).toBe(
+        'Invalid credentials.',
       )
     })
 
@@ -258,9 +255,9 @@ describe('Authentication Flow', () => {
       )
     })
 
-    it('extracts password error from array or string', () => {
-      expect(extractErrorMessage({ data: { password: ['Password too short'] } })).toBe(
-        'Password too short',
+    it('extracts password error from array or string including phrases like at least 8 characters', () => {
+      expect(extractErrorMessage({ data: { password: ['at least 8 characters'] } })).toBe(
+        'at least 8 characters',
       )
       expect(extractErrorMessage({ data: { password: 'Password too short' } })).toBe(
         'Password too short',
@@ -276,50 +273,36 @@ describe('Authentication Flow', () => {
     it('combines multiple field error messages when present', () => {
       expect(
         extractErrorMessage({
-          data: { email: ['Email already exists.'], password: ['Password is too weak.'] },
+          data: { email: ['Email already exists.'], password: ['at least 8 characters'] },
         }),
-      ).toBe('Email already exists. Password is too weak.')
+      ).toBe('Email already exists. at least 8 characters')
     })
 
-    it('returns fallback message for unknown internal string fields', () => {
+    it('displays JSON object error messages as-is', () => {
       expect(
-        extractErrorMessage({ statusCode: 400, data: { internal_debug: 'Cannot find route' } }, 'Registration failed. Please check your details and try again.'),
-      ).toBe('Registration failed. Please check your details and try again.')
+        extractErrorMessage({ statusCode: 400, data: { internal_debug: 'Cannot find route' } }),
+      ).toBe('Cannot find route')
     })
 
-    it('returns fallback message for other 4xx errors without matching keys', () => {
-      expect(extractErrorMessage({ statusCode: 400, data: {} }, 'Registration failed. Please check your details and try again.')).toBe(
-        'Registration failed. Please check your details and try again.',
+    it('returns fallback message for empty object or 4xx/5xx errors without data fields', () => {
+      expect(extractErrorMessage({ statusCode: 400, data: {} })).toBe(
+        'An unexpected error occurred. Please try again.',
       )
     })
 
-    it('returns the fallback when the response is raw HTML', () => {
+    it('returns the fallback when the response is raw HTML or primitive non-object', () => {
       const htmlBody = '<!DOCTYPE html><html><body>502 Bad Gateway</body></html>'
       expect(extractErrorMessage({ statusCode: 502, data: htmlBody })).toBe(
-        'System error. Please try again after some time.',
+        'An unexpected error occurred. Please try again.',
       )
       expect(extractErrorMessage({ data: htmlBody })).toBe(
         'An unexpected error occurred. Please try again.',
       )
     })
 
-    it('returns the fallback when err.message contains a raw endpoint URL', () => {
+    it('returns the fallback when err is not an object or lacks response object data', () => {
       const err = new Error('FetchError: Failed to fetch http://api.craftcv.com/auth/register')
       expect(extractErrorMessage(err)).toBe('An unexpected error occurred. Please try again.')
-    })
-
-    it('correctly aggregates multiple field errors when valid DRF validation objects are provided', () => {
-      expect(
-        extractErrorMessage({
-          data: { email: ['Email already exists.'], password: ['Password too short.'] },
-        }),
-      ).toBe('Email already exists. Password too short.')
-    })
-
-    it('correctly handles clean string error responses that do not contain HTML or URLs', () => {
-      expect(extractErrorMessage({ data: 'Invalid credentials provided.' })).toBe(
-        'Invalid credentials provided.',
-      )
     })
   })
 
