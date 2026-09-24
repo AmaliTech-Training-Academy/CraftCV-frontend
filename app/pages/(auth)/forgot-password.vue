@@ -366,7 +366,7 @@
                 <button
                   type="button"
                   class="text-[13px] font-medium text-[#948573] hover:text-[#57504A] transition-colors"
-                  @click="step = 1"
+                  @click="goToStep1"
                 >
                   {{ resendAttempts >= MAX_RESEND_ATTEMPTS ? 'Try a different email' : 'Use a different email' }}
                 </button>
@@ -899,6 +899,12 @@ async function onVerifyCode() {
     nextTick(() => otpInputs.value[0]?.focus())
   }
   finally { isLoading.value = false }
+}
+
+function goToStep1() {
+  step.value = 1
+  otp.value = ['', '', '', '', '', '']
+  otpError.value = ''
 }
 
 async function onResendCode() {
