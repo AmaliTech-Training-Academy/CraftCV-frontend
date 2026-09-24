@@ -206,7 +206,8 @@
             <div class="pt-1.5">
               <Button
                 type="submit"
-                class="w-full h-[46px] bg-[#E2673D] hover:bg-[#C9552F] active:scale-[0.98] text-white font-semibold text-sm rounded-[10px] shadow-sm transition-all duration-150 flex items-center justify-center tracking-wide"
+                :disabled="isLoading"
+                class="w-full h-[46px] bg-[#E2673D] hover:bg-[#C9552F] active:scale-[0.98] text-white font-semibold text-sm rounded-[10px] shadow-sm transition-all duration-150 flex items-center justify-center tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Send code
               </Button>
@@ -298,7 +299,8 @@
             <div class="pt-1.5">
               <Button
                 type="submit"
-                class="w-full h-[46px] bg-[#E2673D] hover:bg-[#C9552F] active:scale-[0.98] text-white font-semibold text-sm rounded-[10px] shadow-sm transition-all duration-150 flex items-center justify-center tracking-wide"
+                :disabled="isLoading"
+                class="w-full h-[46px] bg-[#E2673D] hover:bg-[#C9552F] active:scale-[0.98] text-white font-semibold text-sm rounded-[10px] shadow-sm transition-all duration-150 flex items-center justify-center tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Verify code
               </Button>
@@ -558,7 +560,7 @@
             <div style="padding-top:8px;">
               <Button
                 type="submit"
-                :disabled="confirmMismatch"
+                :disabled="confirmMismatch || isLoading"
                 class="w-full h-[46px] bg-[#E2673D] hover:bg-[#C9552F] active:scale-[0.98] text-white font-semibold text-sm rounded-[10px] shadow-sm transition-all duration-150 flex items-center justify-center tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Reset password
@@ -947,7 +949,7 @@ async function onResetPassword() {
       if (redirectCountdown.value <= 0) {
         clearInterval(redirectInterval!)
         redirectInterval = null
-        router.push('/auth/login')
+        router.push('/login')
       }
     }, 1000)
   }
@@ -959,7 +961,7 @@ async function onResetPassword() {
 
 function goToLoginNow() {
   if (redirectInterval) clearInterval(redirectInterval)
-  router.push('/auth/login')
+  router.push('/login')
 }
 
 onUnmounted(() => {

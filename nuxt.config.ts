@@ -50,12 +50,7 @@ export default defineNuxtConfig({
         proxy: 'http://ec2-63-32-123-101.eu-west-1.compute.amazonaws.com/api/**',
       },
     },
-    prerender: {
-      // /login is not yet implemented (owned by a separate PR).
-      // Ignore it so `nuxt generate` does not fail on the 404.
-      // Remove this entry once app/pages/(auth)/login.vue is merged.
-      ignore: ['/login'],
-    },
+
   },
 
   vite: {
