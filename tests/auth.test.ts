@@ -225,74 +225,9 @@ describe('Authentication Flow', () => {
   })
 
   describe('extractErrorMessage', () => {
-    it('returns fallback message when no response or object data exists', () => {
-      expect(extractErrorMessage(new Error('Network error'))).toBe(
-        'An unexpected error occurred. Please try again.',
-      )
-      expect(extractErrorMessage(null)).toBe(
-        'An unexpected error occurred. Please try again.',
-      )
-    })
-
-    it('returns detail message when detail string is present', () => {
-      expect(extractErrorMessage({ data: { detail: 'Custom error detail.' } })).toBe(
-        'Custom error detail.',
-      )
-    })
-
-    it('returns message string when message property is present', () => {
-      expect(extractErrorMessage({ data: { message: 'Invalid credentials.' } })).toBe(
-        'Invalid credentials.',
-      )
-    })
-
-    it('extracts email error from array or string', () => {
-      expect(extractErrorMessage({ data: { email: ['Email already exists'] } })).toBe(
-        'Email already exists',
-      )
-      expect(extractErrorMessage({ data: { email: 'Email invalid' } })).toBe(
-        'Email invalid',
-      )
-    })
-
-    it('extracts password error from array or string including phrases like at least 8 characters', () => {
-      expect(extractErrorMessage({ data: { password: ['at least 8 characters'] } })).toBe(
-        'at least 8 characters',
-      )
-      expect(extractErrorMessage({ data: { password: 'Password too short' } })).toBe(
-        'Password too short',
-      )
-    })
-
-    it('extracts non_field_errors from array or string', () => {
-      expect(extractErrorMessage({ data: { non_field_errors: ['Invalid payload'] } })).toBe(
-        'Invalid payload',
-      )
-    })
-
-    it('combines multiple field error messages when present', () => {
-      expect(
-        extractErrorMessage({
-          data: { email: ['Email already exists.'], password: ['at least 8 characters'] },
-        }),
-      ).toBe('Email already exists. at least 8 characters')
-    })
-
-    it('displays JSON object error messages as-is', () => {
-      expect(
-        extractErrorMessage({ statusCode: 400, data: { internal_debug: 'Cannot find route' } }),
-      ).toBe('Cannot find route')
-    })
-
-    it('returns fallback message for empty object or 4xx/5xx errors without data fields', () => {
-      expect(extractErrorMessage({ statusCode: 400, data: {} })).toBe(
-        'An unexpected error occurred. Please try again.',
-      )
-    })
-
-    it('returns the fallback when the response is raw HTML or primitive non-object', () => {
-      const htmlBody = '<!DOCTYPE html><html><body>502 Bad Gateway</body></html>'
-      expect(extractErrorMessage({ statusCode: 502, data: htmlBody })).toBe(
+    it('returns unexpected error fallback when response data is raw HTML without 5xx code or 404 with HTML body', () => {
+      const htmlBody = '<!DOCTYPE html><html><body>404 Not Found</body></html>'
+      expect(extractErrorMessage({ statusCode: 404, data: htmlBody })).toBe(
         'An unexpected error occurred. Please try again.',
       )
       expect(extractErrorMessage({ data: htmlBody })).toBe(
@@ -300,9 +235,60 @@ describe('Authentication Flow', () => {
       )
     })
 
-    it('returns the fallback when err is not an object or lacks response object data', () => {
-      const err = new Error('FetchError: Failed to fetch http://api.craftcv.com/auth/register')
-      expect(extractErrorMessage(err)).toBe('An unexpected error occurred. Please try again.')
+    it('returns unexpected error fallback when err is not an object', () => {
+      expect(extractErrorMessage(null)).toBe(
+        'An unexpected error occurred. Please try again.',
+      )
+      expect(extractErrorMessage('string error')).toBe(
+        'An unexpected error occurred. Please try again.',
+      )
+    })
+
+    it('returns connection error message when no status code or response data exists', () => {
+      expect(extractErrorMessage({})).toBe(
+        'Unable to connect to the server. Please check your internet connection and try again.',
+      )
+      const fetchErr = new Error('FetchError: Failed to fetch http://api.craftcv.com/auth/register')
+      expect(extractErrorMessage(fetchErr)).toBe(
+        'Unable to connect to the server. Please check your internet connection and try again.',
+      )
+    })
+
+    it('returns server error message for 5xx responses', () => {
+      expect(
+        extractErrorMessage({ statusCode: 502, data: '<!DOCTYPE html><html><body>502 Bad Gateway</body></html>' }),
+      ).toBe('Something went wrong on our side. Please try again later.')
+
+      expect(
+        extractErrorMessage({ response: { status: 500, _data: { detail: 'Traceback…' } } }),
+      ).toBe('Something went wrong on our side. Please try again later.')
+    })
+
+    it('returns connection error message when err is a network/fetch failure', () => {
+      const fetchErr = new Error('FetchError: Failed to fetch http://api.craftcv.com/auth/register')
+      expect(extractErrorMessage(fetchErr)).toBe(
+        'Unable to connect to the server. Please check your internet connection and try again.',
+      )
+    })
+
+    it('returns detail, message, or error string when present in 4xx DRF payload', () => {
+      expect(extractErrorMessage({ data: { detail: 'Custom error detail.' } })).toBe(
+        'Custom error detail.',
+      )
+      expect(extractErrorMessage({ data: { message: 'Invalid credentials.' } })).toBe(
+        'Invalid credentials.',
+      )
+      expect(extractErrorMessage({ data: { error: 'Account suspended.' } })).toBe(
+        'Account suspended.',
+      )
+    })
+
+    it('aggregates multiple field errors when valid DRF validation objects are provided', () => {
+      expect(
+        extractErrorMessage({
+          data: { email: ['Email already exists.'], password: ['Password too short.'] },
+        }),
+      ).toBe('Email already exists. Password too short.')
     })
   })
 

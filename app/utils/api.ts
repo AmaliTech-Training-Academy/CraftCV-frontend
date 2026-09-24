@@ -12,15 +12,32 @@ export function extractErrorMessage(
     return fallbackMessage
   }
 
-  const e = err as { data?: unknown, response?: { _data?: unknown, data?: unknown } }
+  const e = err as {
+    data?: unknown
+    status?: number
+    statusCode?: number
+    response?: { status?: number, statusCode?: number, _data?: unknown, data?: unknown }
+  }
+
+  const status = e.statusCode ?? e.status ?? e.response?.status ?? e.response?.statusCode
   const responseData = e.data ?? e.response?._data ?? e.response?.data
 
-  // If there's no data or it's not an object (e.g. raw string, HTML page, primitive), use fallback
+  // 1. Connection / Network failure (no status code and no response data)
+  if (!status && !responseData) {
+    return 'Unable to connect to the server. Please check your internet connection and try again.'
+  }
+
+  // 2. Server Errors (5xx)
+  if (typeof status === 'number' && status >= 500 && status < 600) {
+    return 'Something went wrong on our side. Please try again later.'
+  }
+
+  // 3. Non-JSON / HTML / Primitive Response Fallback
   if (!responseData || typeof responseData !== 'object') {
     return fallbackMessage
   }
 
-  // 1. Direct string keys: detail or message
+  // 4. Structured 4xx DRF Validation Responses
   if ('detail' in responseData && typeof (responseData as { detail: unknown }).detail === 'string') {
     return (responseData as { detail: string }).detail
   }
@@ -29,7 +46,10 @@ export function extractErrorMessage(
     return (responseData as { message: string }).message
   }
 
-  // 2. Field error objects: { email: ['...'], password: ['at least 8 characters'] }
+  if ('error' in responseData && typeof (responseData as { error: unknown }).error === 'string') {
+    return (responseData as { error: string }).error
+  }
+
   const messages: string[] = []
   for (const value of Object.values(responseData)) {
     if (Array.isArray(value)) {
