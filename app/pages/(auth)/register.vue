@@ -215,14 +215,14 @@
             id="agreeTerms"
             v-model="form.agreeTerms"
             type="checkbox"
-            class="w-4 h-4 rounded border-stone-300 text-[#EA580C] focus:ring-[#EA580C] cursor-pointer"
+            class="w-4 h-4 rounded border-stone-300 accent-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 cursor-pointer"
             @change="touch('agreeTerms')"
           >
           <span class="text-xs sm:text-sm text-stone-600 leading-snug">
             I agree to the
-            <span class="text-[#EA580C] font-medium hover:underline cursor-pointer">Terms</span>
+            <span class="text-brand-600 font-medium hover:underline cursor-pointer">Terms</span>
             &amp;
-            <span class="text-[#EA580C] font-medium hover:underline cursor-pointer">Privacy Policy</span>
+            <span class="text-brand-600 font-medium hover:underline cursor-pointer">Privacy Policy</span>
           </span>
         </label>
       </div>

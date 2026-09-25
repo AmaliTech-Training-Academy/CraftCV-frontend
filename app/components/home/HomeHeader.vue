@@ -19,16 +19,11 @@
               class="h-7 w-auto object-contain transition-transform group-hover:scale-105"
             >
           </div>
-          <div class="flex flex-col">
-            <span
-              class="font-display font-bold text-xl tracking-tight text-stone-900 group-hover:text-brand-700 transition-colors"
-            >
-              Craft<span class="text-brand-600">CV</span>
-            </span>
-            <span
-              class="text-[10px] uppercase font-semibold tracking-wider text-stone-400 -mt-1"
-            >CV Maker</span>
-          </div>
+          <span
+            class="font-display font-bold text-xl tracking-tight text-stone-900 group-hover:text-brand-700 transition-colors"
+          >
+            Craft<span class="text-brand-600">CV</span>
+          </span>
         </NuxtLink>
 
         <nav

@@ -12,14 +12,22 @@ const isMenuOpen = ref(false)
     <!-- Logo -->
     <NuxtLink
       to="/dashboard"
-      class="flex items-center gap-2 group transition-opacity hover:opacity-90"
+      class="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 rounded-lg"
     >
-      <img
-        src="/logo.png"
-        alt="CraftCV logo"
-        class="w-8 h-8 object-contain"
+      <div
+        class="relative flex items-center justify-center p-1.5 rounded-xl bg-white border border-stone-200 shadow-sm group-hover:border-brand-300 transition-colors"
       >
-      <span class="text-xl font-extrabold text-gray-900 tracking-tight">CraftCV</span>
+        <img
+          src="/craftcv-logo.png"
+          alt="CraftCV Logo"
+          class="h-7 w-auto object-contain transition-transform group-hover:scale-105"
+        >
+      </div>
+      <span
+        class="font-display font-bold text-xl tracking-tight text-stone-900 group-hover:text-brand-700 transition-colors"
+      >
+        Craft<span class="text-brand-600">CV</span>
+      </span>
     </NuxtLink>
 
     <!-- Navigation -->

@@ -8,6 +8,7 @@ import {
   GraduationCap,
   Zap,
   Award,
+  Check,
   CheckCircle2,
   Circle,
   Pencil,
@@ -60,14 +61,22 @@ const steps = computed(() => [
         <!-- Logo -->
         <NuxtLink
           to="/dashboard"
-          class="flex items-center gap-2.5 group transition-opacity hover:opacity-90"
+          class="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 rounded-lg"
         >
-          <img
-            src="/logo.png"
-            alt="CraftCV"
-            class="w-7 h-7 object-contain"
+          <div
+            class="relative flex items-center justify-center p-1.5 rounded-xl bg-white border border-stone-200 shadow-sm group-hover:border-brand-300 transition-colors"
           >
-          <span class="text-xl font-extrabold text-gray-900 tracking-tight">CraftCV</span>
+            <img
+              src="/craftcv-logo.png"
+              alt="CraftCV Logo"
+              class="h-7 w-auto object-contain transition-transform group-hover:scale-105"
+            >
+          </div>
+          <span
+            class="font-display font-bold text-xl tracking-tight text-stone-900 group-hover:text-brand-700 transition-colors"
+          >
+            Craft<span class="text-brand-600">CV</span>
+          </span>
         </NuxtLink>
 
         <div class="h-5 w-[1px] bg-gray-200" />
@@ -143,17 +152,22 @@ const steps = computed(() => [
 
             <!-- Status Indicators -->
             <template v-if="isSidebarExpanded">
-              <CheckCircle2
+              <div
                 v-if="step.status === 'complete'"
-                class="w-4 h-4 text-green-500 flex-shrink-0"
-              />
+                class="w-4 h-4 bg-emerald-500 rounded-full flex flex-col items-center justify-center flex-shrink-0"
+              >
+                <Check
+                  class="w-3 h-3 text-white"
+                  stroke-width="3"
+                />
+              </div>
               <Circle
                 v-else-if="step.status === 'incomplete'"
-                class="w-4 h-4 text-yellow-400 fill-yellow-400/20 flex-shrink-0"
+                class="w-4 h-4 text-yellow-400 fill-yellow-400 flex-shrink-0"
               />
               <Circle
                 v-else
-                class="w-4 h-4 opacity-30 flex-shrink-0"
+                class="w-4 h-4 text-white/40 fill-white/40 flex-shrink-0"
               />
             </template>
           </div>
