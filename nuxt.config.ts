@@ -47,7 +47,7 @@ export default defineNuxtConfig({
   nitro: {
     routeRules: {
       '/api/**': {
-        proxy: 'http://ec2-63-32-123-101.eu-west-1.compute.amazonaws.com/api/**',
+        proxy: process.env.NUXT_API_PROXY_URL,
       },
     },
 

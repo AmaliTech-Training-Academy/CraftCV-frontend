@@ -160,4 +160,11 @@
   body {
     @apply bg-background text-foreground;
   }
+  button,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    cursor: pointer;
+  }
 }

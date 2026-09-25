@@ -1,6 +1,49 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useIntersectionObserver } from '@vueuse/core'
+
+const isLoaded = ref(false)
+
+const howItWorksRef = ref<HTMLElement | null>(null)
+const isHowItWorksVisible = ref(false)
+const featuresRef = ref<HTMLElement | null>(null)
+const isFeaturesVisible = ref(false)
+const ctaRef = ref<HTMLElement | null>(null)
+const isCtaVisible = ref(false)
+
+useIntersectionObserver(howItWorksRef, ([entry]) => {
+  if (entry?.isIntersecting) isHowItWorksVisible.value = true
+}, { threshold: 0.2 })
+
+useIntersectionObserver(featuresRef, ([entry]) => {
+  if (entry?.isIntersecting) isFeaturesVisible.value = true
+}, { threshold: 0.1 })
+
+useIntersectionObserver(ctaRef, ([entry]) => {
+  if (entry?.isIntersecting) isCtaVisible.value = true
+}, { threshold: 0.3 })
+
+onMounted(() => {
+  setTimeout(() => {
+    isLoaded.value = true
+  }, 100)
+})
+
+useHead({
+  title: 'CraftCV \u2014 Simple, Beautiful CV Maker',
+  meta: [
+    {
+      name: 'description',
+      content:
+        'Create clean, professional resumes in minutes. Choose designer templates, customize your experience, and download a pixel-perfect PDF with CraftCV.',
+    },
+  ],
+})
+</script>
+
 <template>
   <div
-    class="relative min-h-screen bg-stone-50 text-stone-900 selection:bg-brand-500 selection:text-white font-sans overflow-x-hidden"
+    class="relative min-h-screen bg-stone-50 text-stone-900 selection:bg-brand-500 selection:text-white font-sans overflow-clip"
   >
     <!-- Ambient Background Lighting -->
     <div
@@ -585,46 +628,3 @@
     <HomeFooter />
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useIntersectionObserver } from '@vueuse/core'
-
-const isLoaded = ref(false)
-
-const howItWorksRef = ref<HTMLElement | null>(null)
-const isHowItWorksVisible = ref(false)
-const featuresRef = ref<HTMLElement | null>(null)
-const isFeaturesVisible = ref(false)
-const ctaRef = ref<HTMLElement | null>(null)
-const isCtaVisible = ref(false)
-
-useIntersectionObserver(howItWorksRef, ([entry]) => {
-  if (entry?.isIntersecting) isHowItWorksVisible.value = true
-}, { threshold: 0.2 })
-
-useIntersectionObserver(featuresRef, ([entry]) => {
-  if (entry?.isIntersecting) isFeaturesVisible.value = true
-}, { threshold: 0.1 })
-
-useIntersectionObserver(ctaRef, ([entry]) => {
-  if (entry?.isIntersecting) isCtaVisible.value = true
-}, { threshold: 0.3 })
-
-onMounted(() => {
-  setTimeout(() => {
-    isLoaded.value = true
-  }, 100)
-})
-
-useHead({
-  title: 'CraftCV \u2014 Simple, Beautiful CV Maker',
-  meta: [
-    {
-      name: 'description',
-      content:
-        'Create clean, professional resumes in minutes. Choose designer templates, customize your experience, and download a pixel-perfect PDF with CraftCV.',
-    },
-  ],
-})
-</script>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { PanelLeftClose, PanelLeftOpen } from '@lucide/vue'
+import { PanelLeftClose, PanelLeftOpen, LayoutGrid } from '@lucide/vue'
 import { useTemplates } from '~/composables/useTemplates'
 
 const isCollapsed = ref(false)
@@ -14,7 +14,7 @@ const toggleSidebar = () => {
 <template>
   <aside
     :class="[
-      'bg-[#9A4C2C] rounded-tr-[15px] transition-all duration-300 ease-in-out flex flex-col relative z-10 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.15)]',
+      'bg-[#B64A22] rounded-tr-[15px] transition-all duration-300 ease-in-out flex flex-col relative z-10 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.15)]',
       isCollapsed ? 'w-16' : 'w-64',
     ]"
   >
@@ -58,28 +58,30 @@ const toggleSidebar = () => {
             class="w-full flex items-center transition-colors duration-150"
             :class="[
               isCollapsed
-                ? 'justify-center rounded-lg border border-transparent px-0 py-2.5 hover:bg-white/20'
+                ? 'justify-center rounded-xl bg-white shadow-sm px-0 py-2.5'
                 : 'justify-between rounded-xl bg-white shadow-sm px-4 py-2.5',
             ]"
             aria-current="true"
             aria-label="All templates"
           >
-            <!-- Expanded label -->
-            <span
-              v-if="!isCollapsed"
-              class="text-sm font-semibold text-[#9A4C2C]"
-            >
-              All
-            </span>
+            <!-- Icon and Expanded label -->
+            <div class="flex items-center gap-2">
+              <LayoutGrid
+                class="text-[#B64A22]"
+                :class="isCollapsed ? 'w-5 h-5' : 'w-4 h-4'"
+              />
+              <span
+                v-if="!isCollapsed"
+                class="text-sm font-semibold text-[#B64A22]"
+              >
+                All
+              </span>
+            </div>
 
             <!-- Count badge (both states) -->
             <span
-              class="text-[11px] font-bold rounded-full leading-none"
-              :class="[
-                isCollapsed
-                  ? 'bg-white/20 text-white px-1.5 py-1'
-                  : 'bg-[#9A4C2C]/10 text-[#9A4C2C] px-2.5 py-1',
-              ]"
+              v-if="!isCollapsed"
+              class="text-[11px] font-bold rounded-full leading-none bg-[#B64A22]/10 text-[#B64A22] px-2.5 py-1"
             >
               {{ templates.length }}
             </span>

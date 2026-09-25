@@ -10,6 +10,7 @@ vi.mock('#imports', () => ({
 
 vi.mock('#app/composables/router', () => ({
   useRoute: () => ({ path: '/auth/register' }),
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }))
 
 describe('auth.vue', () => {
@@ -30,6 +31,7 @@ describe('auth.vue', () => {
       global: {
         stubs: {
           NuxtImg: true,
+          NuxtLink: true,
         },
       },
     })
@@ -43,6 +45,7 @@ describe('auth.vue', () => {
       global: {
         stubs: {
           NuxtImg: true,
+          NuxtLink: true,
         },
       },
     })

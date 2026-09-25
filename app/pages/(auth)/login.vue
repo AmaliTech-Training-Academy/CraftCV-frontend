@@ -141,8 +141,7 @@
         <NuxtLink
           to="/forgot-password"
           class="text-[14px] font-medium text-brand-600 hover:text-brand-700 transition"
-        >Forgot password?
-        </NuxtLink>
+        >Forgot password?</NuxtLink>
       </div>
 
       <div
@@ -215,12 +214,6 @@
         {{ loading ? "Signing in\u2026" : "Sign in" }}
       </button>
     </form>
-
-    <div class="mt-6 flex items-center gap-3">
-      <div class="h-px flex-1 bg-stone-200" />
-      <span class="text-sm text-stone-400 whitespace-nowrap">or continue with</span>
-      <div class="h-px flex-1 bg-stone-200" />
-    </div>
 
     <p class="mt-6 text-center text-[14px] text-stone-600">
       Don't have an account?

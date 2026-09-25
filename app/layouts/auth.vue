@@ -76,18 +76,25 @@ onUnmounted(() => {
     class="min-h-screen flex flex-col justify-between py-3 sm:py-5 lg:py-6 bg-white px-4 sm:px-8 lg:px-12"
   >
     <header class="hidden lg:block w-full max-w-7xl mx-auto">
-      <div class="inline-flex items-center gap-2.5">
-        <NuxtImg
-          src="/craftcv-logo.png"
-          alt="CraftCV"
-          class="h-8 w-auto"
-        />
-        <span
-          class="font-display font-semibold text-xl tracking-tight text-stone-900"
+      <NuxtLink
+        to="/"
+        class="inline-flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 rounded-lg"
+      >
+        <div
+          class="relative flex items-center justify-center p-1.5 rounded-xl bg-white border border-stone-200 shadow-sm group-hover:border-brand-300 transition-colors"
         >
-          CraftCV
+          <img
+            src="/craftcv-logo.png"
+            alt="CraftCV Logo"
+            class="h-7 w-auto object-contain transition-transform group-hover:scale-105"
+          >
+        </div>
+        <span
+          class="font-display font-bold text-xl tracking-tight text-stone-900 group-hover:text-brand-700 transition-colors"
+        >
+          Craft<span class="text-brand-600">CV</span>
         </span>
-      </div>
+      </NuxtLink>
     </header>
 
     <main
@@ -176,14 +183,25 @@ onUnmounted(() => {
 
       <div class="w-full lg:w-[60%] flex items-center justify-center">
         <div class="w-full max-w-[400px] mx-auto">
-          <div class="flex flex-col items-center mb-8 lg:hidden">
-            <NuxtImg
-              src="/craftcv-logo.png"
-              alt="CraftCV"
-              class="h-8 w-auto"
-            />
-            <span class="font-display font-semibold text-xl tracking-tight text-stone-900 mt-1">CraftCV</span>
-          </div>
+          <NuxtLink
+            to="/"
+            class="flex items-center justify-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 rounded-lg w-max mx-auto mb-8 lg:hidden"
+          >
+            <div
+              class="relative flex items-center justify-center p-1.5 rounded-xl bg-white border border-stone-200 shadow-sm group-hover:border-brand-300 transition-colors"
+            >
+              <img
+                src="/craftcv-logo.png"
+                alt="CraftCV Logo"
+                class="h-7 w-auto object-contain transition-transform group-hover:scale-105"
+              >
+            </div>
+            <span
+              class="font-display font-bold text-xl tracking-tight text-stone-900 group-hover:text-brand-700 transition-colors"
+            >
+              Craft<span class="text-brand-600">CV</span>
+            </span>
+          </NuxtLink>
           <slot />
         </div>
       </div>

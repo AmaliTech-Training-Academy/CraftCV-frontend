@@ -10,15 +10,6 @@
         <h1 class="font-display text-2xl sm:text-3xl font-bold tracking-tight uppercase text-stone-900">
           TERMS AND PRIVACY POLICY
         </h1>
-        <p class="mt-2 text-sm text-stone-600 font-medium">
-          CraftCV Project • Reference Jurisdiction: Ghana / West Africa
-        </p>
-        <p class="mt-1 text-xs text-stone-500">
-          Last updated: September 2026
-        </p>
-        <p class="mt-3 text-xs italic text-stone-500 max-w-lg mx-auto">
-          Illustrative terms written for the CraftCV project, not a live, binding legal agreement.
-        </p>
       </header>
 
       <main class="space-y-6 text-base leading-relaxed text-stone-800">
@@ -166,10 +157,6 @@
           </p>
         </section>
       </main>
-
-      <footer class="pt-8 border-t border-stone-200 text-center text-xs text-stone-500">
-        CraftCV • Page 1 of 1
-      </footer>
     </div>
   </div>
 </template>

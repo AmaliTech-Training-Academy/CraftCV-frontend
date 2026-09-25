@@ -88,55 +88,19 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             >
               <Maximize2 class="w-4 h-4" />
             </button>
-            <!-- Atlantic / Two-Column -->
-            <template v-if="template.component === 'TwoColumnTemplate'">
-              <div class="w-full h-[18%] bg-[#363f4f] flex items-end px-3 pb-2 gap-1.5">
-                <div class="h-2.5 w-24 rounded-sm bg-white/70" />
-                <div class="h-2 w-16 rounded-sm bg-white/40" />
-              </div>
-              <div class="flex h-[82%]">
-                <div class="w-[35%] bg-[#363f4f]/5 px-2 py-3 flex flex-col gap-2 border-r border-gray-100">
-                  <div class="h-1.5 w-full rounded-sm bg-gray-300" />
-                  <div class="h-1.5 w-4/5 rounded-sm bg-gray-200" />
-                  <div class="h-1.5 w-11/12 rounded-sm bg-gray-200" />
-                  <div class="mt-3 h-1.5 w-full rounded-sm bg-gray-300" />
-                  <div class="h-1.5 w-3/4 rounded-sm bg-gray-200" />
-                  <div class="h-1.5 w-4/5 rounded-sm bg-gray-200" />
-                </div>
-                <div class="flex-1 px-3 py-3 flex flex-col gap-2">
-                  <div class="h-1.5 w-3/5 rounded-sm bg-[#F26438]/50" />
-                  <div class="h-1.5 w-full rounded-sm bg-gray-200" />
-                  <div class="h-1.5 w-11/12 rounded-sm bg-gray-200" />
-                  <div class="h-1.5 w-full rounded-sm bg-gray-200" />
-                  <div class="mt-3 h-1.5 w-3/5 rounded-sm bg-[#F26438]/50" />
-                  <div class="h-1.5 w-full rounded-sm bg-gray-200" />
-                  <div class="h-1.5 w-4/5 rounded-sm bg-gray-200" />
-                  <div class="h-1.5 w-full rounded-sm bg-gray-200" />
-                </div>
-              </div>
-            </template>
-
-            <!-- Meridian / Single-Column -->
-            <template v-else>
-              <div class="flex flex-col items-center gap-1.5 px-4 pt-5 mb-4">
-                <div class="h-3 w-28 rounded-sm bg-gray-700/60" />
-                <div class="h-2 w-20 rounded-sm bg-gray-400/50" />
-                <div class="h-px w-full bg-gray-200 mt-2" />
-              </div>
-              <div class="flex flex-col gap-2 px-4">
-                <div class="h-1.5 w-2/5 rounded-sm bg-gray-600/50" />
-                <div class="h-1.5 w-full rounded-sm bg-gray-200" />
-                <div class="h-1.5 w-11/12 rounded-sm bg-gray-200" />
-                <div class="h-1.5 w-full rounded-sm bg-gray-200" />
-                <div class="mt-3 h-1.5 w-2/5 rounded-sm bg-gray-600/50" />
-                <div class="h-1.5 w-full rounded-sm bg-gray-200" />
-                <div class="h-1.5 w-4/5 rounded-sm bg-gray-200" />
-                <div class="h-1.5 w-full rounded-sm bg-gray-200" />
-                <div class="mt-3 h-1.5 w-2/5 rounded-sm bg-gray-600/50" />
-                <div class="h-1.5 w-full rounded-sm bg-gray-200" />
-                <div class="h-1.5 w-3/4 rounded-sm bg-gray-200" />
-              </div>
-            </template>
+            <!-- Template Image -->
+            <img
+              v-if="template.image"
+              :src="template.image"
+              :alt="`${template.name} preview`"
+              class="w-full h-full object-contain"
+            >
+            <div
+              v-else
+              class="w-full h-full flex items-center justify-center text-gray-400"
+            >
+              No preview available
+            </div>
           </div>
 
           <!-- Previous -->
