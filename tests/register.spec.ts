@@ -1,7 +1,7 @@
 // @vitest-environment nuxt
 
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import RegisterPage from '../app/pages/(auth)/register.vue'
 
@@ -20,6 +20,15 @@ function mountRegisterPage() {
 }
 
 describe('register.vue', () => {
+  beforeEach(() => {
+    vi.stubGlobal('navigateTo', vi.fn().mockResolvedValue(undefined))
+    useCookie('auth_token').value = null
+    useCookie('refresh_token').value = null
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
   describe('Route Registration', () => {
     it('resolves /register route in Nuxt router to (auth) register page', () => {
       const router = useRouter()
@@ -178,6 +187,12 @@ describe('register.vue', () => {
 
     it('toggles loading state on submit and prevents duplicate submissions while loading', async () => {
       const wrapper = await mountRegisterPage()
+      let resolveRequest: (value: { access: string, refresh: string }) => void
+      const pendingRequest = new Promise<{ access: string, refresh: string }>((resolve) => {
+        resolveRequest = resolve
+      })
+      const mockRegister = vi.fn().mockReturnValue(pendingRequest)
+      vi.stubGlobal('$api', mockRegister)
 
       await wrapper.find('#email').setValue('user@example.com')
       await wrapper.find('#password').setValue('StrongPass123!')
@@ -192,20 +207,19 @@ describe('register.vue', () => {
       const submitPromise = form.trigger('submit')
 
       await nextTick()
-      await new Promise(r => setTimeout(r, 20))
+      await Promise.resolve()
 
-      // Enters loading state after DOM update
       expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
       expect(submitBtn.attributes('disabled')).toBeDefined()
       expect(submitBtn.text()).toContain('Creating account')
       expect(wrapper.find('svg.animate-spin').exists()).toBe(true)
 
-      // Submitting again while loading does not trigger a second submission
+      resolveRequest!({ access: 'access-token', refresh: 'refresh-token' })
+      await submitPromise
+
       await form.trigger('submit')
       expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
       expect(submitBtn.attributes('disabled')).toBeDefined()
-
-      await submitPromise
     })
   })
 })

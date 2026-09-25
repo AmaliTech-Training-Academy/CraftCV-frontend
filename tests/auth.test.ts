@@ -113,6 +113,48 @@ describe('Authentication Flow', () => {
       expect(error.value).toBe('Invalid email or password.')
     })
 
+    it('stores auth tokens after a successful registration without redirecting from the composable', async () => {
+      mockApi.mockResolvedValueOnce({
+        access: 'register-access-token',
+        refresh: 'register-refresh-token',
+      })
+
+      const { register, token, isAuthenticated } = useAuth()
+
+      await register({
+        email: 'register@example.com',
+        password: 'password123',
+        confirmPassword: 'password123',
+      }, false)
+
+      expect(mockApi).toHaveBeenCalledWith('/auth/register/', {
+        method: 'POST',
+        body: { email: 'register@example.com', password: 'password123' },
+      })
+      expect(token.value).toBe('register-access-token')
+      expect(isAuthenticated.value).toBe(true)
+      expect(cookies['refresh_token']?.value).toBe('register-refresh-token')
+      expect(mockNavigateTo).not.toHaveBeenCalledWith('/dashboard')
+    })
+
+    it('surfaces a registration backend error without storing auth tokens', async () => {
+      mockApi.mockRejectedValueOnce({
+        data: { message: 'Email already in use.' },
+      })
+
+      const { register, token, error } = useAuth()
+
+      await expect(register({
+        email: 'duplicate@example.com',
+        password: 'password123',
+        confirmPassword: 'password123',
+      }, false)).rejects.toBeDefined()
+
+      expect(error.value).toBe('Email already in use.')
+      expect(token.value).toBeNull()
+      expect(cookies['refresh_token']?.value).toBeUndefined()
+    })
+
     it('clears authentication tokens on logout', async () => {
       cookies['auth_token'] = { value: 'fake-access-token' }
       cookies['refresh_token'] = { value: 'fake-refresh-token' }

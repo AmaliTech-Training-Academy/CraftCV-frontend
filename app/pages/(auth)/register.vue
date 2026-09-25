@@ -289,7 +289,7 @@ definePageMeta({
   layout: 'auth',
 })
 
-const router = useRouter()
+const { register, loading, error: authError } = useAuth()
 
 const form = reactive({
   email: '',
@@ -307,7 +307,6 @@ const touched = reactive({
 
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
-const loading = ref(false)
 const serverError = ref('')
 const successMessage = ref('')
 
@@ -355,19 +354,20 @@ async function handleSubmit() {
 
   if (!isFormValid.value) return
 
-  loading.value = true
   serverError.value = ''
   successMessage.value = ''
 
   try {
-    await new Promise(resolve => setTimeout(resolve, 600))
-    router.push('/dashboard')
+    await register({
+      email: form.email,
+      password: form.password,
+      confirmPassword: form.confirmPassword,
+    })
+    successMessage.value = 'Account created successfully.'
+    await navigateTo('/dashboard')
   }
   catch {
-    serverError.value = 'Failed to create account. Please try again.'
-  }
-  finally {
-    loading.value = false
+    serverError.value = authError.value || 'Failed to create account. Please try again.'
   }
 }
 </script>
