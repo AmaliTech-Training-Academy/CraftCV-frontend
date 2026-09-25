@@ -38,7 +38,7 @@ export default defineNuxtConfig({
       // which would break any hardcoded address every morning.
       //
       // Override with NUXT_PUBLIC_API_BASE when the API lives elsewhere.
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',
+      apiBase: process.env.NUXT_PUBLIC_API_BASE,
     },
   },
 
@@ -47,7 +47,7 @@ export default defineNuxtConfig({
   nitro: {
     routeRules: {
       '/api/**': {
-        proxy: 'http://ec2-63-32-123-101.eu-west-1.compute.amazonaws.com/api/**',
+        proxy: process.env.NUXT_API_PROXY_URL,
       },
     },
 
