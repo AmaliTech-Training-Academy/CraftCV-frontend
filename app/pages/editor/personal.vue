@@ -6,6 +6,7 @@ import { useCVState } from '~/composables/useCVState'
 
 definePageMeta({
   layout: 'editor',
+  middleware: ['auth'],
 })
 
 const { personal } = useCVState()
