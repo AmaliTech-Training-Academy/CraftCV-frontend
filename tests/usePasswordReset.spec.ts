@@ -14,37 +14,37 @@ describe('usePasswordReset', () => {
   })
 
   describe('API calls', () => {
-    it('requestReset calls POST /api/auth/forgot-password/ with email', async () => {
+    it('requestReset calls POST /auth/forgot-password/ with email', async () => {
       mockFetch.mockResolvedValueOnce({})
       const { requestReset } = usePasswordReset()
 
       await requestReset('test@example.com')
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/auth/forgot-password/', {
+      expect(mockFetch).toHaveBeenCalledWith('/auth/forgot-password/', {
         method: 'POST',
         body: { email: 'test@example.com' },
       })
     })
 
-    it('verifyCode calls POST /api/auth/verify-code/ with email and code', async () => {
+    it('verifyCode calls POST /auth/verify-code/ with email and code', async () => {
       mockFetch.mockResolvedValueOnce({})
       const { verifyCode } = usePasswordReset()
 
       await verifyCode('test@example.com', '123456')
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/auth/verify-code/', {
+      expect(mockFetch).toHaveBeenCalledWith('/auth/verify-code/', {
         method: 'POST',
         body: { email: 'test@example.com', code: '123456' },
       })
     })
 
-    it('resetPassword calls POST /api/auth/reset-password/ with email, code, and newPassword', async () => {
+    it('resetPassword calls POST /auth/reset-password/ with email, code, and newPassword', async () => {
       mockFetch.mockResolvedValueOnce({})
       const { resetPassword } = usePasswordReset()
 
       await resetPassword('test@example.com', '123456', 'NewPass123!')
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/auth/reset-password/', {
+      expect(mockFetch).toHaveBeenCalledWith('/auth/reset-password/', {
         method: 'POST',
         body: { email: 'test@example.com', code: '123456', newPassword: 'NewPass123!' },
       })
