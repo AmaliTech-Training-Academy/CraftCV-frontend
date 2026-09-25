@@ -211,21 +211,19 @@
         </p>
       </div>
 
-      <div class="pt-1">
-        <label class="flex items-center gap-2 cursor-pointer select-none">
-          <input
-            id="agreeTerms"
-            v-model="form.agreeTerms"
-            type="checkbox"
-            class="w-4 h-4 rounded border-stone-300 accent-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 cursor-pointer"
-            @change="touch('agreeTerms')"
-          >
-          <span class="text-xs sm:text-sm text-stone-600 leading-snug">
-            I agree to the
-            <span class="text-brand-600 font-medium hover:underline cursor-pointer">Terms</span>
-            &amp;
-            <span class="text-brand-600 font-medium hover:underline cursor-pointer">Privacy Policy</span>
-          </span>
+      <div class="pt-1 flex items-center gap-1.5 text-xs sm:text-sm text-stone-600 leading-snug">
+        <input
+          id="agreeTerms"
+          v-model="form.agreeTerms"
+          type="checkbox"
+          class="w-4 h-4 rounded border-stone-300 text-[#EA580C] focus:ring-[#EA580C] cursor-pointer"
+          @change="touch('agreeTerms')"
+        >
+        <label
+          for="agreeTerms"
+          class="cursor-pointer select-none"
+        >
+          I agree to the
         </label>
         <NuxtLink
           to="/terms"

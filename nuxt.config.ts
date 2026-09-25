@@ -38,7 +38,7 @@ export default defineNuxtConfig({
       // which would break any hardcoded address every morning.
       //
       // Override with NUXT_PUBLIC_API_BASE when the API lives elsewhere.
-      apiBase: process.env.NUXT_PUBLIC_API_BASE,
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',
     },
   },
 

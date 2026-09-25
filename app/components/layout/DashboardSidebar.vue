@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { PanelLeftClose, PanelLeftOpen } from '@lucide/vue'
+import { PanelLeftClose, PanelLeftOpen, LayoutGrid } from '@lucide/vue'
 import { useTemplates } from '~/composables/useTemplates'
 
 const isCollapsed = ref(false)
@@ -58,28 +58,30 @@ const toggleSidebar = () => {
             class="w-full flex items-center transition-colors duration-150"
             :class="[
               isCollapsed
-                ? 'justify-center rounded-lg border border-transparent px-0 py-2.5 hover:bg-white/20'
+                ? 'justify-center rounded-xl bg-white shadow-sm px-0 py-2.5'
                 : 'justify-between rounded-xl bg-white shadow-sm px-4 py-2.5',
             ]"
             aria-current="true"
             aria-label="All templates"
           >
-            <!-- Expanded label -->
-            <span
-              v-if="!isCollapsed"
-              class="text-sm font-semibold text-[#B64A22]"
-            >
-              All
-            </span>
+            <!-- Icon and Expanded label -->
+            <div class="flex items-center gap-2">
+              <LayoutGrid
+                class="text-[#B64A22]"
+                :class="isCollapsed ? 'w-5 h-5' : 'w-4 h-4'"
+              />
+              <span
+                v-if="!isCollapsed"
+                class="text-sm font-semibold text-[#B64A22]"
+              >
+                All
+              </span>
+            </div>
 
             <!-- Count badge (both states) -->
             <span
-              class="text-[11px] font-bold rounded-full leading-none"
-              :class="[
-                isCollapsed
-                  ? 'bg-white/20 text-white px-1.5 py-1'
-                  : 'bg-[#B64A22]/10 text-[#B64A22] px-2.5 py-1',
-              ]"
+              v-if="!isCollapsed"
+              class="text-[11px] font-bold rounded-full leading-none bg-[#B64A22]/10 text-[#B64A22] px-2.5 py-1"
             >
               {{ templates.length }}
             </span>

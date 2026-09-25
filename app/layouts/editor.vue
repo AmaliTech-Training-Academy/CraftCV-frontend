@@ -126,10 +126,24 @@ const steps = computed(() => [
         class="flex-shrink-0 flex flex-col h-full bg-[#B64A22] text-white overflow-y-auto transition-all duration-300"
         :class="isSidebarExpanded ? 'w-[260px]' : 'w-[80px]'"
       >
-        <!-- Optional spacing at top if needed, or remove completely -->
-        <div class="h-4 shrink-0" />
+        <!-- Top Collapse Button -->
+        <div
+          class="px-3 pt-4 shrink-0 flex"
+          :class="isSidebarExpanded ? 'justify-start' : 'justify-center'"
+        >
+          <button
+            class="flex items-center justify-center p-3 rounded-xl transition-colors text-white/80 hover:text-white hover:bg-white/10"
+            :title="isSidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'"
+            @click="isSidebarExpanded = !isSidebarExpanded"
+          >
+            <component
+              :is="isSidebarExpanded ? PanelLeftClose : PanelLeftOpen"
+              class="w-6 h-6 flex-shrink-0"
+            />
+          </button>
+        </div>
 
-        <nav class="flex-1 px-3 py-6 flex flex-col gap-1">
+        <nav class="flex-1 px-3 pt-10 pb-6 flex flex-col gap-1">
           <div
             v-for="step in steps"
             :key="step.id"
@@ -172,25 +186,6 @@ const steps = computed(() => [
             </template>
           </div>
         </nav>
-
-        <!-- Bottom Collapse Button -->
-        <div class="px-3 py-4 mt-auto shrink-0">
-          <button
-            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-white/80 border border-white/20 hover:text-white hover:bg-white/10"
-            :class="!isSidebarExpanded ? 'justify-center px-0' : ''"
-            :title="isSidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'"
-            @click="isSidebarExpanded = !isSidebarExpanded"
-          >
-            <component
-              :is="isSidebarExpanded ? PanelLeftClose : PanelLeftOpen"
-              class="w-5 h-5 flex-shrink-0"
-            />
-            <span
-              v-if="isSidebarExpanded"
-              class="text-[13px] font-semibold whitespace-nowrap"
-            >Collapse Sidebar</span>
-          </button>
-        </div>
       </aside>
 
       <!-- 3. Form Area (Middle Slot) -->
