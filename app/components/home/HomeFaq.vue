@@ -26,7 +26,7 @@
         >
           <button
             type="button"
-            class="w-full p-5 text-left font-display font-semibold text-base sm:text-lg text-stone-900 flex items-center justify-between gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+            class="w-full p-5 text-left font-display font-semibold text-base sm:text-lg text-stone-900 flex items-center justify-between gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 cursor-pointer hover:bg-stone-50 transition-colors"
             :aria-expanded="openFaqIndex === fIdx"
             :aria-controls="'faq-answer-' + fIdx"
             @click="toggleFaq(fIdx)"

@@ -14,19 +14,22 @@ const bgImage = computed(() => {
 
 const features = [
   {
-    quote: 'CraftCV provides clean, ATS-friendly templates that are genuinely professional. Exporting to PDF is flawless every single time.',
+    quote:
+      'CraftCV provides clean, ATS-friendly templates that are genuinely professional. Exporting to PDF is flawless every single time.',
     name: 'Mark Williams',
     role: 'Product Manager | Capsule',
     initials: 'MW',
   },
   {
-    quote: 'Managing multiple CV versions for different roles is effortless. The interface is intuitive and gets straight to the point.',
+    quote:
+      'Managing multiple CV versions for different roles is effortless. The interface is intuitive and gets straight to the point.',
     name: 'Sarah Chen',
     role: 'UX Designer | Figma',
     initials: 'SC',
   },
   {
-    quote: 'The template library is excellent. I had my CV looking exactly the way I wanted in under 30 minutes \u2014 no fuss, just results.',
+    quote:
+      'The template library is excellent. I had my CV looking exactly the way I wanted in under 30 minutes \u2014 no fuss, just results.',
     name: 'James Osei',
     role: 'Software Engineer | Stripe',
     initials: 'JO',
@@ -53,7 +56,8 @@ function stopTimer() {
 }
 
 function prevSlide() {
-  activeSlide.value = (activeSlide.value - 1 + features.length) % features.length
+  activeSlide.value
+    = (activeSlide.value - 1 + features.length) % features.length
   startTimer()
 }
 
@@ -101,7 +105,7 @@ onUnmounted(() => {
       class="w-full max-w-7xl mx-auto flex-1 flex flex-col lg:flex-row items-center justify-center py-2 sm:py-4"
     >
       <div
-        class="hidden lg:flex lg:w-[40%] flex-shrink-0 h-[min(620px,82vh)] rounded-2xl overflow-hidden p-6 relative bg-stone-900 shadow-xl flex-col justify-end"
+        class="hidden lg:flex lg:w-[40%] shrink-0 h-[min(620px,82vh)] rounded-2xl overflow-hidden p-6 relative bg-stone-900 shadow-xl flex-col justify-end"
       >
         <img
           :src="bgImage"
@@ -119,7 +123,7 @@ onUnmounted(() => {
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div
-                class="w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-xs font-semibold text-white tracking-wider flex-shrink-0"
+                class="w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-xs font-semibold text-white tracking-wider shrink-0"
               >
                 {{ currentFeature.initials }}
               </div>
@@ -137,7 +141,7 @@ onUnmounted(() => {
               <button
                 type="button"
                 aria-label="Previous feature"
-                class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-colors flex-shrink-0"
+                class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-colors shrink-0"
                 @click="prevSlide"
               >
                 <svg
@@ -158,7 +162,7 @@ onUnmounted(() => {
               <button
                 type="button"
                 aria-label="Next feature"
-                class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-colors flex-shrink-0"
+                class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-colors shrink-0"
                 @click="nextSlide"
               >
                 <svg
@@ -182,26 +186,17 @@ onUnmounted(() => {
       </div>
 
       <div class="w-full lg:w-[60%] flex items-center justify-center">
-        <div class="w-full max-w-[400px] mx-auto">
-          <NuxtLink
-            to="/"
-            class="flex items-center justify-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 rounded-lg w-max mx-auto mb-8 lg:hidden"
-          >
-            <div
-              class="relative flex items-center justify-center p-1.5 rounded-xl bg-white border border-stone-200 shadow-sm group-hover:border-brand-300 transition-colors"
-            >
-              <img
-                src="/craftcv-logo.png"
-                alt="CraftCV Logo"
-                class="h-7 w-auto object-contain transition-transform group-hover:scale-105"
-              >
-            </div>
+        <div class="w-full max-w-100 mx-auto">
+          <div class="flex flex-col items-center mb-8 lg:hidden">
+            <NuxtImg
+              src="/craftcv-logo.png"
+              alt="CraftCV"
+              class="h-8 w-auto"
+            />
             <span
-              class="font-display font-bold text-xl tracking-tight text-stone-900 group-hover:text-brand-700 transition-colors"
-            >
-              Craft<span class="text-brand-600">CV</span>
-            </span>
-          </NuxtLink>
+              class="font-display font-semibold text-xl tracking-tight text-stone-900 mt-1"
+            >CraftCV</span>
+          </div>
           <slot />
         </div>
       </div>

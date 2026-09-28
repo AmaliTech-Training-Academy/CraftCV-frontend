@@ -24,9 +24,7 @@ useIntersectionObserver(ctaRef, ([entry]) => {
 }, { threshold: 0.3 })
 
 onMounted(() => {
-  setTimeout(() => {
-    isLoaded.value = true
-  }, 100)
+  isLoaded.value = true
 })
 
 useHead({
@@ -51,7 +49,7 @@ useHead({
       class="pointer-events-none absolute inset-x-0 top-0 -z-10 transform-gpu overflow-hidden blur-3xl"
     >
       <div
-        class="relative left-[calc(50%-18rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-brand-200 via-brand-400/25 to-stone-100 opacity-40 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+        class="relative left-[calc(50%-18rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-brand-200 via-brand-400/25 to-stone-100 opacity-40 sm:left-[calc(50%-30rem)] sm:w-288.75"
         style="
           clip-path: polygon(
             74.1% 44.1%,
@@ -79,7 +77,7 @@ useHead({
       class="pointer-events-none absolute right-0 top-96 -z-10 transform-gpu overflow-hidden blur-3xl opacity-25"
     >
       <div
-        class="h-96 w-96 rounded-full bg-gradient-to-br from-brand-300 to-amber-100"
+        class="h-96 w-96 rounded-full bg-linear-to-br from-brand-300 to-amber-100"
       />
     </div>
 
@@ -111,13 +109,13 @@ useHead({
         <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <!-- Hero Headline -->
           <h1
-            class="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold text-stone-900 tracking-tight leading-[1.12] max-w-5xl mx-auto mb-6 transition-all duration-1000 ease-out transform"
+            class="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold text-stone-900 tracking-tight leading-[1.12] max-w-5xl mx-auto mb-6 transition-all duration-500 ease-out transform"
             :class="isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
           >
             Create a standout CV that gets you
             <span class="relative inline-block whitespace-nowrap">
               <span
-                class="bg-gradient-to-r from-brand-600 via-brand-500 to-brand-700 bg-clip-text text-transparent"
+                class="bg-linear-to-r from-brand-600 via-brand-500 to-brand-700 bg-clip-text text-transparent"
               >noticed.</span>
               <svg
                 aria-hidden="true"
@@ -138,7 +136,7 @@ useHead({
 
           <!-- Hero Subtitle -->
           <p
-            class="max-w-2xl mx-auto text-lg sm:text-xl text-stone-600 leading-relaxed font-normal mb-10 transition-all duration-1000 delay-150 ease-out transform"
+            class="max-w-2xl mx-auto text-lg sm:text-xl text-stone-600 leading-relaxed font-normal mb-10 transition-all duration-500 delay-75 ease-out transform"
             :class="isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
           >
             CraftCV gives you clean, modern templates and an intuitive editor.
@@ -146,14 +144,15 @@ useHead({
             pixel-perfect PDF in under 10 minutes.
           </p>
 
-          <!-- Primary CTA Buttons -->
+          <!-- Primary and Secondary CTA Buttons -->
           <div
-            class="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto mb-12 transition-all duration-1000 delay-300 ease-out transform"
+            class="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-lg mx-auto mb-12 transition-all duration-500 delay-150 ease-out transform"
             :class="isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
           >
+            <!-- Primary Button -->
             <NuxtLink
               to="/register"
-              class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 rounded-xl text-base font-semibold text-white bg-brand-600 hover:bg-brand-700 shadow-xl shadow-brand-600/30 hover:shadow-brand-600/40 hover:-translate-y-0.5 transition-all duration-200 group whitespace-nowrap"
+              class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 rounded-xl text-base font-semibold text-white bg-brand-600 hover:bg-brand-700 shadow-xl shadow-brand-600/30 hover:shadow-brand-600/40 hover:-translate-y-0.5 transition-all duration-200 group whitespace-nowrap cursor-pointer"
             >
               Build Your Resume Free
               <svg
@@ -171,6 +170,14 @@ useHead({
                   d="M13 7l5 5m0 0l-5 5m5-5H6"
                 />
               </svg>
+            </NuxtLink>
+
+            <!-- Secondary Button -->
+            <NuxtLink
+              to="/login"
+              class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 rounded-xl text-base font-semibold text-stone-900 bg-white hover:bg-stone-50 border border-stone-200 hover:-translate-y-0.5 transition-all duration-200 whitespace-nowrap cursor-pointer"
+            >
+              Sign into existing account
             </NuxtLink>
           </div>
 
@@ -312,7 +319,7 @@ useHead({
               class="bg-white rounded-2xl p-8 border border-stone-200 shadow-sm relative"
             >
               <div
-                class="w-12 h-12 rounded-xl bg-brand-600 text-white font-display font-bold text-lg flex items-center justify-center mb-6 shadow-md shadow-brand-600/30"
+                class="w-12 h-12 rounded-xl bg-brand-50 text-brand-600 font-display font-bold text-lg flex items-center justify-center mb-6 border border-brand-200"
               >
                 3
               </div>
@@ -564,10 +571,10 @@ useHead({
       <!-- Final High-Impact CTA Banner -->
       <section
         ref="ctaRef"
-        class="py-16 sm:py-24 bg-gradient-to-br from-brand-900 via-stone-950 to-stone-900 text-white text-center relative overflow-hidden"
+        class="py-16 sm:py-24 bg-linear-to-br from-brand-900 via-stone-950 to-stone-900 text-white text-center relative overflow-hidden"
       >
         <div
-          class="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-brand-600/30 via-transparent to-transparent pointer-events-none"
+          class="absolute inset-0 bg-[radial-gradient(circle_at_top,var(--tw-gradient-stops))] from-brand-600/30 via-transparent to-transparent pointer-events-none"
         />
 
         <div
@@ -586,21 +593,23 @@ useHead({
             employers love to read.
           </p>
 
+          <!-- Primary and Secondary CTA Buttons -->
           <div
-            class="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto"
+            class="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-lg mx-auto"
           >
+            <!-- Primary Button -->
             <NuxtLink
               to="/register"
-              class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 rounded-xl text-base font-bold text-white bg-brand-600 hover:bg-brand-500 shadow-xl shadow-brand-600/40 hover:-translate-y-0.5 transition-all duration-200 whitespace-nowrap"
+              class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 rounded-xl text-base font-semibold text-white bg-brand-600 hover:bg-brand-700 shadow-xl shadow-brand-600/30 hover:shadow-brand-600/40 hover:-translate-y-0.5 transition-all duration-200 group whitespace-nowrap cursor-pointer"
             >
               Get Started for Free
               <svg
                 aria-hidden="true"
-                class="w-5 h-5 ml-2"
+                class="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                stroke-width="2.5"
+                stroke-width="2.2"
               >
                 <path
                   stroke-linecap="round"
@@ -609,9 +618,11 @@ useHead({
                 />
               </svg>
             </NuxtLink>
+
+            <!-- Secondary Button (Dark) -->
             <NuxtLink
               to="/login"
-              class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-4 rounded-xl text-base font-semibold text-stone-300 hover:text-white border border-stone-700 hover:border-stone-500 transition whitespace-nowrap"
+              class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 rounded-xl text-base font-semibold text-stone-300 bg-transparent border border-stone-700 hover:text-white hover:bg-stone-800 hover:-translate-y-0.5 transition-all duration-200 whitespace-nowrap cursor-pointer"
             >
               Sign into existing account
             </NuxtLink>

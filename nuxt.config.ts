@@ -44,15 +44,6 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2025-07-15',
 
-  nitro: {
-    routeRules: {
-      '/api/**': {
-        proxy: process.env.NUXT_API_PROXY_URL,
-      },
-    },
-
-  },
-
   vite: {
     plugins: [
       tailwindcss(),

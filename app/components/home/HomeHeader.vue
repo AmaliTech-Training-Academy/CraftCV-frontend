@@ -32,54 +32,39 @@
         >
           <a
             href="#how-it-works"
-            class="hover:text-stone-900 transition"
+            class="hover:text-stone-900 transition-colors"
           >How it Works</a>
           <a
             href="#features"
-            class="hover:text-stone-900 transition"
+            class="hover:text-stone-900 transition-colors"
           >Features</a>
           <a
             href="#faq"
-            class="hover:text-stone-900 transition"
+            class="hover:text-stone-900 transition-colors"
           >FAQ</a>
         </nav>
 
         <div class="hidden sm:flex items-center gap-3">
-          <NuxtLink
-            to="/login"
-            class="px-4 py-2 text-[15px] font-medium text-stone-700 hover:text-stone-900 transition whitespace-nowrap"
+          <Button
+            as-child
+            variant="ghost"
+            class="px-4 py-2 text-[15px] font-medium text-stone-700 hover:text-stone-900 transition whitespace-nowrap cursor-pointer hover:bg-transparent"
           >
-            Sign in
-          </NuxtLink>
-          <NuxtLink
-            to="/register"
-            class="relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-brand-600 via-brand-500 to-brand-600 hover:from-brand-700 hover:to-brand-700 shadow-md shadow-brand-600/25 hover:shadow-lg hover:shadow-brand-600/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 whitespace-nowrap"
+            <NuxtLink to="/login"> Sign in </NuxtLink>
+          </Button>
+          <Button
+            as-child
+            class="relative inline-flex items-center justify-center px-5 py-5 rounded-xl font-semibold text-sm text-white bg-brand-600 hover:bg-brand-700 shadow-md shadow-brand-600/25 hover:shadow-lg hover:shadow-brand-600/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 whitespace-nowrap cursor-pointer"
           >
-            Create My CV
-            <svg
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4 ml-1.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M13 7l5 5m0 0l-5 5m5-5H6"
-              />
-            </svg>
-          </NuxtLink>
+            <NuxtLink to="/register"> Get Started Free </NuxtLink>
+          </Button>
         </div>
 
-        <button
-          type="button"
-          class="md:hidden p-2 rounded-lg text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition"
-          aria-label="Toggle navigation menu"
-          :aria-expanded="isMobileMenuOpen"
-          aria-controls="mobile-menu"
+        <Button
+          variant="ghost"
+          size="icon"
+          class="md:hidden text-stone-600 hover:text-stone-900 hover:bg-stone-100 -mr-2"
+          aria-label="Open main menu"
           @click="isMobileMenuOpen = !isMobileMenuOpen"
         >
           <svg
@@ -114,7 +99,7 @@
               d="M6 18L18 6M6 6l12 12"
             />
           </svg>
-        </button>
+        </Button>
       </div>
 
       <div
@@ -143,18 +128,19 @@
           >FAQ</a>
         </nav>
         <div class="pt-4 border-t border-stone-200 flex flex-col gap-2">
-          <NuxtLink
-            to="/login"
-            class="w-full text-center py-2.5 rounded-lg border border-stone-200 text-stone-800 font-medium hover:bg-stone-50 whitespace-nowrap"
+          <Button
+            as-child
+            variant="outline"
+            class="w-full h-11 rounded-lg border-stone-200 text-stone-800 font-medium hover:bg-stone-50"
           >
-            Sign in
-          </NuxtLink>
-          <NuxtLink
-            to="/register"
-            class="w-full text-center py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-semibold shadow whitespace-nowrap"
+            <NuxtLink to="/login"> Sign in </NuxtLink>
+          </Button>
+          <Button
+            as-child
+            class="w-full h-11 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-semibold shadow"
           >
-            Get Started Free
-          </NuxtLink>
+            <NuxtLink to="/register"> Get Started Free </NuxtLink>
+          </Button>
         </div>
       </div>
     </header>

@@ -4,6 +4,7 @@ import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import RegisterPage from '../app/pages/(auth)/register.vue'
+import { Checkbox } from '../app/components/ui/checkbox'
 
 const { mockApi } = vi.hoisted(() => ({
   mockApi: vi.fn(),
@@ -31,6 +32,17 @@ function mountRegisterPage() {
   })
 }
 
+async function checkTerms(wrapper: Awaited<ReturnType<typeof mountRegisterPage>>) {
+  const checkboxComponent = wrapper.findComponent(Checkbox)
+  if (checkboxComponent.exists()) {
+    await checkboxComponent.setValue(true)
+  }
+  else {
+    await wrapper.find('#agreeTerms').trigger('click')
+  }
+  await nextTick()
+}
+
 describe('register.vue', () => {
   beforeEach(() => {
     mockApi.mockReset()
@@ -56,7 +68,7 @@ describe('register.vue', () => {
       expect(wrapper.find('input#email').exists()).toBe(true)
       expect(wrapper.find('input#password').exists()).toBe(true)
       expect(wrapper.find('input#confirmPassword').exists()).toBe(true)
-      expect(wrapper.find('input#agreeTerms').exists()).toBe(true)
+      expect(wrapper.find('#agreeTerms').exists()).toBe(true)
 
       const termsLink = wrapper.findAll('a').find(link => link.text().includes('Terms and Privacy Policy'))
       expect(termsLink).toBeDefined()
@@ -69,23 +81,28 @@ describe('register.vue', () => {
     })
   })
 
-  describe('Gating & Disabled State', () => {
-    it('starts with submit button disabled', async () => {
+  describe('Gating, Dimmed State & Click Validation', () => {
+    it('starts with submit button visually dimmed (opacity-50) but not natively disabled', async () => {
       const wrapper = await mountRegisterPage()
       const submitBtn = wrapper.find('button[type="submit"]')
 
-      expect(submitBtn.attributes('disabled')).toBeDefined()
+      expect(submitBtn.classes()).toContain('opacity-50')
+      expect((submitBtn.element as HTMLButtonElement).disabled).toBe(false)
     })
 
-    it('remains disabled if only terms checkbox is checked with empty fields', async () => {
+    it('shows validation error messages when form is submitted while fields are empty', async () => {
       const wrapper = await mountRegisterPage()
-      const submitBtn = wrapper.find('button[type="submit"]')
 
-      await wrapper.find('#agreeTerms').setValue(true)
-      expect(submitBtn.attributes('disabled')).toBeDefined()
+      await wrapper.find('form').trigger('submit')
+      await nextTick()
+
+      expect(wrapper.text()).toContain('Email is required.')
+      expect(wrapper.text()).toContain('Password is required.')
+      expect(wrapper.text()).toContain('Please confirm your password.')
+      expect(wrapper.text()).toContain('You must agree to the terms to continue.')
     })
 
-    it('remains disabled if fields are filled but terms are unchecked', async () => {
+    it('remains visually dimmed if fields are filled but terms checkbox is unchecked', async () => {
       const wrapper = await mountRegisterPage()
       const submitBtn = wrapper.find('button[type="submit"]')
 
@@ -93,19 +110,24 @@ describe('register.vue', () => {
       await wrapper.find('#password').setValue('StrongPass123!')
       await wrapper.find('#confirmPassword').setValue('StrongPass123!')
 
-      expect(submitBtn.attributes('disabled')).toBeDefined()
+      expect(submitBtn.classes()).toContain('opacity-50')
+
+      await wrapper.find('form').trigger('submit')
+      await nextTick()
+
+      expect(wrapper.text()).toContain('You must agree to the terms to continue.')
     })
 
-    it('enables submit button only when all fields and terms are valid', async () => {
+    it('removes dimmed state (opacity-50) when all fields and terms checkbox are valid', async () => {
       const wrapper = await mountRegisterPage()
       const submitBtn = wrapper.find('button[type="submit"]')
 
       await wrapper.find('#email').setValue('user@example.com')
       await wrapper.find('#password').setValue('StrongPass123!')
       await wrapper.find('#confirmPassword').setValue('StrongPass123!')
-      await wrapper.find('#agreeTerms').setValue(true)
+      await checkTerms(wrapper)
 
-      expect(submitBtn.attributes('disabled')).toBeUndefined()
+      expect(submitBtn.classes()).not.toContain('opacity-50')
     })
   })
 
@@ -209,10 +231,10 @@ describe('register.vue', () => {
       await wrapper.find('#email').setValue('user@example.com')
       await wrapper.find('#password').setValue('StrongPass123!')
       await wrapper.find('#confirmPassword').setValue('StrongPass123!')
-      await wrapper.find('#agreeTerms').setValue(true)
+      await checkTerms(wrapper)
 
       const submitBtn = wrapper.find('button[type="submit"]')
-      expect(submitBtn.attributes('disabled')).toBeUndefined()
+      expect((submitBtn.element as HTMLButtonElement).disabled).toBe(false)
       expect(submitBtn.text()).toContain('Create account')
 
       const form = wrapper.find('form')
@@ -245,7 +267,7 @@ describe('register.vue', () => {
       await wrapper.find('#email').setValue('existing@example.com')
       await wrapper.find('#password').setValue('StrongPass123!')
       await wrapper.find('#confirmPassword').setValue('StrongPass123!')
-      await wrapper.find('#agreeTerms').setValue(true)
+      await checkTerms(wrapper)
 
       await wrapper.find('form').trigger('submit')
       await nextTick()
@@ -268,7 +290,7 @@ describe('register.vue', () => {
       await wrapper.find('#email').setValue('user@example.com')
       await wrapper.find('#password').setValue('StrongPass123!')
       await wrapper.find('#confirmPassword').setValue('StrongPass123!')
-      await wrapper.find('#agreeTerms').setValue(true)
+      await checkTerms(wrapper)
 
       const submitPromise = wrapper.find('form').trigger('submit')
       await vi.runAllTimersAsync()
@@ -296,7 +318,7 @@ describe('register.vue', () => {
       await wrapper.find('#email').setValue('user@example.com')
       await wrapper.find('#password').setValue('StrongPass123!')
       await wrapper.find('#confirmPassword').setValue('StrongPass123!')
-      await wrapper.find('#agreeTerms').setValue(true)
+      await checkTerms(wrapper)
 
       const submitPromise = wrapper.find('form').trigger('submit')
       await vi.runAllTimersAsync()

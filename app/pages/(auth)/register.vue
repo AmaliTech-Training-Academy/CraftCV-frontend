@@ -1,8 +1,8 @@
 <template>
-  <div class="w-full max-w-[400px] mx-auto">
+  <div class="w-full max-w-100 mx-auto">
     <div class="mb-4 lg:mb-6 text-center md:text-left">
       <h1 class="font-display font-bold text-3xl sm:text-4xl text-stone-900 leading-tight mb-2">
-        Create your <span class="text-[#EA580C]">account.</span>
+        Create your <span class="text-brand-600">account.</span>
       </h1>
       <p class="text-stone-500 text-sm">
         Build a CV that opens doors. It takes less than 5 minutes.
@@ -31,52 +31,52 @@
       </div>
 
       <div class="space-y-1.5">
-        <label
+        <Label
           for="email"
-          class="block text-sm font-medium text-stone-800"
-        >Email address</label>
-        <input
+          class="block text-stone-800"
+        >Email address</Label>
+        <Input
           id="email"
           v-model="form.email"
           type="email"
           autocomplete="email"
           placeholder="you@example.com"
           :class="[
-            'w-full h-11 rounded-lg border bg-white px-3.5 text-sm text-stone-900 placeholder-stone-400 outline-none transition',
+            'h-11',
             fieldError('email')
-              ? 'border-red-500 focus:ring-2 focus:ring-red-500/20'
-              : 'border-stone-200 focus:border-[#EA580C] focus:ring-2 focus:ring-[#EA580C]/20',
+              ? 'border-destructive focus-visible:ring-destructive'
+              : 'focus-visible:ring-[#EA580C]',
           ]"
           @blur="touch('email')"
-        >
+        />
         <p
           v-if="fieldError('email')"
-          class="text-xs text-red-500"
+          class="text-xs text-destructive"
         >
           {{ fieldError('email') }}
         </p>
       </div>
 
       <div class="space-y-1.5">
-        <label
+        <Label
           for="password"
-          class="block text-sm font-medium text-stone-800"
-        >Password</label>
+          class="block text-stone-800"
+        >Password</Label>
         <div class="relative">
-          <input
+          <Input
             id="password"
             v-model="form.password"
             :type="showPassword ? 'text' : 'password'"
             autocomplete="new-password"
             placeholder="Create a password"
             :class="[
-              'w-full h-11 rounded-lg border bg-white pl-3.5 pr-11 text-sm text-stone-900 placeholder-stone-400 outline-none transition',
+              'h-11 pr-11',
               fieldError('password')
-                ? 'border-red-500 focus:ring-2 focus:ring-red-500/20'
-                : 'border-stone-200 focus:border-[#EA580C] focus:ring-2 focus:ring-[#EA580C]/20',
+                ? 'border-destructive focus-visible:ring-destructive'
+                : 'focus-visible:ring-[#EA580C]',
             ]"
             @blur="touch('password')"
-          >
+          />
           <button
             type="button"
             class="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 focus:outline-none"
@@ -128,32 +128,32 @@
         </div>
         <p
           v-if="fieldError('password')"
-          class="text-xs text-red-500"
+          class="text-xs text-destructive"
         >
           {{ fieldError('password') }}
         </p>
       </div>
 
       <div class="space-y-1.5">
-        <label
+        <Label
           for="confirmPassword"
-          class="block text-sm font-medium text-stone-800"
-        >Confirm password</label>
+          class="block text-stone-800"
+        >Confirm password</Label>
         <div class="relative">
-          <input
+          <Input
             id="confirmPassword"
             v-model="form.confirmPassword"
             :type="showConfirmPassword ? 'text' : 'password'"
             autocomplete="new-password"
             placeholder="Create a password"
             :class="[
-              'w-full h-11 rounded-lg border bg-white pl-3.5 pr-11 text-sm text-stone-900 placeholder-stone-400 outline-none transition',
+              'h-11 pr-11',
               fieldError('confirmPassword')
-                ? 'border-red-500 focus:ring-2 focus:ring-red-500/20'
-                : 'border-stone-200 focus:border-[#EA580C] focus:ring-2 focus:ring-[#EA580C]/20',
+                ? 'border-destructive focus-visible:ring-destructive'
+                : 'focus-visible:ring-[#EA580C]',
             ]"
             @blur="touch('confirmPassword')"
-          >
+          />
           <button
             type="button"
             class="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 focus:outline-none"
@@ -205,39 +205,44 @@
         </div>
         <p
           v-if="fieldError('confirmPassword')"
-          class="text-xs text-red-500"
+          class="text-xs text-destructive"
         >
           {{ fieldError('confirmPassword') }}
         </p>
       </div>
 
-      <div class="pt-1 flex items-center gap-1.5 text-xs sm:text-sm text-stone-600 leading-snug">
-        <input
-          id="agreeTerms"
-          v-model="form.agreeTerms"
-          type="checkbox"
-          class="w-4 h-4 rounded border-stone-300 text-[#EA580C] focus:ring-[#EA580C] cursor-pointer"
-          @change="touch('agreeTerms')"
+      <div class="pt-1">
+        <div class="flex items-center gap-1.5 text-xs sm:text-sm text-stone-600 leading-snug">
+          <Checkbox
+            id="agreeTerms"
+            v-model="form.agreeTerms"
+            class="cursor-pointer"
+          />
+          <span class="select-none font-normal">
+            I agree to the
+          </span>
+          <NuxtLink
+            to="/terms"
+            target="_blank"
+            class="text-[#EA580C] font-medium underline hover:text-[#c2410c] transition cursor-pointer"
+          >Terms and Privacy Policy</NuxtLink>
+        </div>
+        <p
+          v-if="fieldError('agreeTerms')"
+          class="text-xs text-destructive mt-1"
         >
-        <label
-          for="agreeTerms"
-          class="cursor-pointer select-none"
-        >
-          I agree to the
-        </label>
-        <NuxtLink
-          to="/terms"
-          target="_blank"
-          class="text-[#EA580C] font-medium underline hover:text-[#c2410c] transition"
-        >Terms and Privacy Policy</NuxtLink>
+          {{ fieldError('agreeTerms') }}
+        </p>
       </div>
 
       <div class="pt-1">
         <Button
           type="submit"
-          :disabled="isSubmitDisabled"
-          class="w-full h-11 lg:h-12 rounded-lg font-medium text-white transition-colors flex items-center justify-center gap-2"
-          :class="isSubmitDisabled ? 'bg-[#EA580C]/50 text-white cursor-not-allowed hover:bg-[#EA580C]/50' : 'bg-[#EA580C] text-white hover:bg-[#c2410c] cursor-pointer shadow-sm'"
+          :disabled="loading || isRedirecting"
+          :class="[
+            'w-full h-11 lg:h-12 bg-brand-600 text-white hover:bg-brand-700 font-medium transition-colors cursor-pointer',
+            !isFormValid && !loading && !isRedirecting ? 'opacity-50 hover:bg-brand-600' : '',
+          ]"
         >
           <svg
             v-if="loading || isRedirecting"
@@ -260,7 +265,7 @@
               d="M4 12a8 8 0 018-8v8H4z"
             />
           </svg>
-          <span class="text-white font-medium">{{ loading || isRedirecting ? 'Creating account…' : 'Create account' }}</span>
+          <span class="font-medium ml-2">{{ loading || isRedirecting ? 'Creating account…' : 'Create account' }}</span>
         </Button>
       </div>
     </form>
@@ -269,7 +274,7 @@
       Already have an account?
       <NuxtLink
         to="/login"
-        class="text-[#EA580C] hover:text-[#c2410c] font-medium transition"
+        class="text-brand-600 hover:text-brand-700 font-medium transition cursor-pointer"
       >
         Sign in
       </NuxtLink>
@@ -278,7 +283,11 @@
 </template>
 
 <script setup lang="ts">
-import Button from '@/components/ui/button/Button.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import { useSessionStorage } from '@vueuse/core'
 
 useHead({
   title: 'Create your account — CraftCV',
@@ -294,7 +303,7 @@ definePageMeta({
   layout: 'auth',
 })
 
-const form = reactive({
+const form = useSessionStorage('craftcv-register-form', {
   email: '',
   password: '',
   confirmPassword: '',
@@ -321,33 +330,34 @@ function touch(field: Field) {
   touched[field] = true
 }
 
-function fieldError(field: 'email' | 'password' | 'confirmPassword') {
+function fieldError(field: Field) {
   if (!touched[field]) return ''
   if (field === 'email') {
-    if (!form.email.trim()) return 'Email is required.'
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+    if (!form.value.email.trim()) return 'Email is required.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email.trim())) {
       return 'Please enter a valid email address.'
     }
   }
   if (field === 'password') {
-    if (!form.password) return 'Password is required.'
-    if (form.password.length < 8) return 'Password must be at least 8 characters.'
+    if (!form.value.password) return 'Password is required.'
+    if (form.value.password.length < 8) return 'Password must be at least 8 characters.'
   }
   if (field === 'confirmPassword') {
-    if (!form.confirmPassword) return 'Please confirm your password.'
-    if (form.confirmPassword !== form.password) return 'Passwords do not match.'
+    if (!form.value.confirmPassword) return 'Please confirm your password.'
+    if (form.value.confirmPassword !== form.value.password) return 'Passwords do not match.'
+  }
+  if (field === 'agreeTerms') {
+    if (!form.value.agreeTerms) return 'You must agree to the terms to continue.'
   }
   return ''
 }
 
 const isFormValid = computed(() => {
-  const isEmailValid = Boolean(form.email.trim()) && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())
-  const isPasswordValid = Boolean(form.password) && form.password.length >= 8
-  const isConfirmValid = Boolean(form.confirmPassword) && form.confirmPassword === form.password
-  return Boolean(isEmailValid && isPasswordValid && isConfirmValid && form.agreeTerms)
+  const isEmailValid = Boolean(form.value.email.trim()) && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email.trim())
+  const isPasswordValid = Boolean(form.value.password) && form.value.password.length >= 8
+  const isConfirmValid = Boolean(form.value.confirmPassword) && form.value.confirmPassword === form.value.password
+  return Boolean(isEmailValid && isPasswordValid && isConfirmValid && form.value.agreeTerms)
 })
-
-const isSubmitDisabled = computed(() => loading.value || isRedirecting.value || !isFormValid.value)
 
 async function handleSubmit() {
   if (loading.value || isRedirecting.value) return
@@ -367,9 +377,9 @@ async function handleSubmit() {
   try {
     const response = await register(
       {
-        email: form.email.trim(),
-        password: form.password,
-        agreeToTerms: form.agreeTerms,
+        email: form.value.email.trim(),
+        password: form.value.password,
+        agreeToTerms: form.value.agreeTerms,
       },
       { autoNavigate: false },
     )
