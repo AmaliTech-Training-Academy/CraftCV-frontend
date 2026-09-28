@@ -218,9 +218,12 @@
             v-model="form.agreeTerms"
             class="cursor-pointer"
           />
-          <span class="select-none font-normal">
+          <Label
+            for="agreeTerms"
+            class="select-none font-normal cursor-pointer text-xs sm:text-sm text-stone-600 leading-snug"
+          >
             I agree to the
-          </span>
+          </Label>
           <NuxtLink
             to="/terms"
             target="_blank"
@@ -303,11 +306,17 @@ definePageMeta({
   layout: 'auth',
 })
 
-const form = useSessionStorage('craftcv-register-form', {
-  email: '',
+const savedEmail = useSessionStorage('craftcv-register-email', '')
+
+const form = reactive({
+  email: savedEmail.value,
   password: '',
   confirmPassword: '',
   agreeTerms: false,
+})
+
+watch(() => form.email, (newVal) => {
+  savedEmail.value = newVal
 })
 
 const touched = reactive({
@@ -333,30 +342,30 @@ function touch(field: Field) {
 function fieldError(field: Field) {
   if (!touched[field]) return ''
   if (field === 'email') {
-    if (!form.value.email.trim()) return 'Email is required.'
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email.trim())) {
+    if (!form.email.trim()) return 'Email is required.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
       return 'Please enter a valid email address.'
     }
   }
   if (field === 'password') {
-    if (!form.value.password) return 'Password is required.'
-    if (form.value.password.length < 8) return 'Password must be at least 8 characters.'
+    if (!form.password) return 'Password is required.'
+    if (form.password.length < 8) return 'Password must be at least 8 characters.'
   }
   if (field === 'confirmPassword') {
-    if (!form.value.confirmPassword) return 'Please confirm your password.'
-    if (form.value.confirmPassword !== form.value.password) return 'Passwords do not match.'
+    if (!form.confirmPassword) return 'Please confirm your password.'
+    if (form.confirmPassword !== form.password) return 'Passwords do not match.'
   }
   if (field === 'agreeTerms') {
-    if (!form.value.agreeTerms) return 'You must agree to the terms to continue.'
+    if (!form.agreeTerms) return 'You must agree to the terms to continue.'
   }
   return ''
 }
 
 const isFormValid = computed(() => {
-  const isEmailValid = Boolean(form.value.email.trim()) && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email.trim())
-  const isPasswordValid = Boolean(form.value.password) && form.value.password.length >= 8
-  const isConfirmValid = Boolean(form.value.confirmPassword) && form.value.confirmPassword === form.value.password
-  return Boolean(isEmailValid && isPasswordValid && isConfirmValid && form.value.agreeTerms)
+  const isEmailValid = Boolean(form.email.trim()) && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())
+  const isPasswordValid = Boolean(form.password) && form.password.length >= 8
+  const isConfirmValid = Boolean(form.confirmPassword) && form.confirmPassword === form.password
+  return Boolean(isEmailValid && isPasswordValid && isConfirmValid && form.agreeTerms)
 })
 
 async function handleSubmit() {
@@ -377,9 +386,9 @@ async function handleSubmit() {
   try {
     const response = await register(
       {
-        email: form.value.email.trim(),
-        password: form.value.password,
-        agreeToTerms: form.value.agreeTerms,
+        email: form.email.trim(),
+        password: form.password,
+        agreeToTerms: form.agreeTerms,
       },
       { autoNavigate: false },
     )

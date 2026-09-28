@@ -138,9 +138,12 @@
             v-model="form.rememberMe"
             class="cursor-pointer"
           />
-          <span class="select-none font-normal text-sm text-stone-600">
+          <Label
+            for="rememberMe"
+            class="select-none font-normal cursor-pointer text-sm text-stone-600"
+          >
             Remember me
-          </span>
+          </Label>
         </div>
         <NuxtLink
           to="/forgot-password"
@@ -251,10 +254,16 @@ definePageMeta({ layout: 'auth' })
 
 const { login, loading, error: serverError } = useAuth()
 
-const form = useSessionStorage('craftcv-login-form', {
-  email: '',
+const savedEmail = useSessionStorage('craftcv-login-email', '')
+
+const form = reactive({
+  email: savedEmail.value,
   password: '',
   rememberMe: false,
+})
+
+watch(() => form.email, (newVal) => {
+  savedEmail.value = newVal
 })
 const touched = reactive({ email: false, password: false })
 const showPassword = ref(false)
@@ -266,12 +275,12 @@ function touch(field: 'email' | 'password') {
 function fieldError(field: 'email' | 'password') {
   if (!touched[field]) return ''
   if (field === 'email') {
-    if (!form.value.email) return 'Email is required.'
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email))
+    if (!form.email) return 'Email is required.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
       return 'Please enter a valid email address.'
   }
   if (field === 'password') {
-    if (!form.value.password) return 'Password is required.'
+    if (!form.password) return 'Password is required.'
   }
   return ''
 }
@@ -286,8 +295,8 @@ async function handleSubmit() {
   if (!isValid()) return
   try {
     await login(
-      { email: form.value.email, password: form.value.password },
-      form.value.rememberMe,
+      { email: form.email, password: form.password },
+      form.rememberMe,
     )
   }
   catch {
