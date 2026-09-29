@@ -51,11 +51,14 @@ describe('useCVState', () => {
       expect(getExperienceStatus()).toBe('empty')
 
       experience.value.push({ id: '1', title: 'Dev', company: '', location: '', startDate: '', endDate: '', description: '' })
-      expect(getExperienceStatus()).toBe('incomplete')
+      expect(getExperienceStatus()).toBe('empty')
 
       experience.value[0]!.company = 'Tech'
       experience.value[0]!.startDate = '2020'
       expect(getExperienceStatus()).toBe('complete')
+
+      experience.value.push({ id: '2', title: 'PM', company: '', location: '', startDate: '', endDate: '', description: '' })
+      expect(getExperienceStatus()).toBe('incomplete')
     })
 
     it('evaluates education status correctly', () => {
@@ -63,11 +66,14 @@ describe('useCVState', () => {
       expect(getEducationStatus()).toBe('empty')
 
       education.value.push({ id: '1', degree: 'BSc', school: '', location: '', startDate: '', endDate: '', description: '' })
-      expect(getEducationStatus()).toBe('incomplete')
+      expect(getEducationStatus()).toBe('empty')
 
       education.value[0]!.school = 'UG'
       education.value[0]!.startDate = '2015'
       expect(getEducationStatus()).toBe('complete')
+
+      education.value.push({ id: '2', degree: 'MSc', school: '', location: '', startDate: '', endDate: '', description: '' })
+      expect(getEducationStatus()).toBe('incomplete')
     })
 
     it('evaluates skills status correctly', () => {
