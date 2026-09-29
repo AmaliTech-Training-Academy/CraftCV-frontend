@@ -40,10 +40,10 @@
             role="tab"
             :aria-selected="selectedRoleId === role.id"
             :class="[
-              'px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 border whitespace-nowrap',
+              'px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 border whitespace-nowrap cursor-pointer',
               selectedRoleId === role.id
                 ? 'bg-brand-600 text-white border-brand-500 shadow-lg shadow-brand-600/30'
-                : 'bg-stone-800/80 text-stone-300 border-stone-700 hover:border-stone-500',
+                : 'bg-stone-800/80 text-stone-300 border-stone-700 hover:bg-stone-700/80 hover:text-white hover:border-stone-500 hover:-translate-y-0.5',
             ]"
             @click="selectedRoleId = role.id"
           >
@@ -176,12 +176,12 @@
             <div class="pt-2">
               <NuxtLink
                 to="/register"
-                class="w-full inline-flex items-center justify-center px-4 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm transition shadow-lg shadow-brand-600/30 whitespace-nowrap"
+                class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 rounded-xl text-base font-semibold text-white bg-brand-600 hover:bg-brand-700 shadow-xl shadow-brand-600/30 hover:shadow-brand-600/40 hover:-translate-y-0.5 transition-all duration-200 group whitespace-nowrap cursor-pointer"
               >
                 Open Full Editor
                 <svg
                   aria-hidden="true"
-                  class="w-4 h-4 ml-1.5"
+                  class="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -189,8 +189,7 @@
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M14 5l7 7m0 0l-7 7m7-7H3"
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
                   />
                 </svg>
               </NuxtLink>

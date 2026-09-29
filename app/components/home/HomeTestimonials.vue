@@ -43,7 +43,7 @@
           </div>
           <div class="flex items-center gap-3 pt-4 border-t border-stone-700">
             <div
-              class="w-10 h-10 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center text-xs tracking-wider flex-shrink-0"
+              class="w-10 h-10 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center text-xs tracking-wider shrink-0"
             >
               {{ item.initials }}
             </div>
