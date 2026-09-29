@@ -85,7 +85,7 @@ const onYearChange = (e: Event) => {
         :value="selectedMonth"
         :disabled="disabled"
         aria-label="Select Month"
-        class="h-12 w-full rounded-xl border bg-white px-3.5 text-sm text-gray-900 transition focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+        class="h-12 w-full rounded-xl border bg-white px-3.5 text-sm text-gray-900 transition cursor-pointer focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
         :class="error ? 'border-red-400 focus:border-red-500 focus:ring-red-400/20' : 'border-gray-200 focus:border-[#C54A22] focus:ring-[#C54A22]/20'"
         @change="onMonthChange"
       >
@@ -109,7 +109,7 @@ const onYearChange = (e: Event) => {
         :value="selectedYear"
         :disabled="disabled"
         aria-label="Select Year"
-        class="h-12 w-full rounded-xl border bg-white px-3.5 text-sm text-gray-900 transition focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+        class="h-12 w-full rounded-xl border bg-white px-3.5 text-sm text-gray-900 transition cursor-pointer focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
         :class="error ? 'border-red-400 focus:border-red-500 focus:ring-red-400/20' : 'border-gray-200 focus:border-[#C54A22] focus:ring-[#C54A22]/20'"
         @change="onYearChange"
       >
