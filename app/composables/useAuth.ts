@@ -27,16 +27,8 @@ export interface TokenPayload {
 }
 
 export const useAuth = () => {
-  const token = useCookie<string | null>('accessToken', {
-    sameSite: 'lax',
-    secure: false,
-    maxAge: 60 * 60 * 24 * 30, // 30 days
-  })
-  const user = useCookie<User | null>('authUser', {
-    sameSite: 'lax',
-    secure: false,
-    maxAge: 60 * 60 * 24 * 30, // 30 days
-  })
+  const token = useCookie<string | null>('accessToken', getAuthCookieOptions())
+  const user = useCookie<User | null>('authUser', getAuthCookieOptions())
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -73,10 +65,14 @@ export const useAuth = () => {
       })
 
       if (response.accessToken) {
+        const tokenCookie = useCookie<string | null>('accessToken', getAuthCookieOptions(rememberMe))
+        tokenCookie.value = response.accessToken
         token.value = response.accessToken
       }
 
       if (response.user) {
+        const userCookie = useCookie<User | null>('authUser', getAuthCookieOptions(rememberMe))
+        userCookie.value = response.user
         user.value = response.user
       }
 
@@ -133,9 +129,17 @@ export const useAuth = () => {
   }
 
   const logout = async () => {
-    token.value = null
-    user.value = null
-    await navigateTo('/login')
+    try {
+      await $api('/auth/logout/', { method: 'POST' })
+    }
+    catch (e) {
+      console.error('Backend logout failed', e)
+    }
+    finally {
+      token.value = null
+      user.value = null
+      await navigateTo('/login')
+    }
   }
 
   return {

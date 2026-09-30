@@ -1,7 +1,19 @@
 import type { NitroFetchOptions, NitroFetchRequest } from 'nitropack'
+import type { CookieOptions } from '#app'
 
 export interface ApiFetchOptions<R extends NitroFetchRequest> extends NitroFetchOptions<R> {
   unauthenticated?: boolean
+}
+
+export const getAuthCookieOptions = <T = unknown>(rememberMe?: boolean): CookieOptions<T> & { readonly?: false } => {
+  const options: CookieOptions<T> & { readonly?: false } = {
+    sameSite: 'lax',
+    secure: false,
+  }
+  if (rememberMe !== undefined) {
+    options.maxAge = rememberMe ? 60 * 60 * 24 * 30 : undefined
+  }
+  return options
 }
 
 export function extractErrorMessage(
@@ -74,7 +86,7 @@ export const $api = async <T>(
   const config = useRuntimeConfig()
   const baseURL = config.public.apiBase as string
 
-  const authToken = useCookie('accessToken')
+  const authToken = useCookie<string | null>('accessToken', getAuthCookieOptions())
 
   const headers = new Headers(options?.headers)
   const isUnauthenticated = Boolean(options?.unauthenticated)
