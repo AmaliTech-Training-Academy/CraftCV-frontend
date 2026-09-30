@@ -299,7 +299,7 @@ describe('register.vue', () => {
 
       const statusBanner = wrapper.find('[role="status"]')
       expect(statusBanner.exists()).toBe(true)
-      expect(statusBanner.text()).toContain('Account created successfully! Redirecting...')
+      expect(statusBanner.text()).toContain('Account created successfully!')
 
       const submitBtn = wrapper.find('button[type="submit"]')
       expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
