@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Edit, Trash2, Plus, ArrowLeft, ArrowRight, ChevronRight } from '@lucide/vue'
 import { useCVState, type EducationItem } from '~/composables/useCVState'
-import { useCVSectionEditor } from '~/composables/useCVSectionEditor'
+import { isEndDateBeforeStartDate, isValidDateString, useCVSectionEditor } from '~/composables/useCVSectionEditor'
 
 definePageMeta({
   layout: 'editor',
@@ -29,7 +29,13 @@ const createEmptyEducation = (): EducationItem => ({
 })
 
 const validateEducation = (item: EducationItem) =>
-  Boolean(item.degree.trim() && item.school.trim() && item.startDate.trim())
+  Boolean(
+    item.school.trim()
+    && item.degree.trim()
+    && isValidDateString(item.startDate)
+    && (!item.endDate?.trim() || item.endDate === 'Present' || isValidDateString(item.endDate))
+    && !isEndDateBeforeStartDate(item.startDate, item.endDate),
+  )
 
 const isEducationUntouched = (item: EducationItem) =>
   !item.degree.trim() && !item.school.trim() && !item.fieldOfStudy?.trim() && !item.location.trim() && !item.startDate.trim() && !item.description?.trim()
@@ -182,6 +188,7 @@ const handleNext = () => {
               <EditorMonthYearPicker
                 v-model="item.endDate"
                 :disabled="item.endDate === 'Present'"
+                :error="isEndDateBeforeStartDate(item.startDate, item.endDate) ? 'End date must be after the start date' : ''"
                 label="End Date"
               />
               <div class="mt-2.5 flex items-center gap-2">

@@ -1,5 +1,42 @@
 import { ref, computed, type Ref } from 'vue'
 
+export const isValidDateString = (dateStr?: string | null): boolean => {
+  if (!dateStr || !dateStr.trim()) return false
+  if (dateStr.trim() === 'Present') return true
+  const parts = dateStr.trim().split(/\s+/)
+  return parts.length === 2 && Boolean(parts[0]) && Boolean(parts[1])
+}
+
+const MONTHS_ORDER: Record<string, number> = {
+  January: 0,
+  February: 1,
+  March: 2,
+  April: 3,
+  May: 4,
+  June: 5,
+  July: 6,
+  August: 7,
+  September: 8,
+  October: 9,
+  November: 10,
+  December: 11,
+}
+
+const parseMonthYearToDate = (dateString?: string | null): Date | null => {
+  if (!dateString || dateString.trim() === 'Present') return null
+  const [month, year] = dateString.trim().split(/\s+/)
+  if (!month || !year || MONTHS_ORDER[month] === undefined || Number.isNaN(Number(year))) return null
+  return new Date(Number(year), MONTHS_ORDER[month], 1)
+}
+
+export const isEndDateBeforeStartDate = (startDate?: string | null, endDate?: string | null): boolean => {
+  if (!startDate || !endDate || endDate.trim() === 'Present') return false
+  const start = parseMonthYearToDate(startDate)
+  const end = parseMonthYearToDate(endDate)
+  if (!start || !end) return false
+  return end < start
+}
+
 export function useCVSectionEditor<T extends { id: string }>(
   items: Ref<T[]>,
   createEmpty: () => T,

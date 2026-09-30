@@ -3,7 +3,21 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import ExperiencePage from '~/pages/editor/experience.vue'
 import EducationPage from '~/pages/editor/education.vue'
+import { isEndDateBeforeStartDate, isValidDateString } from '~/composables/useCVSectionEditor'
 import { useCVState } from '~/composables/useCVState'
+
+describe('Date validation', () => {
+  it('requires both month and year unless the date is Present', () => {
+    expect(isValidDateString('January')).toBe(false)
+    expect(isValidDateString('January 2024')).toBe(true)
+    expect(isValidDateString('Present')).toBe(true)
+    expect(isValidDateString('')).toBe(false)
+    expect(isEndDateBeforeStartDate('January 2024', 'March 2020')).toBe(true)
+    expect(isEndDateBeforeStartDate('January 2024', 'January 2024')).toBe(false)
+    expect(isEndDateBeforeStartDate('January 2024', 'March 2024')).toBe(false)
+    expect(isEndDateBeforeStartDate('January 2024', 'Present')).toBe(false)
+  })
+})
 
 const sharedStubs = {
   NuxtLink: {

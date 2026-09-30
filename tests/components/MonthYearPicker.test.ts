@@ -39,6 +39,18 @@ describe('MonthYearPicker.vue', () => {
     expect(yearOptions[1]!.text()).toBe(String(currentYear))
   })
 
+  it('gives month and year selects label-specific accessible names', () => {
+    const wrapper = mount(MonthYearPicker, {
+      props: {
+        label: 'Start Date',
+      },
+    })
+
+    const selects = wrapper.findAll('select')
+    expect(selects[0]!.attributes('aria-label')).toBe('Start Date month')
+    expect(selects[1]!.attributes('aria-label')).toBe('Start Date year')
+  })
+
   it('parses incoming modelValue to pre-select month and year', () => {
     const wrapper = mount(MonthYearPicker, {
       props: {

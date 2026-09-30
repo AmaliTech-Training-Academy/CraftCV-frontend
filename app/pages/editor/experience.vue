@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Edit, Trash2, Plus, ArrowLeft, ArrowRight, ChevronRight } from '@lucide/vue'
 import { useCVState, type ExperienceItem } from '~/composables/useCVState'
-import { useCVSectionEditor } from '~/composables/useCVSectionEditor'
+import { isEndDateBeforeStartDate, isValidDateString, useCVSectionEditor } from '~/composables/useCVSectionEditor'
 
 definePageMeta({
   layout: 'editor',
@@ -28,7 +28,13 @@ const createEmptyExperience = (): ExperienceItem => ({
 })
 
 const validateExperience = (item: ExperienceItem) =>
-  Boolean(item.title.trim() && item.company.trim() && item.startDate.trim())
+  Boolean(
+    item.title.trim()
+    && item.company.trim()
+    && isValidDateString(item.startDate)
+    && (!item.endDate?.trim() || item.endDate === 'Present' || isValidDateString(item.endDate))
+    && !isEndDateBeforeStartDate(item.startDate, item.endDate),
+  )
 
 const isExperienceUntouched = (item: ExperienceItem) =>
   !item.title.trim() && !item.company.trim() && !item.location.trim() && !item.startDate.trim() && !item.description?.trim()
@@ -174,6 +180,7 @@ const handleNext = () => {
               <EditorMonthYearPicker
                 v-model="item.endDate"
                 :disabled="item.endDate === 'Present'"
+                :error="isEndDateBeforeStartDate(item.startDate, item.endDate) ? 'End date must be after the start date' : ''"
                 label="End Date"
               />
               <div class="mt-2.5 flex items-center gap-2">
