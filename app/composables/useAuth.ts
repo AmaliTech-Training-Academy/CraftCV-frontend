@@ -132,8 +132,8 @@ export const useAuth = () => {
     try {
       await $api('/auth/logout/', { method: 'POST' })
     }
-    catch (e) {
-      console.error('Backend logout failed', e)
+    catch {
+      // Ignore backend errors to guarantee client-side cleanup and redirect
     }
     finally {
       token.value = null
