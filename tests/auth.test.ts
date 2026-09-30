@@ -170,6 +170,44 @@ describe('Authentication Flow', () => {
       expect(mockNavigateTo).toHaveBeenCalledWith('/dashboard')
     })
 
+    it('supports camelCase accessToken and refreshToken response contract and redirects to dashboard', async () => {
+      mockApi.mockResolvedValueOnce({
+        accessToken: 'camel-access-token',
+        refreshToken: 'camel-refresh-token',
+      })
+
+      const { register, token, isAuthenticated } = useAuth()
+
+      await register({
+        email: 'camel@example.com',
+        password: 'Password123!',
+        agreeToTerms: true,
+      })
+
+      expect(token.value).toBe('camel-access-token')
+      expect(cookies['refresh_token']?.value).toBe('camel-refresh-token')
+      expect(isAuthenticated.value).toBe(true)
+      expect(mockNavigateTo).toHaveBeenCalledWith('/dashboard')
+    })
+
+    it('redirects to dashboard when registration returns only accessToken (refreshToken in HttpOnly cookies)', async () => {
+      mockApi.mockResolvedValueOnce({
+        accessToken: 'httponly-cookie-access-token',
+      })
+
+      const { register, token, isAuthenticated } = useAuth()
+
+      await register({
+        email: 'httponly@example.com',
+        password: 'Password123!',
+        agreeToTerms: true,
+      })
+
+      expect(token.value).toBe('httponly-cookie-access-token')
+      expect(isAuthenticated.value).toBe(true)
+      expect(mockNavigateTo).toHaveBeenCalledWith('/dashboard')
+    })
+
     it('redirects to login when registration response lacks tokens', async () => {
       mockApi.mockResolvedValueOnce({
         message: 'Account created. Please sign in.',

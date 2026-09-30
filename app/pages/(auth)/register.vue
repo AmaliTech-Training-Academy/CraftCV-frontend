@@ -393,19 +393,13 @@ async function handleSubmit() {
       { autoNavigate: false },
     )
 
-    const res = response as Record<string, unknown> | null | undefined
-    const tokensObj = res?.tokens as Record<string, unknown> | undefined
-    const accessToken = (typeof res?.access === 'string' ? res.access : undefined)
-      || (typeof tokensObj?.access === 'string' ? tokensObj.access : undefined)
-      || (typeof res?.token === 'string' ? res.token : undefined)
-    const refreshToken = (typeof res?.refresh === 'string' ? res.refresh : undefined)
-      || (typeof tokensObj?.refresh === 'string' ? tokensObj.refresh : undefined)
-    const hasTokens = Boolean(accessToken && refreshToken)
+    const { accessToken } = extractAuthTokens(response as Record<string, unknown> | null | undefined)
+    const hasTokens = Boolean(accessToken)
 
     isSuccess = true
     targetRoute = hasTokens ? '/dashboard' : '/login'
     successMessage.value = hasTokens
-      ? 'Account created successfully! Redirecting...'
+      ? 'Account created successfully!'
       : 'Account created! Please sign in to continue.'
     isRedirecting.value = true
   }

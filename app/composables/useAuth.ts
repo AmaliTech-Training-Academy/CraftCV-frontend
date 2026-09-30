@@ -15,9 +15,44 @@ interface RegisterOptions {
   autoNavigate?: boolean
 }
 
-interface LoginResponse {
-  access: string
-  refresh: string
+export interface LoginResponse {
+  access?: string
+  accessToken?: string
+  access_token?: string
+  refresh?: string
+  refreshToken?: string
+  refresh_token?: string
+  token?: string
+  tokens?: Record<string, unknown>
+}
+
+export function extractAuthTokens(res: Record<string, unknown> | null | undefined): {
+  accessToken?: string
+  refreshToken?: string
+} {
+  if (!res || typeof res !== 'object') {
+    return {}
+  }
+
+  const tokensObj = res.tokens as Record<string, unknown> | undefined
+
+  const accessToken = (typeof res.accessToken === 'string' ? res.accessToken : undefined)
+    || (typeof res.access_token === 'string' ? res.access_token : undefined)
+    || (typeof res.access === 'string' ? res.access : undefined)
+    || (typeof res.token === 'string' ? res.token : undefined)
+    || (typeof tokensObj?.accessToken === 'string' ? tokensObj.accessToken : undefined)
+    || (typeof tokensObj?.access_token === 'string' ? tokensObj.access_token : undefined)
+    || (typeof tokensObj?.access === 'string' ? tokensObj.access : undefined)
+    || (typeof tokensObj?.token === 'string' ? tokensObj.token : undefined)
+
+  const refreshToken = (typeof res.refreshToken === 'string' ? res.refreshToken : undefined)
+    || (typeof res.refresh_token === 'string' ? res.refresh_token : undefined)
+    || (typeof res.refresh === 'string' ? res.refresh : undefined)
+    || (typeof tokensObj?.refreshToken === 'string' ? tokensObj.refreshToken : undefined)
+    || (typeof tokensObj?.refresh_token === 'string' ? tokensObj.refresh_token : undefined)
+    || (typeof tokensObj?.refresh === 'string' ? tokensObj.refresh : undefined)
+
+  return { accessToken, refreshToken }
 }
 
 export const useAuth = () => {
@@ -30,26 +65,31 @@ export const useAuth = () => {
     error.value = null
 
     try {
-      const response = await $api<LoginResponse>('/auth/login/', {
+      const response = await $api<LoginResponse | Record<string, unknown>>('/auth/login/', {
         method: 'POST',
         body: credentials,
         unauthenticated: true,
       })
 
+      const { accessToken, refreshToken } = extractAuthTokens(response as Record<string, unknown>)
+
       const authCookie = useCookie('auth_token', {
+        path: '/',
         maxAge: rememberMe ? 60 * 60 * 24 * 30 : undefined,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
       })
 
       const refreshCookie = useCookie('refresh_token', {
+        path: '/',
         maxAge: rememberMe ? 60 * 60 * 24 * 30 : undefined,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
       })
 
-      authCookie.value = response.access
-      refreshCookie.value = response.refresh
+      authCookie.value = accessToken || null
+      refreshCookie.value = refreshToken || null
+      token.value = accessToken || null
 
       await navigateTo('/dashboard')
     }
@@ -81,26 +121,26 @@ export const useAuth = () => {
         unauthenticated: true,
       })
 
-      const res = response as Record<string, unknown> | null | undefined
-      const tokensObj = res?.tokens as Record<string, unknown> | undefined
-      const accessToken = (typeof res?.access === 'string' ? res.access : undefined)
-        || (typeof tokensObj?.access === 'string' ? tokensObj.access : undefined)
-        || (typeof res?.token === 'string' ? res.token : undefined)
-      const refreshToken = (typeof res?.refresh === 'string' ? res.refresh : undefined)
-        || (typeof tokensObj?.refresh === 'string' ? tokensObj.refresh : undefined)
-      const hasTokens = Boolean(accessToken && refreshToken)
+      const { accessToken, refreshToken } = extractAuthTokens(response as Record<string, unknown>)
+      const hasTokens = Boolean(accessToken)
 
       if (hasTokens) {
         const authCookie = useCookie('auth_token', {
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-        })
-        const refreshCookie = useCookie('refresh_token', {
+          path: '/',
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',
         })
         authCookie.value = accessToken
-        refreshCookie.value = refreshToken
+        token.value = accessToken
+
+        if (refreshToken) {
+          const refreshCookie = useCookie('refresh_token', {
+            path: '/',
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+          })
+          refreshCookie.value = refreshToken
+        }
       }
 
       if (options.autoNavigate !== false) {
@@ -120,7 +160,7 @@ export const useAuth = () => {
 
   const logout = async () => {
     token.value = null
-    const refreshCookie = useCookie('refresh_token')
+    const refreshCookie = useCookie('refresh_token', { path: '/' })
     refreshCookie.value = null
     await navigateTo('/login')
   }
