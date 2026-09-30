@@ -10,18 +10,17 @@
  * Steps 2 and 3 return 400 for invalid/expired codes.
  */
 
-import { $api } from '../utils/api'
-
 interface ApiError {
   detail?: string
   [key: string]: unknown
 }
 
 async function post<T = void>(path: string, body: Record<string, unknown>): Promise<T> {
-  return $api<T>(`/auth${path}`, {
+  const { public: { apiBase } } = useRuntimeConfig()
+  const base = (apiBase || '/api').replace(/\/$/, '')
+  return $fetch<T>(`${base}/auth${path}`, {
     method: 'POST',
     body,
-    unauthenticated: true,
   })
 }
 
