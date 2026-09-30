@@ -10,19 +10,18 @@
  * Steps 2 and 3 return 400 for invalid/expired codes.
  */
 
+import { $api } from '../utils/api'
+
 interface ApiError {
   detail?: string
   [key: string]: unknown
 }
 
 async function post<T = void>(path: string, body: Record<string, unknown>): Promise<T> {
-  // useRuntimeConfig() is auto-imported by Nuxt — reads apiBase from nuxt.config.ts
-  // In dev set NUXT_PUBLIC_API_BASE=https://<tunnel>/api to point at Django directly.
-  // In production nginx proxies /api → Django so the default '/api' is correct.
-  const { public: { apiBase } } = useRuntimeConfig()
-  return $fetch<T>(`${apiBase}/auth${path}`, {
+  return $api<T>(`/auth${path}`, {
     method: 'POST',
     body,
+    unauthenticated: true,
   })
 }
 

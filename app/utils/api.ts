@@ -74,8 +74,7 @@ export const $api = async <T>(
   const config = useRuntimeConfig()
   const baseURL = config.public.apiBase as string
 
-  const authToken = useCookie('auth_token')
-  const refreshToken = useCookie('refresh_token')
+  const authToken = useCookie('accessToken')
 
   const headers = new Headers(options?.headers)
   const isUnauthenticated = Boolean(options?.unauthenticated)
@@ -84,7 +83,16 @@ export const $api = async <T>(
     headers.set('Authorization', `Bearer ${authToken.value}`)
   }
 
+  // In SSR context, forward incoming cookies so server-side requests include auth cookies
+  if (import.meta.server) {
+    const reqHeaders = useRequestHeaders(['cookie'])
+    if (reqHeaders.cookie && !headers.has('cookie')) {
+      headers.set('cookie', reqHeaders.cookie)
+    }
+  }
+
   const customOptions: NitroFetchOptions<NitroFetchRequest> = {
+    credentials: 'include',
     ...options,
     baseURL,
     headers,
@@ -97,32 +105,27 @@ export const $api = async <T>(
   catch (error: unknown) {
     const httpError = error as { response?: { status: number } }
     if (!isUnauthenticated && httpError.response?.status === 401) {
-      if (!refreshToken.value) {
-        authToken.value = null
-        refreshToken.value = null
-        await navigateTo('/login')
-        throw error
-      }
-
       try {
-        const refreshData = await $fetch<{ access: string }>('/auth/refresh/', {
+        const refreshData = await $fetch<{ accessToken?: string, access?: string, token?: string }>('/auth/refresh/', {
           baseURL,
           method: 'POST',
-          body: {
-            refresh: refreshToken.value,
-          },
+          credentials: 'include',
         })
 
-        authToken.value = refreshData.access
+        const newAccessToken = refreshData.accessToken || refreshData.access || refreshData.token
+        if (!newAccessToken) {
+          throw new Error('No access token returned from refresh', { cause: error })
+        }
 
-        headers.set('Authorization', `Bearer ${refreshData.access}`)
+        authToken.value = newAccessToken
+
+        headers.set('Authorization', `Bearer ${newAccessToken}`)
         customOptions.headers = headers
 
         return await $fetch<T>(request, customOptions)
       }
       catch (refreshError) {
         authToken.value = null
-        refreshToken.value = null
 
         await navigateTo('/login')
 
