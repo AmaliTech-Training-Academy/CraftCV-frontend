@@ -29,6 +29,7 @@ export interface EducationItem {
   id: string
   degree: string
   school: string
+  fieldOfStudy?: string
   location: string
   startDate: string
   endDate: string
@@ -95,15 +96,21 @@ export const useCVState = () => {
   }
 
   const getExperienceStatus = (): StepStatus => {
-    if (experience.value.length === 0) return 'empty'
-    const isComplete = experience.value.every(e => e.title.trim() && e.company.trim() && e.startDate.trim())
-    return isComplete ? 'complete' : 'incomplete'
+    const filled = experience.value.filter(
+      e => e.title.trim() && e.company.trim() && e.startDate.trim(),
+    )
+    if (filled.length === 0) return 'empty'
+    if (filled.length === experience.value.length) return 'complete'
+    return 'incomplete'
   }
 
   const getEducationStatus = (): StepStatus => {
-    if (education.value.length === 0) return 'empty'
-    const isComplete = education.value.every(e => e.degree.trim() && e.school.trim() && e.startDate.trim())
-    return isComplete ? 'complete' : 'incomplete'
+    const filled = education.value.filter(
+      e => e.degree.trim() && e.school.trim() && e.startDate.trim(),
+    )
+    if (filled.length === 0) return 'empty'
+    if (filled.length === education.value.length) return 'complete'
+    return 'incomplete'
   }
 
   const getSkillsStatus = (): StepStatus => {
