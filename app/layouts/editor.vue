@@ -13,8 +13,8 @@ import {
   Circle,
   Pencil,
   Download,
-  PanelLeftClose,
-  PanelLeftOpen,
+  ChevronLeft,
+  ChevronRight,
   X,
 } from '@lucide/vue'
 
@@ -175,26 +175,22 @@ const steps = computed(() => [
     <!-- Main Workspace -->
     <div class="flex flex-1 overflow-hidden">
       <!-- 2. Sidebar -->
-      <aside
-        class="flex-shrink-0 flex flex-col h-full bg-[#B64A22] text-white overflow-y-auto transition-all duration-300"
+      <div 
+        class="relative h-full flex-shrink-0 transition-all duration-300 z-20"
         :class="isSidebarExpanded ? 'w-[260px]' : 'w-[80px]'"
       >
-        <!-- Top Collapse Button -->
-        <div
-          class="px-3 pt-4 shrink-0 flex"
-          :class="isSidebarExpanded ? 'justify-start' : 'justify-center'"
-        >
+        <aside class="flex flex-col h-full bg-[#B64A22] text-white overflow-y-auto w-full">
+          <!-- Floating Edge Button -->
           <button
-            class="flex items-center justify-center p-3 rounded-xl transition-colors text-white/80 hover:text-white hover:bg-white/10"
+            class="absolute -right-3 top-8 w-6 h-6 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center text-gray-500 hover:text-gray-900 hover:scale-110 transition-all z-30 focus:outline-none focus:ring-2 focus:ring-[#B64A22]/50"
             :title="isSidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'"
             @click="isSidebarExpanded = !isSidebarExpanded"
           >
             <component
-              :is="isSidebarExpanded ? PanelLeftClose : PanelLeftOpen"
-              class="w-6 h-6 flex-shrink-0"
+              :is="isSidebarExpanded ? ChevronLeft : ChevronRight"
+              class="w-4 h-4"
             />
           </button>
-        </div>
 
         <nav class="flex-1 px-3 pt-10 pb-6 flex flex-col gap-1">
           <div
@@ -239,7 +235,8 @@ const steps = computed(() => [
             </template>
           </div>
         </nav>
-      </aside>
+        </aside>
+      </div>
 
       <!-- 3. Form Area (Middle Slot) -->
       <main class="flex-[1.2] min-w-0 overflow-y-auto relative flex flex-col bg-[#F9F8F6]">
