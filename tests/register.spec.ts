@@ -46,7 +46,11 @@ async function checkTerms(wrapper: Awaited<ReturnType<typeof mountRegisterPage>>
 describe('register.vue', () => {
   beforeEach(() => {
     mockApi.mockReset()
-    mockApi.mockResolvedValue({ access: 'fake-access', refresh: 'fake-refresh' })
+    mockApi.mockResolvedValue({ accessToken: 'fake-access-token' })
+    const token = useCookie('accessToken')
+    token.value = null
+    const user = useCookie('authUser')
+    user.value = null
   })
 
   describe('Route Registration', () => {
@@ -281,8 +285,7 @@ describe('register.vue', () => {
     it('renders success feedback banner and keeps submit disabled during redirect window', async () => {
       vi.useFakeTimers()
       mockApi.mockResolvedValueOnce({
-        access: 'fake-access',
-        refresh: 'fake-refresh',
+        accessToken: 'fake-access-token',
       })
 
       const wrapper = await mountRegisterPage()

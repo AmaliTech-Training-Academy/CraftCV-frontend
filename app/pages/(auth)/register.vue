@@ -329,7 +329,7 @@ const touched = reactive({
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const isRedirecting = ref(false)
-const { register, loading, error: authError } = useAuth()
+const { register, loading, error: authError, isAuthenticated } = useAuth()
 const serverError = ref('')
 const successMessage = ref('')
 
@@ -384,7 +384,7 @@ async function handleSubmit() {
   let targetRoute = '/login'
 
   try {
-    const response = await register(
+    await register(
       {
         email: form.email.trim(),
         password: form.password,
@@ -393,18 +393,11 @@ async function handleSubmit() {
       { autoNavigate: false },
     )
 
-    const res = response as Record<string, unknown> | null | undefined
-    const tokensObj = res?.tokens as Record<string, unknown> | undefined
-    const accessToken = (typeof res?.access === 'string' ? res.access : undefined)
-      || (typeof tokensObj?.access === 'string' ? tokensObj.access : undefined)
-      || (typeof res?.token === 'string' ? res.token : undefined)
-    const refreshToken = (typeof res?.refresh === 'string' ? res.refresh : undefined)
-      || (typeof tokensObj?.refresh === 'string' ? tokensObj.refresh : undefined)
-    const hasTokens = Boolean(accessToken && refreshToken)
+    const isAuthed = isAuthenticated.value
 
     isSuccess = true
-    targetRoute = hasTokens ? '/dashboard' : '/login'
-    successMessage.value = hasTokens
+    targetRoute = isAuthed ? '/dashboard' : '/login'
+    successMessage.value = isAuthed
       ? 'Account created successfully! Redirecting...'
       : 'Account created! Please sign in to continue.'
     isRedirecting.value = true

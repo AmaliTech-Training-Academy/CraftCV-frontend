@@ -15,47 +15,72 @@ interface RegisterOptions {
   autoNavigate?: boolean
 }
 
-interface LoginResponse {
-  access: string
-  refresh: string
+export interface User {
+  id: string
+  email: string
+  createdAt?: string
+}
+
+export interface TokenPayload {
+  user?: User
+  accessToken?: string
 }
 
 export const useAuth = () => {
-  const token = useCookie('auth_token')
+  const token = useCookie<string | null>('accessToken', getAuthCookieOptions())
+  const user = useCookie<User | null>('authUser', getAuthCookieOptions())
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  const login = async (credentials: LoginCredentials, rememberMe: boolean) => {
+  const fetchUser = async () => {
+    if (!token.value) {
+      user.value = null
+      return null
+    }
+
+    try {
+      const userData = await $api<User>('/auth/me/')
+      user.value = userData
+      return userData
+    }
+    catch (err: unknown) {
+      user.value = null
+      throw err
+    }
+  }
+
+  const login = async (credentials: LoginCredentials, rememberMe: boolean = false) => {
     loading.value = true
     error.value = null
 
     try {
-      const response = await $api<LoginResponse>('/auth/login/', {
+      const response = await $api<TokenPayload>('/auth/login/', {
         method: 'POST',
-        body: credentials,
+        body: {
+          email: credentials.email.trim(),
+          password: credentials.password,
+          rememberMe,
+        },
         unauthenticated: true,
       })
 
-      const authCookie = useCookie('auth_token', {
-        maxAge: rememberMe ? 60 * 60 * 24 * 30 : undefined,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-      })
+      if (response.accessToken) {
+        const tokenCookie = useCookie<string | null>('accessToken', getAuthCookieOptions(rememberMe))
+        tokenCookie.value = response.accessToken
+        token.value = response.accessToken
+      }
 
-      const refreshCookie = useCookie('refresh_token', {
-        maxAge: rememberMe ? 60 * 60 * 24 * 30 : undefined,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-      })
-
-      authCookie.value = response.access
-      refreshCookie.value = response.refresh
+      if (response.user) {
+        const userCookie = useCookie<User | null>('authUser', getAuthCookieOptions(rememberMe))
+        userCookie.value = response.user
+        user.value = response.user
+      }
 
       await navigateTo('/dashboard')
+      return response
     }
     catch (err: unknown) {
       error.value = extractErrorMessage(err, 'Invalid email or password.')
-
       throw err
     }
     finally {
@@ -71,46 +96,31 @@ export const useAuth = () => {
     error.value = null
 
     try {
-      const response = await $api<LoginResponse | Record<string, unknown>>('/auth/register/', {
+      const response = await $api<TokenPayload>('/auth/register/', {
         method: 'POST',
         body: {
           email: payload.email,
           password: payload.password,
-          agree_to_terms: payload.agreeToTerms,
+          agreeToTerms: payload.agreeToTerms,
         },
         unauthenticated: true,
       })
 
-      const res = response as Record<string, unknown> | null | undefined
-      const tokensObj = res?.tokens as Record<string, unknown> | undefined
-      const accessToken = (typeof res?.access === 'string' ? res.access : undefined)
-        || (typeof tokensObj?.access === 'string' ? tokensObj.access : undefined)
-        || (typeof res?.token === 'string' ? res.token : undefined)
-      const refreshToken = (typeof res?.refresh === 'string' ? res.refresh : undefined)
-        || (typeof tokensObj?.refresh === 'string' ? tokensObj.refresh : undefined)
-      const hasTokens = Boolean(accessToken && refreshToken)
+      if (response.accessToken) {
+        token.value = response.accessToken
+      }
 
-      if (hasTokens) {
-        const authCookie = useCookie('auth_token', {
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-        })
-        const refreshCookie = useCookie('refresh_token', {
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-        })
-        authCookie.value = accessToken
-        refreshCookie.value = refreshToken
+      if (response.user) {
+        user.value = response.user
       }
 
       if (options.autoNavigate !== false) {
-        await navigateTo(hasTokens ? '/dashboard' : '/login')
+        await navigateTo(token.value ? '/dashboard' : '/login')
       }
       return response
     }
     catch (err: unknown) {
       error.value = extractErrorMessage(err, 'Registration failed. Please check your details and try again.')
-
       throw err
     }
     finally {
@@ -119,19 +129,28 @@ export const useAuth = () => {
   }
 
   const logout = async () => {
-    token.value = null
-    const refreshCookie = useCookie('refresh_token')
-    refreshCookie.value = null
-    await navigateTo('/login')
+    try {
+      await $api('/auth/logout/', { method: 'POST' })
+    }
+    catch {
+      // Ignore backend errors to guarantee client-side cleanup and redirect
+    }
+    finally {
+      token.value = null
+      user.value = null
+      await navigateTo('/login')
+    }
   }
 
   return {
     token,
+    user,
+    fetchUser,
     loading,
     error,
     login,
     register,
     logout,
-    isAuthenticated: computed(() => !!token.value),
+    isAuthenticated: computed(() => Boolean(token.value)),
   }
 }

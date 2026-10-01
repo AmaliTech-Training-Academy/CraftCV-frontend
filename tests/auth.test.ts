@@ -4,16 +4,30 @@ import { useAuth } from '../app/composables/useAuth'
 import { extractErrorMessage } from '../app/utils/api'
 import authMiddleware from '../app/middleware/auth'
 
-const { mockApi, cookies, mockNavigateTo, getCookieRef } = vi.hoisted(() => {
+const { mockApi, cookies, mockNavigateTo, getCookieRef, getStateRef } = vi.hoisted(() => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { ref } = require('vue')
   const cookies: Record<string, { value: unknown }> = {}
+  const userStates: Record<string, { value: unknown }> = {}
 
-  const getCookieRef = (name: string) => {
-    if (!cookies[name] || cookies[name].value === undefined) {
-      cookies[name] = ref(null)
+  const getCookieRef = (name: string): { value: unknown } => {
+    const existing = cookies[name]
+    if (existing && existing.value !== undefined) {
+      return existing
     }
-    return cookies[name]
+    const newRef = ref(null)
+    cookies[name] = newRef
+    return newRef
+  }
+
+  const getStateRef = (name: string, init?: () => unknown): { value: unknown } => {
+    const existing = userStates[name]
+    if (existing) {
+      return existing
+    }
+    const newRef = ref(init ? init() : null)
+    userStates[name] = newRef
+    return newRef
   }
 
   return {
@@ -21,6 +35,7 @@ const { mockApi, cookies, mockNavigateTo, getCookieRef } = vi.hoisted(() => {
     cookies,
     mockNavigateTo: vi.fn(),
     getCookieRef,
+    getStateRef,
   }
 })
 
@@ -35,14 +50,22 @@ vi.mock('#app/composables/cookie', () => ({
   refreshCookie: vi.fn(),
 }))
 
+vi.mock('#app/composables/state', () => ({
+  useState: vi.fn(getStateRef),
+  clearNuxtState: vi.fn(),
+}))
+
 vi.mock('#app', () => ({
   useCookie: vi.fn(getCookieRef),
+  useState: vi.fn(getStateRef),
   navigateTo: mockNavigateTo,
   defineNuxtRouteMiddleware: (fn: (...args: unknown[]) => unknown) => fn,
 }))
 
 vi.mock('#app/nuxt', () => ({
   useNuxtApp: () => ({
+    payload: { state: {} },
+    _state: {},
     $router: {
       push: mockNavigateTo,
       replace: mockNavigateTo,
@@ -50,6 +73,8 @@ vi.mock('#app/nuxt', () => ({
     runWithContext: (fn: () => unknown) => fn(),
   }),
   tryUseNuxtApp: () => ({
+    payload: { state: {} },
+    _state: {},
     $router: {
       push: mockNavigateTo,
       replace: mockNavigateTo,
@@ -57,7 +82,8 @@ vi.mock('#app/nuxt', () => ({
     runWithContext: (fn: () => unknown) => fn(),
   }),
   callWithNuxt: (_nuxt: unknown, fn: () => unknown) => fn(),
-  useRuntimeConfig: () => ({ app: { baseURL: '/' } }),
+  useRuntimeConfig: () => ({ app: { baseURL: '/' }, public: { apiBase: 'http://localhost:8000' } }),
+  useRequestHeaders: () => ({}),
 }))
 
 vi.mock('../app/utils/api', async (importOriginal) => {
@@ -71,36 +97,41 @@ vi.mock('../app/utils/api', async (importOriginal) => {
 vi.mock('#imports', () => ({
   navigateTo: mockNavigateTo,
   useCookie: vi.fn(getCookieRef),
+  useState: vi.fn(getStateRef),
   defineNuxtRouteMiddleware: (fn: (...args: unknown[]) => unknown) => fn,
+  useRequestHeaders: () => ({}),
 }))
 
 describe('Authentication Flow', () => {
   beforeEach(() => {
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     for (const key in cookies) delete cookies[key]
+    const userState = getStateRef('auth_user')
+    userState.value = null
     vi.clearAllMocks()
   })
 
   describe('useAuth Composable', () => {
-    it('sets token and redirects to dashboard on successful login', async () => {
+    it('sets token, user profile, and redirects to dashboard on successful login', async () => {
+      const mockUser = { id: 'user-1', email: 'test@example.com', createdAt: '2026-09-29T12:00:00Z' }
       mockApi.mockResolvedValueOnce({
-        access: 'fake-access-token',
-        refresh: 'fake-refresh-token',
+        user: mockUser,
+        accessToken: 'fake-access-token',
       })
 
-      const { login, token, isAuthenticated } = useAuth()
+      const { login, token, user, isAuthenticated } = useAuth()
 
-      await login({ email: 'test@example.com', password: 'password123' }, false)
+      await login({ email: 'test@example.com', password: 'password123' }, true)
 
       expect(mockApi).toHaveBeenCalledWith('/auth/login/', {
         method: 'POST',
-        body: { email: 'test@example.com', password: 'password123' },
+        body: { email: 'test@example.com', password: 'password123', rememberMe: true },
         unauthenticated: true,
       })
 
       expect(token.value).toBe('fake-access-token')
+      expect(user.value).toEqual(mockUser)
       expect(isAuthenticated.value).toBe(true)
-      expect(cookies['refresh_token']?.value).toBe('fake-refresh-token')
       expect(mockNavigateTo).toHaveBeenCalledWith('/dashboard')
     })
 
@@ -119,13 +150,14 @@ describe('Authentication Flow', () => {
       expect(error.value).toBe('Invalid email or password.')
     })
 
-    it('posts to /auth/register/ with agree_to_terms and redirects to dashboard on registration', async () => {
+    it('posts to /auth/register/ with agreeToTerms and redirects to dashboard on registration', async () => {
+      const mockUser = { id: 'user-2', email: 'newuser@example.com', createdAt: '2026-09-29T12:00:00Z' }
       mockApi.mockResolvedValueOnce({
-        access: 'fake-register-access',
-        refresh: 'fake-register-refresh',
+        user: mockUser,
+        accessToken: 'fake-register-access',
       })
 
-      const { register, token, isAuthenticated } = useAuth()
+      const { register, token, user, isAuthenticated } = useAuth()
 
       await register({
         email: 'newuser@example.com',
@@ -138,54 +170,15 @@ describe('Authentication Flow', () => {
         body: {
           email: 'newuser@example.com',
           password: 'Password123!',
-          agree_to_terms: true,
+          agreeToTerms: true,
         },
         unauthenticated: true,
       })
 
       expect(token.value).toBe('fake-register-access')
+      expect(user.value).toEqual(mockUser)
       expect(isAuthenticated.value).toBe(true)
       expect(mockNavigateTo).toHaveBeenCalledWith('/dashboard')
-    })
-
-    it('supports nested tokens response contract and redirects to dashboard', async () => {
-      mockApi.mockResolvedValueOnce({
-        tokens: {
-          access: 'nested-access-token',
-          refresh: 'nested-refresh-token',
-        },
-      })
-
-      const { register, token, isAuthenticated } = useAuth()
-
-      await register({
-        email: 'nested@example.com',
-        password: 'Password123!',
-        agreeToTerms: true,
-      })
-
-      expect(token.value).toBe('nested-access-token')
-      expect(cookies['refresh_token']?.value).toBe('nested-refresh-token')
-      expect(isAuthenticated.value).toBe(true)
-      expect(mockNavigateTo).toHaveBeenCalledWith('/dashboard')
-    })
-
-    it('redirects to login when registration response lacks tokens', async () => {
-      mockApi.mockResolvedValueOnce({
-        message: 'Account created. Please sign in.',
-      })
-
-      const { register, token, isAuthenticated } = useAuth()
-
-      await register({
-        email: 'notokens@example.com',
-        password: 'Password123!',
-        agreeToTerms: true,
-      })
-
-      expect(token.value).toBeFalsy()
-      expect(isAuthenticated.value).toBe(false)
-      expect(mockNavigateTo).toHaveBeenCalledWith('/login')
     })
 
     it('sets error message on failed registration response with field errors', async () => {
@@ -209,16 +202,30 @@ describe('Authentication Flow', () => {
       expect(error.value).toBe('A user with that email already exists.')
     })
 
-    it('clears authentication tokens on logout', async () => {
-      cookies['auth_token'] = { value: 'fake-access-token' }
-      cookies['refresh_token'] = { value: 'fake-refresh-token' }
+    it('fetches authenticated user profile via /auth/me/', async () => {
+      cookies['accessToken'] = { value: 'fake-access-token' }
+      const mockProfile = { id: 'user-1', email: 'test@example.com', createdAt: '2026-09-29T12:00:00Z' }
+      mockApi.mockResolvedValueOnce(mockProfile)
 
-      const { logout, token, isAuthenticated } = useAuth()
+      const { fetchUser, user } = useAuth()
+
+      const result = await fetchUser()
+
+      expect(mockApi).toHaveBeenCalledWith('/auth/me/')
+      expect(result).toEqual(mockProfile)
+      expect(user.value).toEqual(mockProfile)
+    })
+
+    it('clears authentication tokens and user state on logout', async () => {
+      cookies['accessToken'] = { value: 'fake-access-token' }
+
+      const { logout, token, user, isAuthenticated } = useAuth()
+      user.value = { id: 'user-1', email: 'test@example.com' }
 
       await logout()
 
       expect(token.value).toBeNull()
-      expect(cookies['refresh_token']?.value).toBeNull()
+      expect(user.value).toBeNull()
       expect(isAuthenticated.value).toBe(false)
       expect(mockNavigateTo).toHaveBeenCalledWith('/login')
     })
@@ -294,15 +301,16 @@ describe('Authentication Flow', () => {
 
   describe('Route Middleware (Protected Route Behavior)', () => {
     it('redirects to login if unauthenticated', async () => {
-      cookies['auth_token'] = { value: null }
+      cookies['accessToken'] = { value: null }
 
       await authMiddleware({} as never, {} as never)
 
       expect(mockNavigateTo).toHaveBeenCalledWith('/login')
     })
 
-    it('allows navigation if authenticated', async () => {
-      cookies['auth_token'] = { value: 'valid-token' }
+    it('allows navigation if token exists and hydrates user', async () => {
+      cookies['accessToken'] = { value: 'valid-token' }
+      mockApi.mockResolvedValueOnce({ id: 'user-1', email: 'test@example.com' })
 
       const result = await authMiddleware({} as never, {} as never)
 

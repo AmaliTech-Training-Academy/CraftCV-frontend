@@ -275,8 +275,8 @@ function touch(field: 'email' | 'password') {
 function fieldError(field: 'email' | 'password') {
   if (!touched[field]) return ''
   if (field === 'email') {
-    if (!form.email) return 'Email is required.'
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+    if (!form.email.trim()) return 'Email is required.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
       return 'Please enter a valid email address.'
   }
   if (field === 'password') {
@@ -295,7 +295,7 @@ async function handleSubmit() {
   if (!isValid()) return
   try {
     await login(
-      { email: form.email, password: form.password },
+      { email: form.email.trim(), password: form.password },
       form.rememberMe,
     )
   }
