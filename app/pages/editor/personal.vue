@@ -1,4 +1,5 @@
 <script setup lang="ts">
+useHead({ title: 'Personal Details' })
 import { reactive, computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Check } from '@lucide/vue'

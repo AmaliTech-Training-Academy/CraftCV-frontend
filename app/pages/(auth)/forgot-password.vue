@@ -643,6 +643,7 @@
 </template>
 
 <script setup lang="ts">
+useHead({ title: 'Forgot Password' })
 import { ref, computed, watch, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { Mail, KeyRound, Eye, EyeOff, AlertCircle, Check, CheckCircle, Clock, ShieldCheck } from '@lucide/vue'

@@ -1,6 +1,6 @@
 <script setup lang="ts">
+useHead({ title: 'Choose Template' })
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { Loader2 } from '@lucide/vue'
 import type { useTemplates } from '~/composables/useTemplates'
 import { useCVState } from '~/composables/useCVState'
@@ -30,22 +30,22 @@ const navigateTemplate = (template: Template) => {
 }
 
 const isCreating = ref(false)
-const router = useRouter()
-const { hasActiveCV, selectedTemplateId } = useCVState()
+const { hasActiveCV, selectedTemplateId, selectedTemplateSlug } = useCVState()
 
 const handleUseTemplate = async (template: Template) => {
   closePreview()
   isCreating.value = true
 
   // Save template selection and mark CV as active
-  selectedTemplateId.value = template.id
+  selectedTemplateId.value = template.templateId
+  selectedTemplateSlug.value = template.slug
   hasActiveCV.value = true
 
   // Simulate network request/CV creation time
   await new Promise(resolve => setTimeout(resolve, 1500))
 
   isCreating.value = false
-  router.push('/editor/personal')
+  await navigateTo('/editor/personal')
 }
 </script>
 

@@ -19,7 +19,10 @@ import {
 } from '@lucide/vue'
 
 import { useCVState } from '~/composables/useCVState'
+import type { ResolvedCvData } from '~/types/cv'
 import CVTemplateClassic from '~/components/templates/CVTemplateClassic.vue'
+import SingleColumnTemplate from '~/components/templates/SingleColumnTemplate.vue'
+import TwoColumnTemplate from '~/components/templates/TwoColumnTemplate.vue'
 
 const {
   cvTitle,
@@ -29,15 +32,65 @@ const {
   getEducationStatus,
   getSkillsStatus,
   getCertificationsStatus,
-  selectedTemplateId,
+  selectedTemplateSlug,
   previewData,
 } = useCVState()
 
+const layoutBySlug: Record<string, any> = {
+  classic: CVTemplateClassic,
+  modern: SingleColumnTemplate,
+  professional: TwoColumnTemplate,
+}
+
 const activeTemplateComponent = computed(() => {
-  if (selectedTemplateId.value === 'classic') {
-    return CVTemplateClassic
+  const slug = (selectedTemplateSlug.value || '').toLowerCase()
+  return layoutBySlug[slug] || CVTemplateClassic
+})
+
+// Adapter: converts the frontend camelCase previewData to the snake_case ResolvedCvData
+// that both SingleColumnTemplate and TwoColumnTemplate expect.
+const resolvedPreviewData = computed<ResolvedCvData>(() => {
+  const p = previewData.value.personal
+  return {
+    title: p.title || '',
+    professional_summary: previewData.value.summary || '',
+    personal_details: {
+      first_name: p.firstName || '',
+      last_name: p.lastName || '',
+      email: p.email || '',
+      phone: p.phone || '',
+      location: p.location || '',
+      website: p.website || '',
+    },
+    experiences: (previewData.value.experience ?? []).map((e, i) => ({
+      id: e.id,
+      company: e.company || '',
+      role: e.title || '',
+      location: e.location,
+      start_date: e.startDate || '',
+      end_date: e.endDate || null,
+      description: e.description,
+      display_order: i,
+    })),
+    educations: (previewData.value.education ?? []).map((e, i) => ({
+      id: e.id,
+      institution: e.school || '',
+      degree: e.degree || '',
+      start_date: e.startDate || '',
+      end_date: e.endDate || null,
+      description: e.description,
+      display_order: i,
+    })),
+    skills: (previewData.value.skills ?? []).map((s, i) => ({
+      id: s.id,
+      name: s.name || '',
+      display_order: i,
+    })),
+    certifications: [],
+    languages: [],
+    awards: [],
+    additional_information: [],
   }
-  return CVTemplateClassic // fallback
 })
 
 const isPreviewModalOpen = ref(false)
@@ -217,7 +270,7 @@ const steps = computed(() => [
             >
               <component
                 :is="activeTemplateComponent"
-                :data="previewData"
+                :data="resolvedPreviewData"
               />
             </div>
 
@@ -247,7 +300,7 @@ const steps = computed(() => [
             <div class="w-full h-full">
               <component
                 :is="activeTemplateComponent"
-                :data="previewData"
+                :data="resolvedPreviewData"
               />
             </div>
           </div>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+useHead({ title: 'Certifications' })
 definePageMeta({
   layout: 'editor',
   middleware: ['auth'],

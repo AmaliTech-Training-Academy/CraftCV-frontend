@@ -1,4 +1,5 @@
 <script setup lang="ts">
+useHead({ title: 'Professional Summary' })
 import { useCVState } from '~/composables/useCVState'
 
 definePageMeta({

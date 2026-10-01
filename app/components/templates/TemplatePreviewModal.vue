@@ -27,7 +27,7 @@ const emit = defineEmits<{
 const { templates } = useTemplates()
 
 const currentIndex = computed(() =>
-  templates.value.findIndex(t => t.id === props.template.id),
+  templates.value.findIndex(t => t.templateId === props.template.templateId),
 )
 
 const hasPrev = computed(() => currentIndex.value > 0)

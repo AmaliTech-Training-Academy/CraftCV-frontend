@@ -1,4 +1,5 @@
 <script setup lang="ts">
+useHead({ title: 'Dashboard' })
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { MoreVertical, Trash2, Edit } from '@lucide/vue'

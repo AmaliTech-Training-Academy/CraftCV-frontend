@@ -1,4 +1,5 @@
 <script setup lang="ts">
+useHead({ title: 'Skills' })
 definePageMeta({
   layout: 'editor',
   middleware: ['auth'],

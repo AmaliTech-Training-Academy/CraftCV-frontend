@@ -1,61 +1,82 @@
-import { ref } from 'vue'
+import { useState } from '#imports'
+import { $api } from '../utils/api'
 
-// Inline shape for mock template data — will be replaced by the real CvData type
-// once ~/types/cv is defined in the shared types package.
-type MockCvData = Record<string, unknown>
+export interface APITemplate {
+  templateId: string
+  name: string
+  description: string
+  slug: string
+  // Optional frontend-only fields for UI
+  image?: string
+  vibe?: string
+  bestFor?: string[]
+}
 
-// Mock list of templates for the selector gallery
 export const useTemplates = () => {
-  const templates = ref([
-    {
-      id: 'template-1',
-      name: 'Atlantic',
-      vibe: 'STRUCTURED',
-      description: 'A two-column layout built for product leaders and engineers. Packs depth and metrics into a clean, scannable format — no visual clutter.',
-      bestFor: ['Product Managers', 'Engineers', 'Tech Leads'],
-      component: 'TwoColumnTemplate',
-      image: '/templates/Double-col.png',
-      mockData: {
-        title: 'Senior Product Lead',
-        professional_summary: 'Experienced product leader specializing in cross-functional team management and scaling SaaS platforms.',
-        personal_details: {
-          first_name: 'Sarah',
-          last_name: 'Jenkins',
-          email: 'sarah@domain.co',
-          phone: '+44 7911 123456',
-          location: 'London, UK',
-        },
-        experiences: [],
-        educations: [],
-        skills: [],
-      } as MockCvData,
-    },
-    {
-      id: 'template-2',
-      name: 'Meridian',
-      vibe: 'MINIMAL',
-      description: 'A clean, single-column layout that lets your story speak. Trusted by professionals in industries where clarity and restraint matter most.',
-      bestFor: ['Finance', 'Law', 'Consulting', 'Academia'],
-      component: 'SingleColumnTemplate',
-      image: '/templates/Single-col.png',
-      mockData: {
-        title: 'Full-Stack Systems Architect',
-        professional_summary: 'Architecting scalable microservices for enterprise fintech solutions.',
-        personal_details: {
-          first_name: 'Elena',
-          last_name: 'Rostova',
-          email: 'elena@domain.co',
-          phone: '+1 555 0192',
-          location: 'Dublin, Ireland',
-        },
-        experiences: [],
-        educations: [],
-        skills: [],
-      } as MockCvData,
-    },
-  ])
+  const templates = useState<APITemplate[]>('cv-templates', () => [])
+  const loading = useState<boolean>('cv-templates-loading', () => true)
+  const error = useState<string | null>('cv-templates-error', () => null)
+
+  const fetchTemplates = async () => {
+    loading.value = true
+    error.value = null
+    try {
+      // The auth token is handled by the $api utility automatically
+      const response = await $api<any>('/templates/')
+      console.log('Templates API Response:', response)
+
+      let data = response
+      if (response && typeof response === 'object' && !Array.isArray(response)) {
+        // Django Rest Framework paginated responses use 'results'
+        data = response.results || response.data || []
+      }
+
+      const normalizedData = Array.isArray(data) ? data : []
+
+      // Inject some mock images for the known slugs as the API doesn't provide them
+      templates.value = normalizedData.map((t: any) => {
+        let image = undefined
+        let vibe = undefined
+        let bestFor: string[] = []
+
+        const rawSlug = t.slug || t.name || ''
+        const normalizedSlug = rawSlug.toLowerCase()
+
+        if (normalizedSlug === 'professional') {
+          image = '/templates/Double-col.png'
+          vibe = 'STRUCTURED'
+          bestFor = ['Product Managers', 'Engineers', 'Tech Leads']
+        }
+        else if (normalizedSlug === 'modern') {
+          image = '/templates/Single-col.png'
+          vibe = 'MINIMAL'
+          bestFor = ['Finance', 'Law', 'Consulting', 'Academia']
+        }
+
+        return {
+          templateId: t.templateId,
+          name: t.name,
+          description: t.description,
+          slug: normalizedSlug,
+          image,
+          vibe,
+          bestFor,
+        }
+      })
+    }
+    catch (err: any) {
+      error.value = err?.message || 'Failed to load templates'
+      console.error(err)
+    }
+    finally {
+      loading.value = false
+    }
+  }
 
   return {
     templates,
+    loading,
+    error,
+    fetchTemplates,
   }
 }

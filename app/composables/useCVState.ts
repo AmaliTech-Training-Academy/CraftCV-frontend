@@ -54,7 +54,8 @@ export type StepStatus = 'empty' | 'incomplete' | 'complete'
 export const useCVState = () => {
   const hasActiveCV = useState<boolean>('cv-has-active', () => false)
   const cvTitle = useState<string>('cv-title', () => 'Untitled')
-  const selectedTemplateId = useState<string>('cv-template-id', () => 'classic')
+  const selectedTemplateId = useCookie<string>('cv-template-id', { default: () => '' })
+  const selectedTemplateSlug = useCookie<string>('cv-template-slug', { default: () => 'classic' })
 
   const personal = useState<PersonalDetails>('cv-personal', () => ({
     firstName: '',
@@ -202,7 +203,8 @@ export const useCVState = () => {
   const resetCV = () => {
     hasActiveCV.value = false
     cvTitle.value = 'Untitled'
-    selectedTemplateId.value = 'classic'
+    selectedTemplateId.value = ''
+    selectedTemplateSlug.value = 'classic'
     personal.value = {
       firstName: '',
       lastName: '',
@@ -227,6 +229,7 @@ export const useCVState = () => {
     hasActiveCV,
     cvTitle,
     selectedTemplateId,
+    selectedTemplateSlug,
     personal,
     summary,
     experience,
