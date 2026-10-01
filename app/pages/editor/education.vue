@@ -1,4 +1,5 @@
 <script setup lang="ts">
+useHead({ title: 'Education' })
 import { Edit, Trash2, Plus, ArrowLeft, ArrowRight, ChevronRight } from '@lucide/vue'
 import { useCVState, type EducationItem } from '~/composables/useCVState'
 import { isEndDateBeforeStartDate, isValidDateString, useCVSectionEditor } from '~/composables/useCVSectionEditor'
