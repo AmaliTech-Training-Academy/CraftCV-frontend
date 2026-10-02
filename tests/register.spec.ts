@@ -1,14 +1,17 @@
 // @vitest-environment nuxt
 
-import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import RegisterPage from '../app/pages/(auth)/register.vue'
 import { Checkbox } from '../app/components/ui/checkbox'
 
-const { mockApi } = vi.hoisted(() => ({
+const { mockApi, mockNavigateTo } = vi.hoisted(() => ({
   mockApi: vi.fn(),
+  mockNavigateTo: vi.fn(),
 }))
+
+mockNuxtImport('navigateTo', () => mockNavigateTo)
 
 vi.mock('../app/utils/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../app/utils/api')>()
@@ -46,6 +49,7 @@ async function checkTerms(wrapper: Awaited<ReturnType<typeof mountRegisterPage>>
 describe('register.vue', () => {
   beforeEach(() => {
     mockApi.mockReset()
+    mockNavigateTo.mockReset()
     mockApi.mockResolvedValue({ accessToken: 'fake-access-token' })
     const token = useCookie('accessToken')
     token.value = null
