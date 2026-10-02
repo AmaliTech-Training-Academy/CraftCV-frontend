@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-[#F9F6F0]">
+  <div class="min-h-dvh flex flex-col bg-[#F9F6F0]">
     <!-- Global Dashboard Header -->
     <LayoutDashboardHeader />
 

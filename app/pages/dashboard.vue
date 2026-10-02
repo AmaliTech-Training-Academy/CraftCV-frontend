@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router'
 import { MoreVertical, Trash2, Edit } from '@lucide/vue'
 import { useCVState } from '~/composables/useCVState'
 
+useHead({ title: 'Dashboard' })
+
 definePageMeta({
   layout: 'dashboard-wide',
   middleware: ['auth'],
@@ -26,7 +28,7 @@ const handleDelete = () => {
 </script>
 
 <template>
-  <div class="min-h-full px-8 py-8 max-w-7xl mx-auto">
+  <div class="min-h-full px-4 sm:px-8 py-6 sm:py-8 max-w-7xl mx-auto">
     <header class="mb-8 flex justify-between items-center">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 mb-1">
@@ -48,7 +50,7 @@ const handleDelete = () => {
     <!-- Resumes Grid -->
     <div
       v-if="hasActiveCV"
-      class="grid gap-6"
+      class="grid gap-4 sm:gap-6"
       style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));"
     >
       <!-- Current Active CV Card -->
@@ -119,7 +121,7 @@ const handleDelete = () => {
     <!-- Empty State -->
     <div
       v-else
-      class="flex flex-col items-center justify-center py-24 text-center"
+      class="flex flex-col items-center justify-center py-16 sm:py-24 text-center"
     >
       <div class="w-16 h-16 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center mb-4">
         <svg

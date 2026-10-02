@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useCVState } from '~/composables/useCVState'
 
+useHead({ title: 'Professional Summary' })
+
 definePageMeta({
   layout: 'editor',
   middleware: ['auth'],
@@ -10,34 +12,14 @@ const { summary } = useCVState()
 </script>
 
 <template>
-  <div class="px-16 lg:px-20 py-10 max-w-4xl mx-auto w-full">
+  <div class="px-4 sm:px-8 lg:px-20 py-10 max-w-4xl mx-auto w-full">
     <!-- Header -->
-    <div class="mb-10">
-      <NuxtLink
-        to="/editor/personal"
-        class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#B64A22] hover:text-[#9A4C2C] mb-6 transition-colors"
-      >
-        <svg
-          class="w-3.5 h-3.5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        ><path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2.5"
-          d="M10 19l-7-7m0 0l7-7m-7 7h18"
-        /></svg>
-        Back to Personal Details
-      </NuxtLink>
-
-      <h1 class="text-[32px] font-bold text-gray-900 mb-2 tracking-tight">
-        Professional Summary
-      </h1>
-      <p class="text-gray-500 text-[15px]">
-        Write a short, impactful summary highlighting your key achievements and skills.
-      </p>
-    </div>
+    <EditorSectionHeader
+      title="Professional Summary"
+      description="Write a brief overview of your background, key achievements, and career goals."
+      back-link="/editor/personal"
+      back-text="Back to Personal Details"
+    />
 
     <div class="flex flex-col gap-8">
       <div class="flex flex-col gap-2.5">

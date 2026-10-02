@@ -66,13 +66,13 @@ describe('SingleColumnTemplate.vue', () => {
     // Experience
     expect(wrapper.text()).toContain('Lead Product Designer')
     expect(wrapper.text()).toContain('Bright Pixel Studio')
-    expect(wrapper.text()).toContain('2019 - Present') // Verifying null end_date logic
+    expect(wrapper.text()).toContain('Jan 2019 – Present') // Verifying null end_date logic
     expect(wrapper.text()).toContain('Directed product design initiatives.')
 
     // Education
     expect(wrapper.text()).toContain('Bachelor\'s, Industrial Design')
     expect(wrapper.text()).toContain('California College of the Arts')
-    expect(wrapper.text()).toContain('2011 - 2015')
+    expect(wrapper.text()).toContain('Aug 2011 – May 2015')
 
     // Skills
     expect(wrapper.text()).toContain('Figma')

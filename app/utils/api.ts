@@ -92,7 +92,7 @@ export const $api = async <T>(
   const isUnauthenticated = Boolean(options?.unauthenticated)
 
   if (!isUnauthenticated && authToken.value) {
-    headers.set('Authorization', `Bearer ${authToken.value}`)
+    headers.set('Authorization', `JWT ${authToken.value}`)
   }
 
   // In SSR context, forward incoming cookies so server-side requests include auth cookies
@@ -131,7 +131,7 @@ export const $api = async <T>(
 
         authToken.value = newAccessToken
 
-        headers.set('Authorization', `Bearer ${newAccessToken}`)
+        headers.set('Authorization', `JWT ${newAccessToken}`)
         customOptions.headers = headers
 
         return await $fetch<T>(request, customOptions)

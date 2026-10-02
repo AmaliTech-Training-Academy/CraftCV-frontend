@@ -1,7 +1,13 @@
 <script setup lang="ts">
-import { Edit, Trash2, Plus, ArrowLeft, ArrowRight, ChevronRight } from '@lucide/vue'
+import { Edit, Trash2, Plus, ArrowRight, ChevronRight } from '@lucide/vue'
+import { useMediaQuery } from '@vueuse/core'
 import { useCVState, type ExperienceItem } from '~/composables/useCVState'
 import { isEndDateBeforeStartDate, isValidDateString, useCVSectionEditor } from '~/composables/useCVSectionEditor'
+import { parseDescription } from '~/utils/cvText'
+
+useHead({ title: 'Work Experience' })
+
+const isMobile = useMediaQuery('(max-width: 640px)')
 
 definePageMeta({
   layout: 'editor',
@@ -23,7 +29,8 @@ const createEmptyExperience = (): ExperienceItem => ({
   company: '',
   location: '',
   startDate: '',
-  endDate: '',
+  endDate: null,
+  isCurrent: false,
   description: '',
 })
 
@@ -32,12 +39,12 @@ const validateExperience = (item: ExperienceItem) =>
     item.title.trim()
     && item.company.trim()
     && isValidDateString(item.startDate)
-    && (!item.endDate?.trim() || item.endDate === 'Present' || isValidDateString(item.endDate))
-    && !isEndDateBeforeStartDate(item.startDate, item.endDate),
+    && (item.isCurrent || isValidDateString(item.endDate))
+    && !isEndDateBeforeStartDate(item.startDate, item.endDate, item.isCurrent),
   )
 
 const isExperienceUntouched = (item: ExperienceItem) =>
-  !item.title.trim() && !item.company.trim() && !item.location.trim() && !item.startDate.trim() && !item.description?.trim()
+  !item.title.trim() && !item.company.trim() && !item.location.trim() && !item.startDate.trim() && parseDescription(item.description).length === 0
 
 const {
   activeId,
@@ -46,14 +53,35 @@ const {
   handleAddEntry,
   promptDelete,
   confirmDelete,
-  toggleCurrentStatus,
   validateAndProceed,
+  toggleCurrentStatus,
 } = useCVSectionEditor(
   experience,
   createEmptyExperience,
   validateExperience,
-  isExperienceUntouched,
 )
+
+const itemShowErrors = ref<Record<string, boolean>>({})
+
+const handleFormDone = (item: ExperienceItem) => {
+  if (validateExperience(item)) {
+    activeId.value = null
+    itemShowErrors.value[item.id] = false
+  }
+  else {
+    itemShowErrors.value[item.id] = true
+  }
+}
+
+const handleFormCancel = (item: ExperienceItem) => {
+  if (isExperienceUntouched(item)) {
+    experience.value = experience.value.filter(e => e.id !== item.id)
+    activeId.value = null
+  }
+  else {
+    promptDelete(item.id)
+  }
+}
 
 const handleNext = () => {
   validateAndProceed(async () => {
@@ -64,22 +92,12 @@ const handleNext = () => {
 
 <template>
   <div class="px-4 sm:px-8 lg:px-20 py-10 max-w-4xl mx-auto w-full">
-    <div class="mb-10">
-      <NuxtLink
-        to="/editor/summary"
-        class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#C54A22] hover:text-[#A83D1B] mb-6 transition-colors"
-      >
-        <ArrowLeft class="w-3.5 h-3.5" />
-        Back to Summary
-      </NuxtLink>
-
-      <h1 class="text-[32px] font-bold text-gray-900 mb-2 tracking-tight">
-        Work Experience
-      </h1>
-      <p class="text-gray-500 text-[15px]">
-        Add your relevant work history, key achievements, and leadership roles. Start with your most recent position.
-      </p>
-    </div>
+    <EditorSectionHeader
+      title="Work Experience"
+      description="Add your relevant work history, key achievements, and leadership roles. Start with your most recent position."
+      back-link="/editor/summary"
+      back-text="Back to Summary"
+    />
 
     <div class="space-y-6">
       <div
@@ -87,15 +105,15 @@ const handleNext = () => {
         :key="item.id"
       >
         <div
-          v-if="activeId !== item.id"
+          v-show="activeId !== item.id || isMobile"
           role="button"
           tabindex="0"
           aria-label="Expand experience item"
-          class="flex items-center justify-between p-4 bg-white border rounded-xl shadow-xs hover:shadow-sm transition cursor-pointer"
+          class="flex items-center justify-between p-4 bg-white border rounded-xl shadow-sm hover:shadow transition cursor-pointer mb-4"
           :class="[
             showErrors && !validateExperience(item)
               ? 'border-red-300 bg-red-50/20'
-              : 'border-gray-200 hover:border-gray-300',
+              : 'border-gray-200 hover:border-[#B64A22]/30',
           ]"
           @click="activeId = item.id"
           @keydown.enter.prevent="activeId = item.id"
@@ -121,7 +139,7 @@ const handleNext = () => {
           >
             <Button
               aria-label="Edit entry"
-              class="h-8 w-8 text-gray-500 hover:text-gray-800 hover:bg-gray-100 cursor-pointer"
+              class="h-9 w-9 text-gray-500 hover:text-gray-900 hover:bg-gray-100 cursor-pointer rounded-lg"
               size="icon"
               type="button"
               variant="ghost"
@@ -131,7 +149,7 @@ const handleNext = () => {
             </Button>
             <Button
               aria-label="Delete entry"
-              class="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+              class="h-9 w-9 text-gray-400 hover:text-red-600 hover:bg-red-50 cursor-pointer rounded-lg"
               size="icon"
               type="button"
               variant="ghost"
@@ -142,100 +160,19 @@ const handleNext = () => {
           </div>
         </div>
 
-        <div
-          v-else
-          class="space-y-5 pt-2"
+        <EditorFormShell
+          :id="item.id"
+          :title="[item.title.trim(), item.company.trim()].filter(Boolean).join(' at ') || 'Edit Experience'"
+          :is-open="activeId === item.id"
+          @close="handleFormCancel(item)"
+          @done="handleFormDone(item)"
         >
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <EditorFormField
-              v-model="item.title"
-              :error="showErrors && !item.title.trim() ? 'Job title is required' : ''"
-              :required="true"
-              label="Role / Job Title"
-              placeholder="e.g. Senior Product Designer"
-            />
-            <EditorFormField
-              v-model="item.company"
-              :error="showErrors && !item.company.trim() ? 'Company is required' : ''"
-              :required="true"
-              label="Company / Organisation"
-              placeholder="e.g. Stripe"
-            />
-          </div>
-
-          <EditorFormField
-            v-model="item.location"
-            label="Location"
-            placeholder="e.g. San Francisco, CA or Remote"
+          <EditorExperienceForm
+            :id="item.id"
+            :show-errors="itemShowErrors[item.id]"
+            @toggle-current="toggleCurrentStatus(item, $event)"
           />
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <EditorMonthYearPicker
-              v-model="item.startDate"
-              :error="showErrors && !item.startDate.trim() ? 'Start date is required' : ''"
-              :required="true"
-              label="Start Date"
-            />
-            <div>
-              <EditorMonthYearPicker
-                v-model="item.endDate"
-                :disabled="item.endDate === 'Present'"
-                :error="isEndDateBeforeStartDate(item.startDate, item.endDate) ? 'End date must be after the start date' : ''"
-                label="End Date"
-              />
-              <div class="mt-2.5 flex items-center gap-2">
-                <input
-                  :id="'current-work-' + item.id"
-                  type="checkbox"
-                  :checked="item.endDate === 'Present'"
-                  class="w-4 h-4 rounded border-gray-300 accent-[#C54A22] text-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 cursor-pointer transition"
-                  @change="toggleCurrentStatus(item, ($event.target as HTMLInputElement).checked)"
-                >
-                <label
-                  :for="'current-work-' + item.id"
-                  class="text-xs text-gray-600 font-medium cursor-pointer select-none"
-                >
-                  Currently working here
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <Label
-              :for="'exp-desc-' + item.id"
-              class="block text-sm font-medium text-gray-700 mb-1.5"
-            >
-              Responsibilities & Key Accomplishments
-            </Label>
-            <textarea
-              :id="'exp-desc-' + item.id"
-              v-model="item.description"
-              rows="5"
-              placeholder="• Architected multi-brand design systems...&#10;• Reduced frontend handoff cycles..."
-              class="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#C54A22] focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20 transition resize-y"
-            />
-          </div>
-
-          <div class="flex items-center justify-between pt-2">
-            <Button
-              class="text-sm font-medium text-gray-500 hover:text-gray-800"
-              type="button"
-              variant="ghost"
-              @click="activeId = null"
-            >
-              Collapse
-            </Button>
-            <Button
-              class="px-5 py-2 text-sm font-semibold text-white bg-[#C54A22] hover:bg-[#A83D1B] cursor-pointer"
-              type="button"
-              @click="activeId = null"
-            >
-              Done
-            </Button>
-          </div>
-          <Separator class="my-6" />
-        </div>
+        </EditorFormShell>
       </div>
 
       <Button
