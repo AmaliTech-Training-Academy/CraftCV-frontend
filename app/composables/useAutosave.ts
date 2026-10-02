@@ -23,6 +23,9 @@ export function useAutosave() {
   // Track the last known saved state to avoid redundant API calls
   const lastSavedData = ref<any>(null)
 
+  // Track if personal details exist on the backend
+  const hasPersonalDetails = ref(false)
+
   // A flag to ensure we don't queue saves while actively loading
   const isLoading = ref(false)
   const isSaving = ref(false)
@@ -47,6 +50,7 @@ export function useAutosave() {
 
       if (data.personalDetail) {
         personal.value = { ...personal.value, ...data.personalDetail }
+        hasPersonalDetails.value = true
       }
 
       if (data.lastSavedAt) {
@@ -143,13 +147,27 @@ export function useAutosave() {
       }
 
       // 2. Personal Details changes
-      if (JSON.stringify(stateToSave.personal) !== JSON.stringify(lastSavedData.value.personal)) {
-        // Send PUT or PATCH depending on if it exists. We'll use PUT as per contract for first time.
+      const personalPatches: Record<string, any> = {}
+      const currentPersonal = stateToSave.personal || {}
+      const lastPersonal = lastSavedData.value.personal || {}
+
+      for (const key of Object.keys(currentPersonal)) {
+        if (currentPersonal[key] !== lastPersonal[key]) {
+          personalPatches[key] = currentPersonal[key]
+        }
+      }
+
+      if (Object.keys(personalPatches).length > 0) {
+        const isCreation = !hasPersonalDetails.value
+
         await $api<any>(`/cvs/personal-details/`, {
-          method: 'PUT',
-          body: stateToSave.personal,
+          method: isCreation ? 'PUT' : 'PATCH',
+          body: isCreation ? currentPersonal : personalPatches,
         })
-        // Fetch CV again to get the updated lastSavedAt timestamp (contract section 6)
+
+        hasPersonalDetails.value = true
+
+        // Fetch CV again to get the updated lastSavedAt timestamp
         const cvRes = await $api<any>(`/cvs/${cvId.value}/`)
         if (cvRes.lastSavedAt) updateTimestamp(cvRes.lastSavedAt)
       }

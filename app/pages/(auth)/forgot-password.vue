@@ -284,6 +284,18 @@
             </div>
           </div>
 
+          <p
+            v-if="otpError"
+            class="text-[13px] text-red-500 font-medium text-center mt-2 flex items-center justify-center gap-1.5"
+            role="alert"
+          >
+            <AlertCircle
+              class="w-4 h-4"
+              aria-hidden="true"
+            />
+            {{ otpError }}
+          </p>
+
           <div class="pt-1.5">
             <Button
               type="submit"
@@ -895,8 +907,7 @@ async function onVerifyCode() {
   }
   catch (err) {
     otpError.value = getApiErrorMessage(err, 'Invalid or expired code. Please try again.')
-    otp.value = ['', '', '', '', '', '']
-    nextTick(() => otpInputs.value[0]?.focus())
+
   }
   finally { isLoading.value = false }
 }
