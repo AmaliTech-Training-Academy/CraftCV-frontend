@@ -123,7 +123,7 @@ describe('useCVState', () => {
       expect(previewData.value.skills.length).toBe(3)
       expect(rawCVData.value.skills.length).toBe(0)
 
-      expect(previewData.value.certifications.length).toBe(1)
+      expect(previewData.value.certifications.length).toBe(0)
       expect(rawCVData.value.certifications.length).toBe(0)
     })
 

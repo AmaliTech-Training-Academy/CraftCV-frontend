@@ -189,11 +189,7 @@ export const useCVState = () => {
             { id: 'mock-skill-2', name: 'Another Skill', level: 'Level' },
             { id: 'mock-skill-3', name: 'Relevant Tool', level: 'Level' },
           ],
-      certifications: certifications.value.length > 0
-        ? certifications.value
-        : [
-            { id: 'mock-cert-1', name: 'AWS Certified Solutions Architect', issuer: 'Amazon Web Services', date: 'March 2024' },
-          ],
+      certifications: certifications.value,
     }
   })
 

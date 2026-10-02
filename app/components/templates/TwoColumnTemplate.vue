@@ -333,7 +333,7 @@ const formatDescription = (text: string | undefined) => {
                 <header class="flex justify-between items-start gap-4 flex-wrap sm:flex-nowrap">
                   <div>
                     <h4 class="font-bold text-gray-900">
-                      {{ cert.name }}
+                      {{ cert.name || 'Certification Name' }}
                     </h4>
                     <div class="text-sm text-gray-600 italic">
                       {{ cert.issuer }}

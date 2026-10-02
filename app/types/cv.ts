@@ -35,7 +35,8 @@ export interface Experience {
 export interface Skill {
   id: string
   name: string
-  display_order: number
+  level?: string
+  display_order?: number
 }
 
 export interface Certification {
@@ -43,9 +44,12 @@ export interface Certification {
   name: string
   issuer: string
   issue_date?: string
+  expiration_date?: string
+  does_not_expire?: boolean
+  credential_id?: string
   credential_url?: string
   description?: string
-  display_order: number
+  display_order?: number
 }
 
 export interface Language {

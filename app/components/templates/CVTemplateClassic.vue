@@ -157,7 +157,7 @@ defineProps<{
             <div class="flex justify-between items-baseline">
               <div>
                 <span class="text-[13px] font-bold text-gray-900">
-                  {{ cert.name || (cert.issuer || cert.date || cert.issue_date || cert.description ? 'Certification Name' : '') }}
+                  {{ cert.name || 'Certification Name' }}
                 </span>
                 <span
                   v-if="cert.issuer"

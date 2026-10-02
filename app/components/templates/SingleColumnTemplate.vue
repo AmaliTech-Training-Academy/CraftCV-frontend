@@ -220,7 +220,7 @@ const formatDescription = (text: string | undefined) => {
             :key="cert.id"
           >
             <h4 class="font-bold text-gray-900">
-              {{ cert.name }}
+              {{ cert.name || 'Certification Name' }}
             </h4>
             <div class="text-sm text-gray-600">
               <span class="text-blue-600 font-medium">{{ cert.issuer }}</span>
