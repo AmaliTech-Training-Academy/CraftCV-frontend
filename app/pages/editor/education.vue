@@ -1,8 +1,13 @@
 <script setup lang="ts">
-useHead({ title: 'Education' })
-import { Edit, Trash2, Plus, ArrowLeft, ArrowRight, ChevronRight } from '@lucide/vue'
+import { Edit, Trash2, Plus, ArrowRight, ChevronRight } from '@lucide/vue'
 import { useCVState, type EducationItem } from '~/composables/useCVState'
+import { useMediaQuery } from '@vueuse/core'
 import { isEndDateBeforeStartDate, isValidDateString, useCVSectionEditor } from '~/composables/useCVSectionEditor'
+import { parseDescription } from '~/utils/cvText'
+
+useHead({ title: 'Education' })
+
+const isMobile = useMediaQuery('(max-width: 640px)')
 
 definePageMeta({
   layout: 'editor',
@@ -25,7 +30,8 @@ const createEmptyEducation = (): EducationItem => ({
   fieldOfStudy: '',
   location: '',
   startDate: '',
-  endDate: '',
+  endDate: null,
+  isCurrent: false,
   description: '',
 })
 
@@ -34,12 +40,12 @@ const validateEducation = (item: EducationItem) =>
     item.school.trim()
     && item.degree.trim()
     && isValidDateString(item.startDate)
-    && (!item.endDate?.trim() || item.endDate === 'Present' || isValidDateString(item.endDate))
-    && !isEndDateBeforeStartDate(item.startDate, item.endDate),
+    && (item.isCurrent || isValidDateString(item.endDate))
+    && !isEndDateBeforeStartDate(item.startDate, item.endDate, item.isCurrent),
   )
 
 const isEducationUntouched = (item: EducationItem) =>
-  !item.degree.trim() && !item.school.trim() && !item.fieldOfStudy?.trim() && !item.location.trim() && !item.startDate.trim() && !item.description?.trim()
+  !item.degree.trim() && !item.school.trim() && !item.fieldOfStudy?.trim() && !item.location.trim() && !item.startDate.trim() && parseDescription(item.description).length === 0
 
 const {
   activeId,
@@ -48,14 +54,35 @@ const {
   handleAddEntry,
   promptDelete,
   confirmDelete,
-  toggleCurrentStatus,
   validateAndProceed,
+  toggleCurrentStatus,
 } = useCVSectionEditor(
   education,
   createEmptyEducation,
   validateEducation,
-  isEducationUntouched,
 )
+
+const itemShowErrors = ref<Record<string, boolean>>({})
+
+const handleFormDone = (item: EducationItem) => {
+  if (validateEducation(item)) {
+    activeId.value = null
+    itemShowErrors.value[item.id] = false
+  }
+  else {
+    itemShowErrors.value[item.id] = true
+  }
+}
+
+const handleFormCancel = (item: EducationItem) => {
+  if (isEducationUntouched(item)) {
+    education.value = education.value.filter(e => e.id !== item.id)
+    activeId.value = null
+  }
+  else {
+    promptDelete(item.id)
+  }
+}
 
 const handleNext = () => {
   validateAndProceed(async () => {
@@ -66,22 +93,12 @@ const handleNext = () => {
 
 <template>
   <div class="px-4 sm:px-8 lg:px-20 py-10 max-w-4xl mx-auto w-full">
-    <div class="mb-10">
-      <NuxtLink
-        to="/editor/experience"
-        class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#C54A22] hover:text-[#A83D1B] mb-6 transition-colors"
-      >
-        <ArrowLeft class="w-3.5 h-3.5" />
-        Back to Experience
-      </NuxtLink>
-
-      <h1 class="text-[32px] font-bold text-gray-900 mb-2 tracking-tight">
-        Education
-      </h1>
-      <p class="text-gray-500 text-[15px]">
-        Add your educational background, degrees, certifications, and academic achievements.
-      </p>
-    </div>
+    <EditorSectionHeader
+      title="Education"
+      description="Add your educational background, degrees, certifications, and academic achievements."
+      back-link="/editor/experience"
+      back-text="Back to Experience"
+    />
 
     <div class="space-y-6">
       <div
@@ -89,15 +106,15 @@ const handleNext = () => {
         :key="item.id"
       >
         <div
-          v-if="activeId !== item.id"
+          v-show="activeId !== item.id || isMobile"
           role="button"
           tabindex="0"
           aria-label="Expand education item"
-          class="flex items-center justify-between p-4 bg-white border rounded-xl shadow-xs hover:shadow-sm transition cursor-pointer"
+          class="flex items-center justify-between p-4 bg-white border rounded-xl shadow-xs hover:shadow-sm transition cursor-pointer mb-4"
           :class="[
             showErrors && !validateEducation(item)
               ? 'border-red-300 bg-red-50/20'
-              : 'border-gray-200 hover:border-gray-300',
+              : 'border-gray-200 hover:border-[#B64A22]/30',
           ]"
           @click="activeId = item.id"
           @keydown.enter.prevent="activeId = item.id"
@@ -108,7 +125,7 @@ const handleNext = () => {
               #{{ index + 1 }}
             </span>
             <span class="text-sm font-semibold text-gray-800 truncate">
-              {{ [item.degree.trim(), item.school.trim()].filter(Boolean).join(' at ') || `Education ${index + 1}` }}
+              {{ [[item.degree.trim(), item.fieldOfStudy?.trim()].filter(Boolean).join(', '), item.school.trim()].filter(Boolean).join(' at ') || `Education ${index + 1}` }}
             </span>
             <span
               v-if="showErrors && !validateEducation(item)"
@@ -144,107 +161,19 @@ const handleNext = () => {
           </div>
         </div>
 
-        <div
-          v-else
-          class="space-y-5 pt-2"
+        <EditorFormShell
+          :id="item.id"
+          :title="[[item.degree.trim(), item.fieldOfStudy?.trim()].filter(Boolean).join(', '), item.school.trim()].filter(Boolean).join(' at ') || 'Edit Education'"
+          :is-open="activeId === item.id"
+          @close="handleFormCancel(item)"
+          @done="handleFormDone(item)"
         >
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <EditorFormField
-              v-model="item.school"
-              :error="showErrors && !item.school.trim() ? 'School is required' : ''"
-              :required="true"
-              label="School / University"
-              placeholder="e.g. KNUST"
-            />
-            <EditorFormField
-              v-model="item.location"
-              label="Location"
-              placeholder="e.g. Kumasi, Ghana"
-            />
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <EditorFormField
-              v-model="item.degree"
-              :error="showErrors && !item.degree.trim() ? 'Degree is required' : ''"
-              :required="true"
-              label="Degree / Certificate"
-              placeholder="e.g. B.S. in Computer Science"
-            />
-            <EditorFormField
-              v-model="item.fieldOfStudy"
-              label="Field of Study"
-              placeholder="e.g. Software Engineering"
-            />
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <EditorMonthYearPicker
-              v-model="item.startDate"
-              :error="showErrors && !item.startDate.trim() ? 'Start date is required' : ''"
-              :required="true"
-              label="Start Date"
-            />
-            <div>
-              <EditorMonthYearPicker
-                v-model="item.endDate"
-                :disabled="item.endDate === 'Present'"
-                :error="isEndDateBeforeStartDate(item.startDate, item.endDate) ? 'End date must be after the start date' : ''"
-                label="End Date"
-              />
-              <div class="mt-2.5 flex items-center gap-2">
-                <input
-                  :id="'current-study-' + item.id"
-                  type="checkbox"
-                  :checked="item.endDate === 'Present'"
-                  class="w-4 h-4 rounded border-gray-300 accent-[#C54A22] text-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 cursor-pointer transition"
-                  @change="toggleCurrentStatus(item, ($event.target as HTMLInputElement).checked)"
-                >
-                <label
-                  :for="'current-study-' + item.id"
-                  class="text-xs text-gray-600 font-medium cursor-pointer select-none"
-                >
-                  Currently studying here
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <Label
-              :for="'edu-desc-' + item.id"
-              class="block text-sm font-medium text-gray-700 mb-1.5"
-            >
-              Description (Optional)
-            </Label>
-            <textarea
-              :id="'edu-desc-' + item.id"
-              v-model="item.description"
-              rows="4"
-              placeholder="Relevant coursework, honors, GPA, or activities..."
-              class="w-full rounded-xl border border-gray-200 bg-white p-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#C54A22] focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20 transition resize-y"
-            />
-          </div>
-
-          <div class="flex items-center justify-between pt-2">
-            <Button
-              class="text-sm font-medium text-gray-500 hover:text-gray-800"
-              type="button"
-              variant="ghost"
-              @click="activeId = null"
-            >
-              Collapse
-            </Button>
-            <Button
-              class="px-5 py-2 text-sm font-semibold text-white bg-[#C54A22] hover:bg-[#A83D1B] cursor-pointer"
-              type="button"
-              @click="activeId = null"
-            >
-              Done
-            </Button>
-          </div>
-          <Separator class="my-6" />
-        </div>
+          <EditorEducationForm
+            :id="item.id"
+            :show-errors="itemShowErrors[item.id]"
+            @toggle-current="toggleCurrentStatus(item, $event)"
+          />
+        </EditorFormShell>
       </div>
 
       <Button

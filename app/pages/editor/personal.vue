@@ -1,9 +1,10 @@
 <script setup lang="ts">
-useHead({ title: 'Personal Details' })
 import { reactive, computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Check } from '@lucide/vue'
 import { useCVState } from '~/composables/useCVState'
+
+useHead({ title: 'Personal Details' })
 
 definePageMeta({
   layout: 'editor',
@@ -11,6 +12,7 @@ definePageMeta({
 })
 
 const { personal } = useCVState()
+
 const router = useRouter()
 const showErrors = ref(false)
 
@@ -46,31 +48,33 @@ const additionalFieldConfigs = [
 </script>
 
 <template>
-  <div class="px-16 lg:px-20 py-10 max-w-4xl mx-auto w-full">
+  <div class="px-4 sm:px-8 lg:px-20 py-10 max-w-4xl mx-auto w-full">
     <!-- Header -->
-    <div class="mb-10">
-      <h1 class="text-[32px] font-bold text-gray-900 mb-2 tracking-tight">
-        Personal Details
-      </h1>
-      <p class="text-gray-500 text-[15px]">
-        Get started with your basic contact information and professional headline.
-      </p>
-    </div>
+    <EditorSectionHeader
+      title="Personal Details"
+      description="Get started with your basic contact information and professional headline."
+      back-link="/dashboard"
+      back-text="Back to Resumes"
+    />
 
     <div class="flex flex-col gap-8">
       <!-- First & Last Name -->
-      <div class="grid grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <EditorFormField
           v-model="personal.firstName"
+
           label="First Name"
           placeholder="e.g. Alexandra"
+          autocomplete="given-name"
           required
           :error="showErrors && !personal.firstName.trim() ? 'First name is required' : ''"
         />
         <EditorFormField
           v-model="personal.lastName"
+
           label="Last Name"
           placeholder="e.g. Chen"
+          autocomplete="family-name"
           required
           :error="showErrors && !personal.lastName.trim() ? 'Last name is required' : ''"
         />
@@ -79,29 +83,39 @@ const additionalFieldConfigs = [
       <!-- Professional Title -->
       <EditorFormField
         v-model="personal.title"
+
         label="Professional Title"
         placeholder="e.g. Senior Product Designer"
+        autocomplete="organization-title"
       />
 
       <!-- Contact Details Section -->
       <div class="flex flex-col gap-6 mt-2">
         <EditorFormField
           v-model="personal.email"
+
           label="Email Address"
           type="email"
+          inputmode="email"
+          autocomplete="email"
           placeholder="e.g. email@example.com"
           required
           :error="showErrors && !personal.email.trim() ? 'Email address is required' : ''"
         />
         <EditorFormField
           v-model="personal.phone"
+
           label="Phone Number"
           type="tel"
+          inputmode="tel"
+          autocomplete="tel"
           placeholder="e.g. +1 (555) 382-9014"
         />
         <EditorFormField
           v-model="personal.location"
+
           label="Location"
+          autocomplete="address-level2"
           placeholder="e.g. San Francisco, CA"
         />
       </div>
@@ -121,6 +135,7 @@ const additionalFieldConfigs = [
           >
             <EditorFormField
               v-model="personal[field.id]"
+
               :label="field.label"
               :placeholder="field.placeholder"
               @remove="additionalFields[field.id] = false"

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from '#imports'
 import { $api } from '../utils/api'
 

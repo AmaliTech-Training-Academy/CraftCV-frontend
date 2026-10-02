@@ -70,9 +70,9 @@ describe('TwoColumnTemplate.vue', () => {
     expect(wrapper.text()).toContain('Languages')
 
     // Main column items
-    expect(wrapper.text()).toContain('Profile') // The section heading for summary
+    expect(wrapper.text()).toContain('Professional Summary') // The section heading for summary
     expect(wrapper.text()).toContain('Experienced designer')
-    expect(wrapper.text()).toContain('Experience')
+    expect(wrapper.text()).toContain('Professional Experience')
     expect(wrapper.text()).toContain('Bright Pixel Studio')
     expect(wrapper.text()).toContain('Education')
     expect(wrapper.text()).toContain('California College of the Arts')
@@ -102,6 +102,6 @@ describe('TwoColumnTemplate.vue', () => {
       props: { data: mockData },
     })
 
-    expect(wrapper.text()).toContain('2019 - Present')
+    expect(wrapper.text()).toContain('Jan 2019 – Present')
   })
 })

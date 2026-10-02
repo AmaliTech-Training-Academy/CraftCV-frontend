@@ -49,8 +49,8 @@ onMounted(() => {
 
     <div
       v-else-if="templates.length > 0"
-      class="grid gap-6"
-      style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));"
+      class="grid gap-4 sm:gap-6 w-full"
+      style="grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));"
       role="list"
     >
       <div
