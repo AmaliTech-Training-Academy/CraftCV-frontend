@@ -122,7 +122,7 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
       await addBtn!.trigger('click')
 
       expect(experience.value.length).toBe(1)
-      expect(wrapper.text()).toContain('Responsibilities')
+      expect(wrapper.text()).toContain('Description')
     })
 
     it('non-destructively preserves previous end date when toggling current work', async () => {
@@ -138,16 +138,21 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
       }]
 
       const wrapper = mount(ExperiencePage, { global: { stubs: sharedStubs } })
+
+      // Expand the item to show the form
+      const expandDiv = wrapper.find('[aria-label="Expand experience item"]')
+      if (expandDiv.exists()) await expandDiv.trigger('click')
+
       const checkbox = wrapper.find('input[type="checkbox"]')
 
       await checkbox.setValue(true)
-      expect(experience.value[0]!.endDate).toBe('Present')
+      expect(experience.value[0]!.endDate).toBeNull()
 
       await checkbox.setValue(false)
       expect(experience.value[0]!.endDate).toBe('December 2023')
     })
 
-    it('auto-expands an invalid collapsed card and marks it incomplete on Next', async () => {
+    it('silently discards incomplete items on Next', async () => {
       const { experience } = useCVState()
       experience.value = [{
         id: 'exp-1',
@@ -167,7 +172,8 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
       const nextBtn = wrapper.findAll('button').find(b => b.text().includes('Next'))
       await nextBtn!.trigger('click')
 
-      expect(wrapper.text()).toContain('Job title is required')
+      // It should discard the invalid item instead of expanding it
+      expect(experience.value.length).toBe(0)
     })
 
     it('prompts delete modal and deletes by UUID safely', async () => {
@@ -196,7 +202,7 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
   })
 
   describe('Education Page', () => {
-    it('correctly maps fieldOfStudy separately from location', () => {
+    it('correctly maps fieldOfStudy separately from location', async () => {
       const { education } = useCVState()
       education.value = [{
         id: 'edu-1',
@@ -210,6 +216,9 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
       }]
 
       const wrapper = mount(EducationPage, { global: { stubs: sharedStubs } })
+      const expandDiv = wrapper.find('[aria-label="Expand education item"]')
+      if (expandDiv.exists()) await expandDiv.trigger('click')
+
       expect(wrapper.text()).toContain('Field of Study')
       expect(education.value[0]!.fieldOfStudy).toBe('Software Engineering')
       expect(education.value[0]!.location).toBe('Kumasi, Ghana')
@@ -229,10 +238,15 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
       }]
 
       const wrapper = mount(EducationPage, { global: { stubs: sharedStubs } })
+
+      // Expand the item to show the form
+      const expandDiv = wrapper.find('[aria-label="Expand education item"]')
+      if (expandDiv.exists()) await expandDiv.trigger('click')
+
       const checkbox = wrapper.find('input[type="checkbox"]')
 
       await checkbox.setValue(true)
-      expect(education.value[0]!.endDate).toBe('Present')
+      expect(education.value[0]!.endDate).toBeNull()
 
       await checkbox.setValue(false)
       expect(education.value[0]!.endDate).toBe('June 2025')

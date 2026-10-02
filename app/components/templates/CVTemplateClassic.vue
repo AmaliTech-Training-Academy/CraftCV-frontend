@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { parseDescription, dateRangeLabel } from '~/utils/cvText'
+
 defineProps<{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any
@@ -10,30 +12,30 @@ defineProps<{
     <!-- Header -->
     <div class="flex flex-col border-b border-gray-300 pb-6 mb-6">
       <h1 class="text-4xl font-bold uppercase tracking-widest mb-2 text-gray-900">
-        {{ data.personal.firstName }} {{ data.personal.lastName }}
+        {{ data.personal_details.first_name }} {{ data.personal_details.last_name }}
       </h1>
       <h2 class="text-sm font-semibold tracking-[0.2em] text-gray-500 uppercase mb-4">
-        {{ data.personal.title }}
+        {{ data.title }}
       </h2>
 
       <!-- Contact Info -->
       <div class="flex flex-wrap gap-x-4 gap-y-2 text-xs text-gray-600 font-sans">
         <div class="flex items-center gap-1">
-          {{ data.personal.email }}
+          {{ data.personal_details.email }}
         </div>
         <span class="text-gray-300">|</span>
         <div class="flex items-center gap-1">
-          {{ data.personal.phone }}
+          {{ data.personal_details.phone }}
         </div>
         <span class="text-gray-300">|</span>
         <div class="flex items-center gap-1">
-          {{ data.personal.location }}
+          {{ data.personal_details.location }}
         </div>
 
-        <template v-if="data.personal.website && data.personal.website !== 'www.yourwebsite.com'">
+        <template v-if="data.personal_details.website && data.personal_details.website !== 'www.yourwebsite.com'">
           <span class="text-gray-300">|</span>
           <div class="flex items-center gap-1">
-            {{ data.personal.website }}
+            {{ data.personal_details.website }}
           </div>
         </template>
       </div>
@@ -43,20 +45,20 @@ defineProps<{
     <div class="flex flex-col gap-6 pt-4">
       <!-- Summary -->
       <section
-        v-if="data.summary"
+        v-if="data.professional_summary"
         class="flex flex-col gap-2"
       >
         <h3 class="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 border-b border-gray-200 pb-1 mb-1">
           Professional Summary
         </h3>
         <p class="text-[13px] leading-relaxed text-gray-700 font-sans">
-          {{ data.summary }}
+          {{ data.professional_summary }}
         </p>
       </section>
 
       <!-- Experience -->
       <section
-        v-if="data.experience && data.experience.length > 0"
+        v-if="data.experiences && data.experiences.length > 0"
         class="flex flex-col gap-2"
       >
         <h3 class="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 border-b border-gray-200 pb-1 mb-1">
@@ -64,30 +66,49 @@ defineProps<{
         </h3>
         <div class="flex flex-col gap-4">
           <div
-            v-for="job in data.experience"
+            v-for="job in data.experiences"
             :key="job.id"
             class="flex flex-col gap-1 font-sans"
           >
             <div class="flex justify-between items-baseline">
               <h4 class="text-[14px] font-bold text-gray-900">
-                {{ job.title }}
+                {{ job.role }}
               </h4>
-              <span class="text-[11px] text-gray-500 font-semibold">{{ job.startDate }} - {{ job.endDate }}</span>
+              <span class="text-[11px] text-gray-500 font-semibold">{{ dateRangeLabel(job.start_date, job.end_date, !job.end_date) }}</span>
             </div>
             <div class="flex justify-between items-baseline mb-1">
               <span class="text-[13px] text-[#C54A22] font-semibold">{{ job.company }}</span>
               <span class="text-[11px] text-gray-500">{{ job.location }}</span>
             </div>
-            <p class="text-[13px] leading-relaxed text-gray-700">
-              {{ job.description }}
-            </p>
+            <template
+              v-for="(blk, i) in parseDescription(job.description)"
+              :key="i"
+            >
+              <p
+                v-if="blk.type === 'p'"
+                class="text-[13px] leading-relaxed text-gray-700"
+              >
+                {{ blk.text }}
+              </p>
+              <ul
+                v-else
+                class="text-[13px] leading-relaxed text-gray-700 list-disc list-inside space-y-0.5"
+              >
+                <li
+                  v-for="it in blk.items"
+                  :key="it"
+                >
+                  {{ it }}
+                </li>
+              </ul>
+            </template>
           </div>
         </div>
       </section>
 
       <!-- Education -->
       <section
-        v-if="data.education && data.education.length > 0"
+        v-if="data.educations && data.educations.length > 0"
         class="flex flex-col gap-2"
       >
         <h3 class="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 border-b border-gray-200 pb-1 mb-1">
@@ -95,7 +116,7 @@ defineProps<{
         </h3>
         <div class="flex flex-col gap-4">
           <div
-            v-for="edu in data.education"
+            v-for="edu in data.educations"
             :key="edu.id"
             class="flex flex-col gap-1 font-sans"
           >
@@ -103,15 +124,34 @@ defineProps<{
               <h4 class="text-[14px] font-bold text-gray-900">
                 {{ edu.degree }}
               </h4>
-              <span class="text-[11px] text-gray-500 font-semibold">{{ edu.startDate }} - {{ edu.endDate }}</span>
+              <span class="text-[11px] text-gray-500 font-semibold">{{ dateRangeLabel(edu.start_date, edu.end_date, !edu.end_date) }}</span>
             </div>
             <div class="flex justify-between items-baseline mb-1">
-              <span class="text-[13px] text-[#C54A22] font-semibold">{{ edu.school }}</span>
+              <span class="text-[13px] text-[#C54A22] font-semibold">{{ edu.institution }}</span>
               <span class="text-[11px] text-gray-500">{{ edu.location }}</span>
             </div>
-            <p class="text-[13px] leading-relaxed text-gray-700">
-              {{ edu.description }}
-            </p>
+            <template
+              v-for="(blk, i) in parseDescription(edu.description)"
+              :key="i"
+            >
+              <p
+                v-if="blk.type === 'p'"
+                class="text-[13px] leading-relaxed text-gray-700"
+              >
+                {{ blk.text }}
+              </p>
+              <ul
+                v-else
+                class="text-[13px] leading-relaxed text-gray-700 list-disc list-inside space-y-0.5"
+              >
+                <li
+                  v-for="it in blk.items"
+                  :key="it"
+                >
+                  {{ it }}
+                </li>
+              </ul>
+            </template>
           </div>
         </div>
       </section>
@@ -136,62 +176,6 @@ defineProps<{
               v-if="skill.level"
               class="text-[11px] text-gray-500"
             >({{ skill.level }})</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Certifications -->
-      <section
-        v-if="data.certifications && data.certifications.length > 0"
-        class="flex flex-col gap-2"
-      >
-        <h3 class="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 border-b border-gray-200 pb-1 mb-1">
-          Certifications
-        </h3>
-        <div class="flex flex-col gap-3 font-sans">
-          <div
-            v-for="cert in data.certifications"
-            :key="cert.id"
-            class="flex flex-col gap-0.5"
-          >
-            <div class="flex justify-between items-baseline">
-              <div>
-                <span class="text-[13px] font-bold text-gray-900">
-                  {{ cert.name || 'Certification Name' }}
-                </span>
-                <span
-                  v-if="cert.issuer"
-                  class="text-[13px] text-[#C54A22] font-semibold"
-                > — {{ cert.issuer }}</span>
-              </div>
-              <span
-                v-if="cert.date || cert.issue_date || ((cert.expirationDate || cert.expiration_date) && !cert.doesNotExpire)"
-                class="text-[11px] text-gray-500 font-semibold"
-              >
-                {{ cert.date || cert.issue_date }}<template v-if="(cert.expirationDate || cert.expiration_date) && !cert.doesNotExpire"> - {{ cert.expirationDate || cert.expiration_date }}</template>
-              </span>
-            </div>
-
-            <!-- Credential ID / Link -->
-            <div
-              v-if="cert.credentialId || cert.credential_id || cert.credentialUrl || cert.credential_url"
-              class="text-[11px] text-gray-500 flex items-center gap-2"
-            >
-              <span v-if="cert.credentialId || cert.credential_id">ID: {{ cert.credentialId || cert.credential_id }}</span>
-              <span v-if="(cert.credentialId || cert.credential_id) && (cert.credentialUrl || cert.credential_url)">•</span>
-              <span
-                v-if="cert.credentialUrl || cert.credential_url"
-                class="text-[#C54A22] underline truncate max-w-xs"
-              >{{ cert.credentialUrl || cert.credential_url }}</span>
-            </div>
-
-            <!-- Description & Key Competencies -->
-            <p
-              v-if="cert.description"
-              class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-line"
-            >
-              {{ cert.description }}
-            </p>
           </div>
         </div>
       </section>

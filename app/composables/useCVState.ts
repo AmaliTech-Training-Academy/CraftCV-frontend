@@ -21,7 +21,8 @@ export interface ExperienceItem {
   company: string
   location: string
   startDate: string
-  endDate: string
+  endDate: string | null
+  isCurrent?: boolean
   description: string
 }
 
@@ -32,7 +33,8 @@ export interface EducationItem {
   fieldOfStudy?: string
   location: string
   startDate: string
-  endDate: string
+  endDate: string | null
+  isCurrent?: boolean
   description: string
 }
 
@@ -58,8 +60,13 @@ export type StepStatus = 'empty' | 'incomplete' | 'complete'
 
 export const useCVState = () => {
   const hasActiveCV = useState<boolean>('cv-has-active', () => false)
+  const cvId = useCookie<string | null>('cv-id', { default: () => null })
   const cvTitle = useState<string>('cv-title', () => 'Untitled')
-  const selectedTemplateId = useState<string>('cv-template-id', () => 'classic')
+  const selectedTemplateId = useCookie<string>('cv-template-id', { default: () => '' })
+  const selectedTemplateSlug = useCookie<string>('cv-template-slug', { default: () => 'classic' })
+  const lastSavedAt = useState<string | null>('cv-last-saved-at', () => null)
+  const saveState = useState<'saving' | 'saved' | 'error' | 'idle'>('cv-save-state', () => 'idle')
+  const saveErrorMessage = useState<string | null>('cv-save-error', () => null)
 
   const personal = useState<PersonalDetails>('cv-personal', () => ({
     firstName: '',
@@ -131,7 +138,19 @@ export const useCVState = () => {
   }
 
   const previewData = computed(() => {
-    const p = personal.value
+    const p = personal.value || {
+      firstName: '',
+      lastName: '',
+      title: '',
+      email: '',
+      phone: '',
+      location: '',
+      website: '',
+      nationality: '',
+      dateOfBirth: '',
+      passport: '',
+      availability: '',
+    }
     return {
       personal: {
         firstName: p.firstName.trim() || 'Your',
@@ -196,19 +215,20 @@ export const useCVState = () => {
   // Raw data without placeholders for PDF export
   const rawCVData = computed(() => {
     return {
-      personal: personal.value,
-      summary: summary.value,
-      experience: experience.value,
-      education: education.value,
-      skills: skills.value,
-      certifications: certifications.value,
+      personal: personal.value || {},
+      summary: summary.value || '',
+      experience: experience.value || [],
+      education: education.value || [],
+      skills: skills.value || [],
+      certifications: certifications.value || [],
     }
   })
 
   const resetCV = () => {
     hasActiveCV.value = false
     cvTitle.value = 'Untitled'
-    selectedTemplateId.value = 'classic'
+    selectedTemplateId.value = ''
+    selectedTemplateSlug.value = 'classic'
     personal.value = {
       firstName: '',
       lastName: '',
@@ -231,8 +251,13 @@ export const useCVState = () => {
 
   return {
     hasActiveCV,
+    cvId,
     cvTitle,
     selectedTemplateId,
+    selectedTemplateSlug,
+    lastSavedAt,
+    saveState,
+    saveErrorMessage,
     personal,
     summary,
     experience,

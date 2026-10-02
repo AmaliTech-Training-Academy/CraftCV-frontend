@@ -1,386 +1,326 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Phone, Mail, MapPin, Globe, User, Briefcase, GraduationCap, FileText } from '@lucide/vue'
 import type { ResolvedCvData } from '~/types/cv'
+import { parseDescription } from '~/utils/cvText'
 
 const props = defineProps<{
   data: ResolvedCvData
 }>()
 
-const formatYear = (dateStr: string | null) => {
-  if (!dateStr) return 'Present'
-  const match = dateStr.match(/^(\d{4})/)
-  return match ? match[1] : dateStr
-}
-
 const fullName = computed(() => {
-  const first = props.data.personal_details.first_name || ''
-  const last = props.data.personal_details.last_name || ''
+  const first = props.data.personal_details?.first_name || ''
+  const last = props.data.personal_details?.last_name || ''
   return `${first} ${last}`.trim()
 })
 
-const formatDescription = (text: string | undefined) => {
-  if (!text) return []
-  return text.split('\n').filter(line => line.trim().length > 0)
+const formatDate = (dateStr: string | null | undefined) => {
+  if (!dateStr) return 'Present'
+  // Try to format YYYY-MM to "Mon YYYY", fallback to raw string
+  const match = dateStr.match(/^(\d{4})-(\d{2})/)
+  if (match) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    return `${months[parseInt(match[2]!) - 1]} ${match[1]}`
+  }
+  return dateStr
 }
+
+const p = computed(() => props.data.personal_details ?? {})
 </script>
 
 <template>
-  <div class="relative bg-white max-w-4xl mx-auto shadow-sm min-h-264 font-sans overflow-hidden">
-    <!-- HEADER AREA -->
-    <header class="bg-[#363f4f] text-white h-48 flex flex-col justify-center px-8 sm:px-12">
-      <h1 class="text-4xl sm:text-5xl font-extrabold tracking-widest uppercase mb-2">
-        {{ fullName }}
-      </h1>
-      <h2
-        v-if="data.title"
-        class="text-xl sm:text-2xl tracking-[0.2em] uppercase text-gray-300 font-light"
+  <!-- A4 proportions: 794px wide × 1123px tall at 96dpi -->
+  <div class="flex bg-white font-sans text-[13px] leading-snug min-h-[1056px] overflow-hidden">
+    <!-- ═══════════ LEFT SIDEBAR ═══════════ -->
+    <aside class="w-[30%] shrink-0 bg-[#2c3e50] text-white flex flex-col">
+      <!-- Name block -->
+      <div class="px-6 pt-8 pb-6 border-b border-white/10">
+        <h1 class="text-[22px] font-extrabold leading-tight tracking-wide uppercase break-words">
+          {{ fullName }}
+        </h1>
+        <p
+          v-if="data.title"
+          class="mt-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-white/60"
+        >
+          {{ data.title }}
+        </p>
+      </div>
+
+      <!-- Contact -->
+      <div class="px-6 pt-5 pb-4">
+        <h2 class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/50 mb-3">
+          Contact
+        </h2>
+        <ul class="space-y-2 text-[11px] text-white/80">
+          <li
+            v-if="p.email"
+            class="flex items-start gap-2 min-w-0"
+          >
+            <svg
+              class="w-3 h-3 mt-0.5 shrink-0 text-white/50"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            ><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
+            <span class="break-all">{{ p.email }}</span>
+          </li>
+          <li
+            v-if="p.phone"
+            class="flex items-start gap-2 min-w-0"
+          >
+            <svg
+              class="w-3 h-3 mt-0.5 shrink-0 text-white/50"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            ><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.12 6.12l1.27-.87a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+            <span>{{ p.phone }}</span>
+          </li>
+          <li
+            v-if="p.location"
+            class="flex items-start gap-2 min-w-0"
+          >
+            <svg
+              class="w-3 h-3 mt-0.5 shrink-0 text-white/50"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            ><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle
+              cx="12"
+              cy="10"
+              r="3"
+            /></svg>
+            <span>{{ p.location }}</span>
+          </li>
+          <li
+            v-if="p.website"
+            class="flex items-start gap-2 min-w-0"
+          >
+            <svg
+              class="w-3 h-3 mt-0.5 shrink-0 text-white/50"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            ><circle
+              cx="12"
+              cy="12"
+              r="10"
+            /><line
+              x1="2"
+              y1="12"
+              x2="22"
+              y2="12"
+            /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
+            <span class="break-all">{{ p.website?.replace(/^https?:\/\//, '') }}</span>
+          </li>
+          <li
+            v-if="p.linkedin"
+            class="flex items-start gap-2 min-w-0"
+          >
+            <svg
+              class="w-3 h-3 mt-0.5 shrink-0 text-white/50"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            ><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect
+              width="4"
+              height="12"
+              x="2"
+              y="9"
+            /><circle
+              cx="4"
+              cy="4"
+              r="2"
+            /></svg>
+            <span class="break-all">{{ p.linkedin?.replace(/^https?:\/\//, '') }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Skills -->
+      <div
+        v-if="data.skills?.length"
+        class="px-6 pt-2 pb-4"
       >
-        {{ data.title }}
-      </h2>
-    </header>
+        <h2 class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/50 mb-3">
+          Skills
+        </h2>
+        <ul class="space-y-1.5 text-[11px] text-white/80">
+          <li
+            v-for="skill in data.skills"
+            :key="skill.id"
+            class="flex items-center gap-2"
+          >
+            <span class="w-1 h-1 rounded-full bg-white/40 shrink-0" />
+            {{ skill.name }}
+          </li>
+        </ul>
+      </div>
 
-    <div class="flex flex-col sm:flex-row">
-      <!-- SIDEBAR -->
-      <aside class="sm:w-[32%] bg-[#e6e7eb] text-gray-800 py-10 px-6 sm:px-8 flex flex-col shrink-0 min-h-200">
-        <!-- CONTACT -->
-        <section class="mb-10">
-          <h3 class="text-lg font-bold tracking-widest uppercase text-gray-800 border-b-2 border-gray-400 pb-2 mb-5">
-            Contact
-          </h3>
-          <ul class="space-y-4 text-sm font-medium text-gray-700">
-            <li
-              v-if="data.personal_details.phone"
-              class="flex items-center gap-3"
-            >
-              <Phone class="w-4 h-4 text-gray-600 shrink-0" />
-              <span class="wrap-break-word">{{ data.personal_details.phone }}</span>
-            </li>
-            <li
-              v-if="data.personal_details.email"
-              class="flex items-center gap-3"
-            >
-              <Mail class="w-4 h-4 text-gray-600 shrink-0" />
-              <span class="break-all">{{ data.personal_details.email }}</span>
-            </li>
-            <li
-              v-if="data.personal_details.location"
-              class="flex items-center gap-3"
-            >
-              <MapPin class="w-4 h-4 text-gray-600 shrink-0" />
-              <span class="wrap-break-word">{{ data.personal_details.location }}</span>
-            </li>
-            <li
-              v-if="data.personal_details.website"
-              class="flex items-center gap-3"
-            >
-              <Globe class="w-4 h-4 text-gray-600 shrink-0" />
-              <a
-                :href="data.personal_details.website.startsWith('http') ? data.personal_details.website : `https://${data.personal_details.website}`"
-                class="break-all hover:underline"
-              >{{ data.personal_details.website.replace(/^https?:\/\//, '') }}</a>
-            </li>
-            <li
-              v-if="data.personal_details.linkedin"
-              class="flex items-center gap-3"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="w-4 h-4 text-gray-600 shrink-0"
-              ><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect
-                width="4"
-                height="12"
-                x="2"
-                y="9"
-              /><circle
-                cx="4"
-                cy="4"
-                r="2"
-              /></svg>
-              <a
-                :href="data.personal_details.linkedin.startsWith('http') ? data.personal_details.linkedin : `https://${data.personal_details.linkedin}`"
-                class="break-all hover:underline"
-              >{{ data.personal_details.linkedin.replace(/^https?:\/\//, '') }}</a>
-            </li>
-          </ul>
-        </section>
-
-        <!-- SKILLS -->
-        <section
-          v-if="data.skills?.length > 0"
-          class="mb-10"
-        >
-          <h3 class="text-lg font-bold tracking-widest uppercase text-gray-800 border-b-2 border-gray-400 pb-2 mb-5">
-            Skills
-          </h3>
-          <ul class="list-none space-y-2 text-sm font-medium text-gray-700">
-            <li
-              v-for="skill in data.skills"
-              :key="skill.id"
-              class="flex items-center gap-2"
-            >
-              <span class="text-gray-500 text-[10px]">●</span>
-              {{ skill.name }}
-            </li>
-          </ul>
-        </section>
-
-        <!-- LANGUAGES -->
-        <section
-          v-if="data.languages?.length > 0"
-          class="mb-10"
-        >
-          <h3 class="text-lg font-bold tracking-widest uppercase text-gray-800 border-b-2 border-gray-400 pb-2 mb-5">
-            Languages
-          </h3>
-          <ul class="list-none space-y-2 text-sm font-medium text-gray-700">
-            <li
-              v-for="lang in data.languages"
-              :key="lang.id"
-              class="flex items-center gap-2"
-            >
-              <span class="text-gray-500 text-[10px]">●</span>
-              <span>{{ lang.name }} <span
-                v-if="lang.proficiency"
-                class="font-normal text-gray-500"
-              >({{ lang.proficiency }})</span></span>
-            </li>
-          </ul>
-        </section>
-
-        <!-- AWARDS (Moved to sidebar to balance length) -->
-        <section
-          v-if="data.awards?.length > 0"
-          class="mb-10"
-        >
-          <h3 class="text-lg font-bold tracking-widest uppercase text-gray-800 border-b-2 border-gray-400 pb-2 mb-5">
-            Awards
-          </h3>
-          <div class="space-y-4">
-            <div
-              v-for="award in data.awards"
-              :key="award.id"
-            >
-              <h4 class="font-bold text-gray-800 text-sm">
-                {{ award.name }}
-              </h4>
-              <div class="text-xs text-gray-600 mt-0.5">
-                <span v-if="award.issuer">{{ award.issuer }}</span>
-              </div>
-            </div>
+      <!-- Education -->
+      <div
+        v-if="data.educations?.length"
+        class="px-6 pt-2 pb-4"
+      >
+        <h2 class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/50 mb-3">
+          Education
+        </h2>
+        <div class="space-y-4 text-[11px]">
+          <div
+            v-for="edu in data.educations"
+            :key="edu.id"
+          >
+            <p class="font-bold text-white/90 leading-tight">
+              {{ edu.institution }}<span v-if="edu.location">, {{ edu.location }}</span>
+            </p>
+            <p class="text-white/65 mt-0.5">
+              {{ edu.degree }}<span v-if="edu.field_of_study">, {{ edu.field_of_study }}</span>
+            </p>
+            <p class="text-white/40 mt-0.5 text-[10px]">
+              {{ formatDate(edu.start_date) }} – {{ formatDate(edu.end_date) }}
+            </p>
           </div>
-        </section>
-      </aside>
-
-      <!-- MAIN COLUMN (With Timeline) -->
-      <main class="sm:w-[68%] pt-10 pb-12 pl-4 pr-10 relative text-gray-800">
-        <!-- Timeline vertical line (only visible if there are sections) -->
-        <div class="absolute left-7.75 top-10 bottom-10 w-px bg-gray-400 z-0 hidden sm:block" />
-
-        <div class="space-y-12 relative z-10 pl-2 sm:pl-0">
-          <!-- PROFILE -->
-          <section
-            v-if="data.professional_summary"
-            class="relative"
-          >
-            <div class="flex items-center gap-4 mb-4">
-              <div class="w-7.5 h-7.5 rounded-full bg-[#363f4f] hidden sm:flex items-center justify-center shrink-0 text-white text-xs">
-                <User class="w-4 h-4" />
-              </div>
-              <h3 class="text-xl font-bold tracking-[0.2em] uppercase text-gray-800">
-                Profile
-              </h3>
-            </div>
-            <div class="sm:pl-12 text-sm leading-relaxed text-gray-700 whitespace-pre-wrap text-justify">
-              {{ data.professional_summary }}
-            </div>
-          </section>
-
-          <!-- WORK EXPERIENCE -->
-          <section
-            v-if="data.experiences?.length > 0"
-            class="relative"
-          >
-            <div class="flex items-center gap-4 mb-6">
-              <div class="w-7.5 h-7.5 rounded-full bg-[#363f4f] hidden sm:flex items-center justify-center shrink-0 text-white text-xs">
-                <Briefcase class="w-4 h-4" />
-              </div>
-              <h3 class="text-xl font-bold tracking-[0.2em] uppercase text-gray-800">
-                Work Experience
-              </h3>
-            </div>
-
-            <div class="sm:pl-12 space-y-8">
-              <div
-                v-for="exp in data.experiences"
-                :key="exp.id"
-                class="relative"
-              >
-                <!-- Timeline dot -->
-                <div class="absolute -left-9.25 top-1.5 w-2 h-2 rounded-full border-2 border-gray-400 bg-white hidden sm:block" />
-
-                <header class="flex justify-between items-start mb-2 gap-4 flex-wrap sm:flex-nowrap">
-                  <div>
-                    <h4 class="font-bold text-gray-900 text-base">
-                      {{ exp.company }}
-                    </h4>
-                    <div class="text-sm text-gray-600 italic">
-                      {{ exp.role }}
-                    </div>
-                  </div>
-                  <div class="text-sm font-medium text-gray-600 shrink-0 uppercase tracking-wide">
-                    {{ formatYear(exp.start_date) }} - {{ formatYear(exp.end_date) }}
-                  </div>
-                </header>
-
-                <ul
-                  v-if="exp.description"
-                  class="list-none space-y-1.5 mt-2"
-                >
-                  <li
-                    v-for="(line, idx) in formatDescription(exp.description)"
-                    :key="idx"
-                    class="text-sm text-gray-700 flex items-start"
-                  >
-                    <span class="mr-2 text-gray-500 text-[10px] mt-1.5">●</span>
-                    <span class="flex-1 text-justify">{{ line.replace(/^[\s•\-\*]+/, '') }}</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          <!-- EDUCATION -->
-          <section
-            v-if="data.educations?.length > 0"
-            class="relative"
-          >
-            <div class="flex items-center gap-4 mb-6">
-              <div class="w-7.5 h-7.5 rounded-full bg-[#363f4f] hidden sm:flex items-center justify-center shrink-0 text-white text-xs">
-                <GraduationCap class="w-4 h-4" />
-              </div>
-              <h3 class="text-xl font-bold tracking-[0.2em] uppercase text-gray-800">
-                Education
-              </h3>
-            </div>
-
-            <div class="sm:pl-12 space-y-6">
-              <div
-                v-for="edu in data.educations"
-                :key="edu.id"
-                class="relative"
-              >
-                <!-- Timeline dot -->
-                <div class="absolute -left-9.25 top-1.5 w-2 h-2 rounded-full border-2 border-gray-400 bg-white hidden sm:block" />
-
-                <header class="flex justify-between items-start mb-1 gap-4 flex-wrap sm:flex-nowrap">
-                  <div>
-                    <h4 class="font-bold text-gray-900 text-base">
-                      <template v-if="edu.degree">
-                        {{ edu.degree }}<span v-if="edu.field_of_study">, {{ edu.field_of_study }}</span>
-                      </template>
-                      <template v-else-if="edu.field_of_study">
-                        {{ edu.field_of_study }}
-                      </template>
-                    </h4>
-                    <div class="text-sm text-gray-600 italic">
-                      {{ edu.institution }}
-                    </div>
-                  </div>
-                  <div class="text-sm font-medium text-gray-600 shrink-0 uppercase tracking-wide">
-                    {{ formatYear(edu.start_date) }} - {{ formatYear(edu.end_date) }}
-                  </div>
-                </header>
-
-                <p
-                  v-if="edu.description"
-                  class="text-sm text-gray-700 mt-2 whitespace-pre-wrap"
-                >
-                  {{ edu.description }}
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <!-- CERTIFICATIONS & ADDITIONAL -->
-          <section
-            v-if="data.certifications?.length > 0 || data.additional_information?.length > 0"
-            class="relative"
-          >
-            <div class="flex items-center gap-4 mb-6">
-              <div class="w-7.5 h-7.5 rounded-full bg-[#363f4f] hidden sm:flex items-center justify-center shrink-0 text-white text-xs">
-                <FileText class="w-4 h-4" />
-              </div>
-              <h3 class="text-xl font-bold tracking-[0.2em] uppercase text-gray-800">
-                Additional
-              </h3>
-            </div>
-
-            <div class="sm:pl-12 space-y-6">
-              <!-- Certifications -->
-              <div
-                v-for="cert in data.certifications"
-                :key="cert.id"
-                class="relative"
-              >
-                <div class="absolute -left-9.25 top-1.5 w-2 h-2 rounded-full border-2 border-gray-400 bg-white hidden sm:block" />
-                <header class="flex justify-between items-start gap-4 flex-wrap sm:flex-nowrap">
-                  <div>
-                    <h4 class="font-bold text-gray-900">
-                      {{ cert.name || 'Certification Name' }}
-                    </h4>
-                    <div class="text-sm text-gray-600 italic">
-                      {{ cert.issuer }}
-                    </div>
-                  </div>
-                  <div
-                    v-if="cert.issue_date"
-                    class="text-sm font-medium text-gray-600 shrink-0 uppercase tracking-wide"
-                  >
-                    {{ formatYear(cert.issue_date) }}
-                  </div>
-                </header>
-                <p
-                  v-if="cert.description"
-                  class="text-sm text-gray-700 mt-1 whitespace-pre-wrap"
-                >
-                  {{ cert.description }}
-                </p>
-                <a
-                  v-if="cert.credential_url"
-                  :href="cert.credential_url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="text-xs text-blue-600 hover:underline mt-1 block"
-                >
-                  View Credential
-                </a>
-              </div>
-
-              <!-- Additional Information -->
-              <div
-                v-for="info in data.additional_information"
-                :key="info.id"
-                class="relative"
-              >
-                <div class="absolute -left-9.25 top-1.5 w-2 h-2 rounded-full border-2 border-gray-400 bg-white hidden sm:block" />
-                <h4 class="font-bold text-gray-900">
-                  {{ info.title }}
-                </h4>
-                <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">
-                  {{ info.content }}
-                </p>
-              </div>
-            </div>
-          </section>
         </div>
-      </main>
-    </div>
+      </div>
+
+      <!-- Languages -->
+      <div
+        v-if="data.languages?.length"
+        class="px-6 pt-2 pb-4"
+      >
+        <h2 class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/50 mb-3">
+          Languages
+        </h2>
+        <ul class="space-y-1.5 text-[11px] text-white/80">
+          <li
+            v-for="lang in data.languages"
+            :key="lang.id"
+            class="flex items-center justify-between"
+          >
+            <span>{{ lang.name }}</span>
+            <span
+              v-if="lang.proficiency"
+              class="text-white/40 text-[10px]"
+            >{{ lang.proficiency }}</span>
+          </li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- ═══════════ MAIN COLUMN ═══════════ -->
+    <main class="flex-1 px-8 py-8 space-y-6 text-gray-800 overflow-hidden">
+      <!-- Professional Summary -->
+      <section v-if="data.professional_summary">
+        <h2 class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#2c3e50] border-b border-gray-200 pb-1.5 mb-3">
+          Professional Summary
+        </h2>
+        <p class="text-[12px] text-gray-700 leading-relaxed">
+          {{ data.professional_summary }}
+        </p>
+      </section>
+
+      <!-- Work Experience -->
+      <section v-if="data.experiences?.length">
+        <h2 class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#2c3e50] border-b border-gray-200 pb-1.5 mb-4">
+          Professional Experience
+        </h2>
+        <div class="space-y-5">
+          <div
+            v-for="exp in data.experiences"
+            :key="exp.id"
+          >
+            <div class="flex justify-between items-baseline gap-2 flex-wrap">
+              <h3 class="font-bold text-gray-900 text-[13px]">
+                {{ exp.role }}
+              </h3>
+              <span class="text-[11px] text-gray-400 shrink-0">
+                {{ formatDate(exp.start_date) }} – {{ formatDate(exp.end_date) }}
+              </span>
+            </div>
+            <p class="text-[11px] text-gray-500 mt-0.5 italic">
+              {{ exp.company }}<span v-if="exp.location"> · {{ exp.location }}</span>
+            </p>
+            <template
+              v-for="(blk, i) in parseDescription(exp.description)"
+              :key="i"
+            >
+              <p
+                v-if="blk.type === 'p'"
+                class="text-[11px] text-gray-700 mt-1.5 leading-relaxed"
+              >
+                {{ blk.text }}
+              </p>
+              <ul
+                v-else
+                class="mt-1.5 space-y-1"
+              >
+                <li
+                  v-for="it in blk.items"
+                  :key="it"
+                  class="text-[11px] text-gray-700 flex items-start gap-1.5"
+                >
+                  <span class="mt-1 w-1 h-1 rounded-full bg-gray-400 shrink-0" />
+                  {{ it }}
+                </li>
+              </ul>
+            </template>
+          </div>
+        </div>
+      </section>
+
+      <!-- Certifications -->
+      <section v-if="data.certifications?.length">
+        <h2 class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#2c3e50] border-b border-gray-200 pb-1.5 mb-4">
+          Certifications
+        </h2>
+        <div class="space-y-3">
+          <div
+            v-for="cert in data.certifications"
+            :key="cert.id"
+            class="flex justify-between items-start gap-2"
+          >
+            <div>
+              <p class="font-semibold text-[12px] text-gray-900">
+                {{ cert.name }}
+              </p>
+              <p class="text-[11px] text-gray-500">
+                {{ cert.issuer }}
+              </p>
+            </div>
+            <span
+              v-if="cert.issue_date"
+              class="text-[11px] text-gray-400 shrink-0"
+            >{{ formatDate(cert.issue_date) }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Awards -->
+      <section v-if="data.awards?.length">
+        <h2 class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#2c3e50] border-b border-gray-200 pb-1.5 mb-4">
+          Awards
+        </h2>
+        <div class="space-y-2">
+          <div
+            v-for="award in data.awards"
+            :key="award.id"
+          >
+            <p class="font-semibold text-[12px] text-gray-900">
+              {{ award.name }}
+            </p>
+            <p
+              v-if="award.issuer"
+              class="text-[11px] text-gray-500"
+            >
+              {{ award.issuer }}
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 </template>

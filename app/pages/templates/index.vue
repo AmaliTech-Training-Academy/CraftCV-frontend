@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { Loader2 } from '@lucide/vue'
 import type { useTemplates } from '~/composables/useTemplates'
 import { useCVState } from '~/composables/useCVState'
+
+useHead({ title: 'Choose Template' })
 
 definePageMeta({
   layout: 'dashboard',
@@ -14,6 +15,10 @@ type Template = ReturnType<typeof useTemplates>['templates']['value'][number]
 // Modal state — Phase 4 will consume this
 const isModalOpen = ref(false)
 const selectedTemplate = ref<Template | null>(null)
+
+// Categories for mobile pill strip
+const categories = ref(['All'])
+const activeCategory = ref('All')
 
 const openPreview = (template: Template) => {
   selectedTemplate.value = template
@@ -30,28 +35,28 @@ const navigateTemplate = (template: Template) => {
 }
 
 const isCreating = ref(false)
-const router = useRouter()
-const { hasActiveCV, selectedTemplateId } = useCVState()
+const { hasActiveCV, selectedTemplateId, selectedTemplateSlug } = useCVState()
 
 const handleUseTemplate = async (template: Template) => {
   closePreview()
   isCreating.value = true
 
   // Save template selection and mark CV as active
-  selectedTemplateId.value = template.id
+  selectedTemplateId.value = template.templateId
+  selectedTemplateSlug.value = template.slug
   hasActiveCV.value = true
 
   // Simulate network request/CV creation time
   await new Promise(resolve => setTimeout(resolve, 1500))
 
   isCreating.value = false
-  router.push('/editor/personal')
+  await navigateTo('/editor/personal')
 }
 </script>
 
 <template>
   <div class="min-h-full">
-    <div class="px-8 py-8 max-w-7xl mx-auto">
+    <div class="px-4 sm:px-8 py-6 sm:py-8 max-w-7xl mx-auto">
       <!-- Page Header -->
       <header class="mb-8">
         <h1 class="text-2xl font-bold text-gray-900 mb-1">
@@ -61,6 +66,26 @@ const handleUseTemplate = async (template: Template) => {
           Pick a design you like — you can customize or switch it anytime.
         </p>
       </header>
+
+      <!-- Mobile Categories Pill Strip (Hidden on md+, only shows if > 1 category) -->
+      <div
+        v-if="categories.length > 1"
+        class="md:hidden flex overflow-x-auto gap-2 pb-6 -mt-2 scrollbar-hide"
+      >
+        <button
+          v-for="cat in categories"
+          :key="cat"
+          :class="[
+            'whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition-colors',
+            activeCategory === cat
+              ? 'bg-[#F26438] text-white shadow-sm'
+              : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50',
+          ]"
+          @click="activeCategory = cat"
+        >
+          {{ cat }}
+        </button>
+      </div>
 
       <!-- Template Grid -->
       <TemplatesTemplateSelector @open-preview="openPreview" />

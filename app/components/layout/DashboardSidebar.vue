@@ -12,9 +12,11 @@ const toggleSidebar = () => {
 </script>
 
 <template>
+  <!-- Desktop sidebar only — mobile uses a pill strip in the page itself -->
   <aside
     :class="[
-      'bg-[#B64A22] rounded-tr-[15px] transition-all duration-300 ease-in-out flex flex-col relative z-10 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.15)]',
+      'bg-[#B64A22] rounded-tr-[15px] transition-[width] duration-300 ease-in-out flex-col relative z-10 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.15)]',
+      'hidden md:flex',
       isCollapsed ? 'w-16' : 'w-64',
     ]"
   >
@@ -52,7 +54,6 @@ const toggleSidebar = () => {
       aria-label="Template categories"
     >
       <ul class="space-y-0.5 px-2">
-        <!-- "All" — the only category -->
         <li>
           <button
             class="w-full flex items-center transition-colors duration-150"
@@ -64,7 +65,6 @@ const toggleSidebar = () => {
             aria-current="true"
             aria-label="All templates"
           >
-            <!-- Icon and Expanded label -->
             <div class="flex items-center gap-2">
               <LayoutGrid
                 class="text-[#B64A22]"
@@ -73,12 +73,8 @@ const toggleSidebar = () => {
               <span
                 v-if="!isCollapsed"
                 class="text-sm font-semibold text-[#B64A22]"
-              >
-                All
-              </span>
+              >All</span>
             </div>
-
-            <!-- Count badge (both states) -->
             <span
               v-if="!isCollapsed"
               class="text-[11px] font-bold rounded-full leading-none bg-[#B64A22]/10 text-[#B64A22] px-2.5 py-1"

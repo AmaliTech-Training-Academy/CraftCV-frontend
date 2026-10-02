@@ -27,18 +27,16 @@ const emit = defineEmits<{
 const { templates } = useTemplates()
 
 const currentIndex = computed(() =>
-  templates.value.findIndex(t => t.id === props.template.id),
+  templates.value.findIndex(t => t.templateId === props.template.templateId),
 )
 
 const hasPrev = computed(() => currentIndex.value > 0)
 const hasNext = computed(() => currentIndex.value < templates.value.length - 1)
 
 const navigatePrev = () => {
-  // hasPrev guard ensures index is in bounds; ! asserts non-undefined for TS
   if (hasPrev.value) emit('navigate', templates.value[currentIndex.value - 1]!)
 }
 const navigateNext = () => {
-  // hasNext guard ensures index is in bounds; ! asserts non-undefined for TS
   if (hasNext.value) emit('navigate', templates.value[currentIndex.value + 1]!)
 }
 
@@ -69,26 +67,40 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     <DialogPortal>
       <DialogOverlay class="craftcv-overlay fixed inset-0 z-50 bg-black/30 backdrop-blur-sm" />
 
-      <DialogContent class="craftcv-content fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[92vw] max-w-5xl h-[80vh] max-h-[680px] rounded-2xl overflow-hidden shadow-2xl flex outline-none">
+      <!--
+        Mobile: full-screen bottom sheet, stacked vertically
+        Desktop: centered two-pane modal (left preview / right info)
+      -->
+      <DialogContent
+        class="craftcv-content fixed z-50 outline-none
+               inset-x-0 bottom-0 w-full max-h-[92dvh] rounded-t-2xl overflow-hidden shadow-2xl flex flex-col
+               sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2
+               sm:w-[92vw] sm:max-w-5xl sm:h-[80vh] sm:max-h-[680px] sm:rounded-2xl sm:flex-row"
+      >
         <DialogTitle class="sr-only">
           {{ template.name }} Template Preview
         </DialogTitle>
 
-        <!-- ═══════════ LEFT PANE (58%) ═══════════ -->
-        <div class="relative flex-[58] bg-[#F0EDE8] flex items-center justify-center">
-          <!-- Template Preview -->
-          <div class="w-[78%] aspect-[3/4] bg-white rounded-xl shadow-md overflow-hidden relative group">
-            <!-- Enlarge Icon (Floating, appears on hover) -->
+        <!-- ═══════════ PREVIEW PANE ═══════════ -->
+        <!-- Mobile: top section, fixed height; Desktop: left pane 58% -->
+        <div
+          class="relative bg-[#F0EDE8] flex items-center justify-center
+                    h-[45vh] shrink-0
+                    sm:h-auto sm:flex-[58]"
+        >
+          <!-- Template Preview Image -->
+          <div class="h-[90%] aspect-[3/4] bg-white rounded-xl shadow-md overflow-hidden relative group">
+            <!-- Enlarge Icon — desktop hover only -->
             <button
               class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200
-                     flex items-center justify-center text-gray-500 shadow-sm opacity-0 group-hover:opacity-100
+                     hidden sm:flex items-center justify-center text-gray-500 shadow-sm opacity-0 group-hover:opacity-100
                      hover:bg-white hover:text-gray-900 hover:scale-105 transition-all duration-200 cursor-pointer z-10"
               title="Enlarge preview"
               aria-label="Enlarge preview"
             >
               <Maximize2 class="w-4 h-4" />
             </button>
-            <!-- Template Image -->
+
             <img
               v-if="template.image"
               :src="template.image"
@@ -97,16 +109,16 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             >
             <div
               v-else
-              class="w-full h-full flex items-center justify-center text-gray-400"
+              class="w-full h-full flex items-center justify-center text-gray-400 text-sm"
             >
               No preview available
             </div>
           </div>
 
-          <!-- Previous -->
+          <!-- Prev / Next arrows -->
           <button
             v-if="hasPrev"
-            class="absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-gray-200
+            class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-gray-200
                    flex items-center justify-center text-gray-500 shadow-sm
                    hover:bg-[#F26438] hover:border-[#F26438] hover:text-white
                    transition-colors duration-150 motion-reduce:transition-none"
@@ -116,10 +128,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             <ChevronLeft class="w-4 h-4" />
           </button>
 
-          <!-- Next -->
           <button
             v-if="hasNext"
-            class="absolute right-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-gray-200
+            class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-gray-200
                    flex items-center justify-center text-gray-500 shadow-sm
                    hover:bg-[#F26438] hover:border-[#F26438] hover:text-white
                    transition-colors duration-150 motion-reduce:transition-none"
@@ -129,27 +140,25 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             <ChevronRight class="w-4 h-4" />
           </button>
 
-          <!-- Position counter + keyboard hint -->
-          <div class="absolute bottom-4 left-0 right-0 flex flex-col items-center gap-1.5">
-            <!-- Dot indicators -->
-            <div class="flex items-center gap-1.5">
-              <span
-                v-for="(_, i) in templates"
-                :key="i"
-                :class="[
-                  'block rounded-full transition-all duration-200',
-                  i === currentIndex ? 'w-4 h-1.5 bg-[#F26438]' : 'w-1.5 h-1.5 bg-gray-300',
-                ]"
-              />
-            </div>
+          <!-- Dot indicators -->
+          <div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+            <span
+              v-for="(_, i) in templates"
+              :key="i"
+              :class="[
+                'block rounded-full transition-all duration-200',
+                i === currentIndex ? 'w-4 h-1.5 bg-[#F26438]' : 'w-1.5 h-1.5 bg-gray-300',
+              ]"
+            />
           </div>
         </div>
 
-        <!-- ═══════════ RIGHT PANE (42%) ═══════════ -->
-        <div class="relative flex-[42] bg-white flex flex-col px-8 py-8 overflow-y-auto">
+        <!-- ═══════════ INFO PANE ═══════════ -->
+        <!-- Mobile: scrollable bottom sheet; Desktop: right pane 42% -->
+        <div class="relative bg-white flex flex-col px-6 py-6 sm:px-8 sm:py-8 overflow-y-auto sm:flex-[42]">
           <!-- Close -->
           <DialogClose
-            class="absolute top-5 right-5 w-8 h-8 rounded-full border border-gray-200
+            class="absolute top-4 right-4 w-8 h-8 rounded-full border border-gray-200
                    flex items-center justify-center text-gray-400
                    hover:text-gray-900 hover:border-gray-400
                    transition-colors duration-150 cursor-pointer"
@@ -158,18 +167,18 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             <X class="w-4 h-4" />
           </DialogClose>
 
-          <!-- Vibe tag: darkened to #c04a1a for 4.65:1 contrast on white (WCAG AA) -->
+          <!-- Vibe tag -->
           <span class="text-[11px] font-bold tracking-[0.16em] text-[#c04a1a] mb-2">
             {{ template.vibe }}
           </span>
 
           <!-- Name -->
-          <h2 class="text-3xl font-bold text-gray-900 mb-4 leading-tight">
+          <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4 leading-tight">
             {{ template.name }}
           </h2>
 
           <!-- Description -->
-          <p class="text-sm text-gray-500 leading-relaxed mb-7">
+          <p class="text-sm text-gray-500 leading-relaxed mb-5 sm:mb-7">
             {{ template.description }}
           </p>
 
@@ -191,7 +200,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
           <!-- CTA -->
           <button
-            class="group mt-8 w-full flex items-center justify-center gap-2
+            class="group mt-6 sm:mt-8 w-full flex items-center justify-center gap-2
                    bg-[#F26438] hover:bg-[#d95a30] active:bg-[#c0522b]
                    text-white font-semibold py-3.5 rounded-xl
                    transition-colors duration-150 text-sm cursor-pointer
@@ -208,7 +217,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </template>
 
 <style>
-/* Pure fade — no transform conflict with Tailwind v4's translate property */
 .craftcv-overlay {
   animation: craftcv-fade-in 80ms ease;
 }
