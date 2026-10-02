@@ -122,13 +122,18 @@ describe('useCVState', () => {
 
       expect(previewData.value.skills.length).toBe(3)
       expect(rawCVData.value.skills.length).toBe(0)
+
+      expect(previewData.value.certifications.length).toBe(1)
+      expect(rawCVData.value.certifications.length).toBe(0)
     })
 
     it('returns real values in both previewData and rawCVData when fields are filled', () => {
-      const { personal, experience, previewData, rawCVData } = useCVState()
+      const { personal, experience, skills, certifications, previewData, rawCVData } = useCVState()
 
       personal.value.firstName = 'Alice'
       experience.value.push({ id: 'exp-1', title: 'Engineer', company: 'Corp', location: '', startDate: '', endDate: '', description: '' })
+      skills.value.push({ id: 'sk-1', name: 'Vue', level: 'Expert' })
+      certifications.value.push({ id: 'c-1', name: 'AWS', issuer: 'Amazon', date: '2024' })
 
       expect(previewData.value.personal.firstName).toBe('Alice')
       expect(rawCVData.value.personal.firstName).toBe('Alice')
@@ -137,18 +142,30 @@ describe('useCVState', () => {
       expect(previewData.value.experience[0]!.title).toBe('Engineer')
       expect(rawCVData.value.experience.length).toBe(1)
       expect(rawCVData.value.experience[0]!.title).toBe('Engineer')
+
+      expect(previewData.value.skills.length).toBe(1)
+      expect(previewData.value.skills[0]!.name).toBe('Vue')
+      expect(rawCVData.value.skills.length).toBe(1)
+      expect(rawCVData.value.skills[0]!.name).toBe('Vue')
+
+      expect(previewData.value.certifications.length).toBe(1)
+      expect(previewData.value.certifications[0]!.name).toBe('AWS')
+      expect(rawCVData.value.certifications.length).toBe(1)
+      expect(rawCVData.value.certifications[0]!.name).toBe('AWS')
     })
   })
 
   describe('resetCV', () => {
     it('resets all CV state to initial empty values', () => {
-      const { hasActiveCV, cvTitle, personal, summary, experience, resetCV } = useCVState()
+      const { hasActiveCV, cvTitle, personal, summary, experience, skills, certifications, resetCV } = useCVState()
 
       hasActiveCV.value = true
       cvTitle.value = 'My Awesome CV'
       personal.value.firstName = 'Bob'
       summary.value = 'A short summary'
       experience.value.push({ id: '1', title: 'Job', company: 'Inc', location: '', startDate: '', endDate: '', description: '' })
+      skills.value.push({ id: 's1', name: 'TS', level: 'Skillful' })
+      certifications.value.push({ id: 'c1', name: 'Cert', issuer: 'Org', date: '2023' })
 
       resetCV()
 
@@ -157,6 +174,8 @@ describe('useCVState', () => {
       expect(personal.value.firstName).toBe('')
       expect(summary.value).toBe('')
       expect(experience.value.length).toBe(0)
+      expect(skills.value.length).toBe(0)
+      expect(certifications.value.length).toBe(0)
     })
   })
 })

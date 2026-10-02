@@ -47,7 +47,7 @@ const formatDescription = (text: string | undefined) => {
 </script>
 
 <template>
-  <div class="bg-white text-gray-800 p-8 sm:p-12 max-w-4xl mx-auto shadow-sm min-h-[1056px] font-sans">
+  <div class="bg-white text-gray-800 p-8 sm:p-12 max-w-4xl mx-auto shadow-sm min-h-264 font-sans">
     <!-- HEADER -->
     <header class="mb-10 text-center sm:text-left">
       <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight mb-2">
@@ -230,6 +230,12 @@ const formatDescription = (text: string | undefined) => {
               >|</span>
               <span v-if="cert.issue_date">{{ formatYear(cert.issue_date) }}</span>
             </div>
+            <p
+              v-if="cert.description"
+              class="text-sm text-gray-700 mt-1 whitespace-pre-wrap"
+            >
+              {{ cert.description }}
+            </p>
             <a
               v-if="cert.credential_url"
               :href="cert.credential_url"

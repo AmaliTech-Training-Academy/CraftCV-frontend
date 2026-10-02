@@ -44,6 +44,7 @@ export interface Certification {
   issuer: string
   issue_date?: string
   credential_url?: string
+  description?: string
   display_order: number
 }
 

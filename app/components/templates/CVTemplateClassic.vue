@@ -132,7 +132,66 @@ defineProps<{
           >
             <span class="w-1.5 h-1.5 bg-[#C54A22] rounded-full" />
             <span class="text-[13px] font-semibold text-gray-800">{{ skill.name }}</span>
-            <span class="text-[11px] text-gray-500">({{ skill.level }})</span>
+            <span
+              v-if="skill.level"
+              class="text-[11px] text-gray-500"
+            >({{ skill.level }})</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Certifications -->
+      <section
+        v-if="data.certifications && data.certifications.length > 0"
+        class="flex flex-col gap-2"
+      >
+        <h3 class="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 border-b border-gray-200 pb-1 mb-1">
+          Certifications
+        </h3>
+        <div class="flex flex-col gap-3 font-sans">
+          <div
+            v-for="cert in data.certifications"
+            :key="cert.id"
+            class="flex flex-col gap-0.5"
+          >
+            <div class="flex justify-between items-baseline">
+              <div>
+                <span class="text-[13px] font-bold text-gray-900">
+                  {{ cert.name || (cert.issuer || cert.date || cert.issue_date || cert.description ? 'Certification Name' : '') }}
+                </span>
+                <span
+                  v-if="cert.issuer"
+                  class="text-[13px] text-[#C54A22] font-semibold"
+                > — {{ cert.issuer }}</span>
+              </div>
+              <span
+                v-if="cert.date || cert.issue_date || ((cert.expirationDate || cert.expiration_date) && !cert.doesNotExpire)"
+                class="text-[11px] text-gray-500 font-semibold"
+              >
+                {{ cert.date || cert.issue_date }}<template v-if="(cert.expirationDate || cert.expiration_date) && !cert.doesNotExpire"> - {{ cert.expirationDate || cert.expiration_date }}</template>
+              </span>
+            </div>
+
+            <!-- Credential ID / Link -->
+            <div
+              v-if="cert.credentialId || cert.credential_id || cert.credentialUrl || cert.credential_url"
+              class="text-[11px] text-gray-500 flex items-center gap-2"
+            >
+              <span v-if="cert.credentialId || cert.credential_id">ID: {{ cert.credentialId || cert.credential_id }}</span>
+              <span v-if="(cert.credentialId || cert.credential_id) && (cert.credentialUrl || cert.credential_url)">•</span>
+              <span
+                v-if="cert.credentialUrl || cert.credential_url"
+                class="text-[#C54A22] underline truncate max-w-xs"
+              >{{ cert.credentialUrl || cert.credential_url }}</span>
+            </div>
+
+            <!-- Description & Key Competencies -->
+            <p
+              v-if="cert.description"
+              class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-line"
+            >
+              {{ cert.description }}
+            </p>
           </div>
         </div>
       </section>

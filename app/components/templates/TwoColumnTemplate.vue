@@ -26,7 +26,7 @@ const formatDescription = (text: string | undefined) => {
 </script>
 
 <template>
-  <div class="relative bg-white max-w-4xl mx-auto shadow-sm min-h-[1056px] font-sans overflow-hidden">
+  <div class="relative bg-white max-w-4xl mx-auto shadow-sm min-h-264 font-sans overflow-hidden">
     <!-- HEADER AREA -->
     <header class="bg-[#363f4f] text-white h-48 flex flex-col justify-center px-8 sm:px-12">
       <h1 class="text-4xl sm:text-5xl font-extrabold tracking-widest uppercase mb-2">
@@ -42,7 +42,7 @@ const formatDescription = (text: string | undefined) => {
 
     <div class="flex flex-col sm:flex-row">
       <!-- SIDEBAR -->
-      <aside class="sm:w-[32%] bg-[#e6e7eb] text-gray-800 py-10 px-6 sm:px-8 flex flex-col shrink-0 min-h-[800px]">
+      <aside class="sm:w-[32%] bg-[#e6e7eb] text-gray-800 py-10 px-6 sm:px-8 flex flex-col shrink-0 min-h-200">
         <!-- CONTACT -->
         <section class="mb-10">
           <h3 class="text-lg font-bold tracking-widest uppercase text-gray-800 border-b-2 border-gray-400 pb-2 mb-5">
@@ -54,7 +54,7 @@ const formatDescription = (text: string | undefined) => {
               class="flex items-center gap-3"
             >
               <Phone class="w-4 h-4 text-gray-600 shrink-0" />
-              <span class="break-words">{{ data.personal_details.phone }}</span>
+              <span class="wrap-break-word">{{ data.personal_details.phone }}</span>
             </li>
             <li
               v-if="data.personal_details.email"
@@ -68,7 +68,7 @@ const formatDescription = (text: string | undefined) => {
               class="flex items-center gap-3"
             >
               <MapPin class="w-4 h-4 text-gray-600 shrink-0" />
-              <span class="break-words">{{ data.personal_details.location }}</span>
+              <span class="wrap-break-word">{{ data.personal_details.location }}</span>
             </li>
             <li
               v-if="data.personal_details.website"
@@ -181,7 +181,7 @@ const formatDescription = (text: string | undefined) => {
       <!-- MAIN COLUMN (With Timeline) -->
       <main class="sm:w-[68%] pt-10 pb-12 pl-4 pr-10 relative text-gray-800">
         <!-- Timeline vertical line (only visible if there are sections) -->
-        <div class="absolute left-[31px] top-[40px] bottom-[40px] w-px bg-gray-400 z-0 hidden sm:block" />
+        <div class="absolute left-7.75 top-10 bottom-10 w-px bg-gray-400 z-0 hidden sm:block" />
 
         <div class="space-y-12 relative z-10 pl-2 sm:pl-0">
           <!-- PROFILE -->
@@ -190,7 +190,7 @@ const formatDescription = (text: string | undefined) => {
             class="relative"
           >
             <div class="flex items-center gap-4 mb-4">
-              <div class="w-[30px] h-[30px] rounded-full bg-[#363f4f] flex items-center justify-center shrink-0 hidden sm:flex text-white text-xs">
+              <div class="w-7.5 h-7.5 rounded-full bg-[#363f4f] hidden sm:flex items-center justify-center shrink-0 text-white text-xs">
                 <User class="w-4 h-4" />
               </div>
               <h3 class="text-xl font-bold tracking-[0.2em] uppercase text-gray-800">
@@ -208,7 +208,7 @@ const formatDescription = (text: string | undefined) => {
             class="relative"
           >
             <div class="flex items-center gap-4 mb-6">
-              <div class="w-[30px] h-[30px] rounded-full bg-[#363f4f] flex items-center justify-center shrink-0 hidden sm:flex text-white text-xs">
+              <div class="w-7.5 h-7.5 rounded-full bg-[#363f4f] hidden sm:flex items-center justify-center shrink-0 text-white text-xs">
                 <Briefcase class="w-4 h-4" />
               </div>
               <h3 class="text-xl font-bold tracking-[0.2em] uppercase text-gray-800">
@@ -223,7 +223,7 @@ const formatDescription = (text: string | undefined) => {
                 class="relative"
               >
                 <!-- Timeline dot -->
-                <div class="absolute -left-[37px] top-1.5 w-2 h-2 rounded-full border-2 border-gray-400 bg-white hidden sm:block" />
+                <div class="absolute -left-9.25 top-1.5 w-2 h-2 rounded-full border-2 border-gray-400 bg-white hidden sm:block" />
 
                 <header class="flex justify-between items-start mb-2 gap-4 flex-wrap sm:flex-nowrap">
                   <div>
@@ -262,7 +262,7 @@ const formatDescription = (text: string | undefined) => {
             class="relative"
           >
             <div class="flex items-center gap-4 mb-6">
-              <div class="w-[30px] h-[30px] rounded-full bg-[#363f4f] flex items-center justify-center shrink-0 hidden sm:flex text-white text-xs">
+              <div class="w-7.5 h-7.5 rounded-full bg-[#363f4f] hidden sm:flex items-center justify-center shrink-0 text-white text-xs">
                 <GraduationCap class="w-4 h-4" />
               </div>
               <h3 class="text-xl font-bold tracking-[0.2em] uppercase text-gray-800">
@@ -277,7 +277,7 @@ const formatDescription = (text: string | undefined) => {
                 class="relative"
               >
                 <!-- Timeline dot -->
-                <div class="absolute -left-[37px] top-1.5 w-2 h-2 rounded-full border-2 border-gray-400 bg-white hidden sm:block" />
+                <div class="absolute -left-9.25 top-1.5 w-2 h-2 rounded-full border-2 border-gray-400 bg-white hidden sm:block" />
 
                 <header class="flex justify-between items-start mb-1 gap-4 flex-wrap sm:flex-nowrap">
                   <div>
@@ -314,7 +314,7 @@ const formatDescription = (text: string | undefined) => {
             class="relative"
           >
             <div class="flex items-center gap-4 mb-6">
-              <div class="w-[30px] h-[30px] rounded-full bg-[#363f4f] flex items-center justify-center shrink-0 hidden sm:flex text-white text-xs">
+              <div class="w-7.5 h-7.5 rounded-full bg-[#363f4f] hidden sm:flex items-center justify-center shrink-0 text-white text-xs">
                 <FileText class="w-4 h-4" />
               </div>
               <h3 class="text-xl font-bold tracking-[0.2em] uppercase text-gray-800">
@@ -329,7 +329,7 @@ const formatDescription = (text: string | undefined) => {
                 :key="cert.id"
                 class="relative"
               >
-                <div class="absolute -left-[37px] top-1.5 w-2 h-2 rounded-full border-2 border-gray-400 bg-white hidden sm:block" />
+                <div class="absolute -left-9.25 top-1.5 w-2 h-2 rounded-full border-2 border-gray-400 bg-white hidden sm:block" />
                 <header class="flex justify-between items-start gap-4 flex-wrap sm:flex-nowrap">
                   <div>
                     <h4 class="font-bold text-gray-900">
@@ -346,6 +346,21 @@ const formatDescription = (text: string | undefined) => {
                     {{ formatYear(cert.issue_date) }}
                   </div>
                 </header>
+                <p
+                  v-if="cert.description"
+                  class="text-sm text-gray-700 mt-1 whitespace-pre-wrap"
+                >
+                  {{ cert.description }}
+                </p>
+                <a
+                  v-if="cert.credential_url"
+                  :href="cert.credential_url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-xs text-blue-600 hover:underline mt-1 block"
+                >
+                  View Credential
+                </a>
               </div>
 
               <!-- Additional Information -->
@@ -354,7 +369,7 @@ const formatDescription = (text: string | undefined) => {
                 :key="info.id"
                 class="relative"
               >
-                <div class="absolute -left-[37px] top-1.5 w-2 h-2 rounded-full border-2 border-gray-400 bg-white hidden sm:block" />
+                <div class="absolute -left-9.25 top-1.5 w-2 h-2 rounded-full border-2 border-gray-400 bg-white hidden sm:block" />
                 <h4 class="font-bold text-gray-900">
                   {{ info.title }}
                 </h4>
