@@ -907,7 +907,6 @@ async function onVerifyCode() {
   }
   catch (err) {
     otpError.value = getApiErrorMessage(err, 'Invalid or expired code. Please try again.')
-
   }
   finally { isLoading.value = false }
 }
