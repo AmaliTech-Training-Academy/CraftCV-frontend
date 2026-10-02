@@ -57,8 +57,11 @@ export function useAutosave() {
         updateTimestamp(data.lastSavedAt)
       }
 
-      // TODO: Fetch related sections (education, experience, etc.) using their IDs
-      // For now, we will assume they are fetched or we can fetch them via collection endpoints
+      // Load related sections
+      education.value = data.educations || []
+      experience.value = data.experiences || []
+      skills.value = data.skills || []
+      certifications.value = data.certifications || []
 
       // Store clone of data for diffing
       captureSavedState()
@@ -124,8 +127,8 @@ export function useAutosave() {
             professionalSummary: stateToSave.summary || '',
           },
         })
-        cvId.value = createRes.cvId || createRes.id || createRes.uuid
-        if (createRes.lastSavedAt) updateTimestamp(createRes.lastSavedAt)
+        cvId.value = createRes?.cvId || createRes?.id || createRes?.uuid
+        if (createRes?.lastSavedAt) updateTimestamp(createRes.lastSavedAt)
 
         // Since we just created it, the backend has our title and summary.
         // We can skip patching them in step 2 if we want, but letting it flow through is fine too.
@@ -133,8 +136,8 @@ export function useAutosave() {
 
       // 1. CV-level changes (title, summary)
       const cvPatches: any = {}
-      if (stateToSave.title !== lastSavedData.value.title) cvPatches.title = stateToSave.title
-      if (stateToSave.summary !== lastSavedData.value.summary) cvPatches.professionalSummary = stateToSave.summary
+      if (stateToSave.title !== lastSavedData.value?.title) cvPatches.title = stateToSave.title
+      if (stateToSave.summary !== lastSavedData.value?.summary) cvPatches.professionalSummary = stateToSave.summary
 
       // TODO: Section ID array comparisons for associations
 
@@ -143,13 +146,13 @@ export function useAutosave() {
           method: 'PATCH',
           body: cvPatches,
         })
-        if (res.lastSavedAt) updateTimestamp(res.lastSavedAt)
+        if (res?.lastSavedAt) updateTimestamp(res.lastSavedAt)
       }
 
       // 2. Personal Details changes
       const personalPatches: Record<string, any> = {}
       const currentPersonal = stateToSave.personal || {}
-      const lastPersonal = lastSavedData.value.personal || {}
+      const lastPersonal = lastSavedData.value?.personal || {}
 
       for (const key of Object.keys(currentPersonal)) {
         if (currentPersonal[key] !== lastPersonal[key]) {
@@ -169,7 +172,7 @@ export function useAutosave() {
 
         // Fetch CV again to get the updated lastSavedAt timestamp
         const cvRes = await $api<any>(`/cvs/${cvId.value}/`)
-        if (cvRes.lastSavedAt) updateTimestamp(cvRes.lastSavedAt)
+        if (cvRes?.lastSavedAt) updateTimestamp(cvRes.lastSavedAt)
       }
 
       // 3. Section changes
@@ -178,7 +181,7 @@ export function useAutosave() {
 
       for (const [localKey, endpoint] of Object.entries(sectionEndpoints)) {
         const currentItems = stateToSave[localKey] || []
-        const lastItems = lastSavedData.value[localKey] || []
+        const lastItems = lastSavedData.value?.[localKey] || []
 
         const currentIds = new Set(currentItems.map((i: any) => i.id))
         const lastIds = new Set(lastItems.map((i: any) => i.id))
@@ -219,9 +222,9 @@ export function useAutosave() {
               // Mutate the reactive state directly so the UI knows the real ID
               const stateRef = (useCVState() as any)[localKey]
               if (stateRef.value[i]) {
-                stateRef.value[i].id = res.id || res.uuid || id
+                stateRef.value[i].id = res?.id || res?.uuid || id
               }
-              finalIds.push(res.id || res.uuid || id)
+              finalIds.push(res?.id || res?.uuid || id)
               sectionsChanged = true
             }
             else if (JSON.stringify(item) !== JSON.stringify(lastItem)) {
@@ -252,7 +255,7 @@ export function useAutosave() {
           method: 'PATCH',
           body: currentSectionIds,
         })
-        if (res.lastSavedAt) updateTimestamp(res.lastSavedAt)
+        if (res?.lastSavedAt) updateTimestamp(res.lastSavedAt)
       }
 
       // Update our baseline
