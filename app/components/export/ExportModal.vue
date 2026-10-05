@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { Component } from 'vue'
 import { useResizeObserver } from '@vueuse/core'
 import {
+  AlertCircle,
   Check,
   Download,
   FileDown,
@@ -66,6 +67,7 @@ interface Props {
   data?: ResolvedCvData | Record<string, unknown>
   cvData?: ResolvedCvData | Record<string, unknown>
   isExporting?: boolean
+  errorMessage?: string | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -73,12 +75,13 @@ const props = withDefaults(defineProps<Props>(), {
   data: undefined,
   cvData: undefined,
   isExporting: false,
+  errorMessage: null,
 })
 
 const emit = defineEmits<{
   (event: 'update:modelValue', value: boolean): void
   (event: 'export', payload: ExportPayload): void
-  (event: 'print'): void
+  (event: 'print' | 'clear-error'): void
 }>()
 
 const isOpen = computed({
@@ -216,6 +219,7 @@ const handleResize = () => {
 }
 
 watch(isOpen, async (val) => {
+  emit('clear-error')
   if (val) {
     preloadPdfMake()
     isCustomFilename.value = false
@@ -396,12 +400,29 @@ const submitExport = () => {
           </div>
         </section>
 
-        <!-- Options Panel -->
         <section
           class="min-h-0 overflow-y-auto bg-white px-6 py-7 sm:px-8"
           :class="mobileTab === 'options' ? 'block' : 'hidden lg:block'"
         >
           <div class="max-w-md">
+            <div
+              v-if="errorMessage"
+              class="mb-4 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400"
+              role="alert"
+            >
+              <div class="flex items-center gap-2">
+                <AlertCircle class="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+                <span>{{ errorMessage }}</span>
+              </div>
+              <button
+                type="button"
+                class="text-xs font-semibold underline hover:no-underline"
+                @click="emit('clear-error')"
+              >
+                Dismiss
+              </button>
+            </div>
+
             <h2 class="font-display text-2xl font-semibold tracking-tight text-stone-900">
               Ready to export
             </h2>

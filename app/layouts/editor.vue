@@ -33,6 +33,7 @@ import { generatePDF, generatePlainText, printDocument } from '~/utils/pdfExport
 
 const {
   cvTitle,
+  rawCVData,
   getPersonalStatus,
   getSummaryStatus,
   getExperienceStatus,
@@ -113,7 +114,13 @@ const resolvedPreviewData = computed<ResolvedCvData>(() => {
       name: s.name || '',
       display_order: i,
     })),
-    certifications: [],
+    certifications: (rawCVData.value?.certifications ?? []).map((c, i) => ({
+      id: c.id,
+      name: c.name || '',
+      issuer: c.issuer || '',
+      issue_date: c.date || '',
+      display_order: i,
+    })),
     languages: [],
     awards: [],
     additional_information: [],
@@ -124,16 +131,20 @@ const isPreviewModalOpen = ref(false)
 const isSidebarExpanded = ref(true)
 const isExportModalOpen = ref(false)
 const isExporting = ref(false)
+const exportError = ref<string | null>(null)
 
 const handleExport = async (payload: ExportPayload) => {
   isExporting.value = true
+  exportError.value = null
   try {
+    const exportSource = rawCVData.value ?? resolvedPreviewData.value
+
     if (payload.format === 'txt') {
-      generatePlainText(resolvedPreviewData.value, payload.filename)
+      generatePlainText(exportSource, payload.filename)
     }
     else {
       await generatePDF({
-        cvData: resolvedPreviewData.value,
+        cvData: exportSource,
         filename: payload.filename,
         paperSize: payload.paperSize,
         includeLinks: payload.includeLinks,
@@ -143,6 +154,7 @@ const handleExport = async (payload: ExportPayload) => {
   }
   catch (error) {
     console.error('Export failed:', error)
+    exportError.value = error instanceof Error ? error.message : 'Failed to export document. Please try again.'
   }
   finally {
     isExporting.value = false
@@ -150,9 +162,12 @@ const handleExport = async (payload: ExportPayload) => {
 }
 
 const handlePrint = async () => {
+  exportError.value = null
   try {
+    const exportSource = rawCVData.value ?? resolvedPreviewData.value
+
     await printDocument({
-      cvData: resolvedPreviewData.value,
+      cvData: exportSource,
       filename: `${cvTitle.value || 'CraftCV_Resume'}.pdf`,
       paperSize: 'a4',
       includeLinks: true,
@@ -161,6 +176,7 @@ const handlePrint = async () => {
   }
   catch (error) {
     console.error('Print failed:', error)
+    exportError.value = error instanceof Error ? error.message : 'Failed to initialize printing. Please try again.'
   }
 }
 
@@ -521,10 +537,12 @@ useResizeObserver(previewPage, (entries) => {
     <ExportModal
       v-model="isExportModalOpen"
       :active-template-component="activeTemplateComponent"
-      :data="resolvedPreviewData"
+      :data="rawCVData ?? resolvedPreviewData"
       :is-exporting="isExporting"
+      :error-message="exportError"
       @export="handleExport"
       @print="handlePrint"
+      @clear-error="exportError = null"
     />
   </div>
 </template>

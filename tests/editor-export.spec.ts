@@ -94,4 +94,30 @@ describe('Editor Export Integration', () => {
 
     wrapper.unmount()
   })
+
+  it('includes certifications from rawCVData in exported document definition', () => {
+    const { personal, certifications, rawCVData, selectedTemplateSlug } = useCVState()
+
+    personal.value.firstName = 'Alice'
+    personal.value.lastName = 'Smith'
+    certifications.value.push({
+      id: 'cert-1',
+      name: 'AWS Certified Solutions Architect',
+      issuer: 'Amazon Web Services',
+      date: '2024',
+    })
+
+    selectedTemplateSlug.value = 'classic'
+
+    const docDef = buildDocumentDefinition({
+      cvData: rawCVData.value,
+      filename: 'Alice_Smith.pdf',
+      paperSize: 'a4',
+      templateSlug: selectedTemplateSlug.value,
+    })
+
+    const serialized = JSON.stringify(docDef)
+    expect(serialized).toContain('AWS Certified Solutions Architect')
+    expect(serialized).toContain('Amazon Web Services')
+  })
 })

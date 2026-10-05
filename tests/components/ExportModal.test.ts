@@ -158,4 +158,23 @@ describe('ExportModal.vue', () => {
     expect(document.body.querySelector<HTMLInputElement>('[aria-label="File name"]')?.value)
       .toMatch(/^CraftCV_Resume_\d{4}\.pdf$/)
   })
+
+  it('renders error banner when errorMessage is passed and emits clear-error on dismiss', async () => {
+    wrapper = await mountSuspended(ExportModal, {
+      props: {
+        modelValue: true,
+        activeTemplateComponent: PreviewStub,
+        cvData,
+        errorMessage: 'Export process encountered an unexpected issue.',
+      },
+    })
+
+    expect(document.body.textContent).toContain('Export process encountered an unexpected issue.')
+    const dismissButton = getBodyButton('Dismiss')
+    expect(dismissButton).not.toBeUndefined()
+    dismissButton?.click()
+    await nextTick()
+
+    expect(wrapper.emitted('clear-error')).toBeDefined()
+  })
 })
