@@ -27,6 +27,9 @@ import type { ResolvedCvData } from '~/types/cv'
 import CVTemplateClassic from '~/components/templates/CVTemplateClassic.vue'
 import SingleColumnTemplate from '~/components/templates/SingleColumnTemplate.vue'
 import TwoColumnTemplate from '~/components/templates/TwoColumnTemplate.vue'
+import ExportModal from '~/components/export/ExportModal.vue'
+import type { ExportPayload } from '~/types/export'
+import { generatePDF, generatePlainText, printDocument } from '~/utils/pdfExport'
 
 const {
   cvTitle,
@@ -119,6 +122,47 @@ const resolvedPreviewData = computed<ResolvedCvData>(() => {
 
 const isPreviewModalOpen = ref(false)
 const isSidebarExpanded = ref(true)
+const isExportModalOpen = ref(false)
+const isExporting = ref(false)
+
+const handleExport = async (payload: ExportPayload) => {
+  isExporting.value = true
+  try {
+    if (payload.format === 'txt') {
+      generatePlainText(resolvedPreviewData.value, payload.filename)
+    }
+    else {
+      await generatePDF({
+        cvData: resolvedPreviewData.value,
+        filename: payload.filename,
+        paperSize: payload.paperSize,
+        includeLinks: payload.includeLinks,
+        templateSlug: selectedTemplateSlug.value || 'classic',
+      })
+    }
+  }
+  catch (error) {
+    console.error('Export failed:', error)
+  }
+  finally {
+    isExporting.value = false
+  }
+}
+
+const handlePrint = async () => {
+  try {
+    await printDocument({
+      cvData: resolvedPreviewData.value,
+      filename: `${cvTitle.value || 'CraftCV_Resume'}.pdf`,
+      paperSize: 'a4',
+      includeLinks: true,
+      templateSlug: selectedTemplateSlug.value || 'classic',
+    })
+  }
+  catch (error) {
+    console.error('Print failed:', error)
+  }
+}
 
 const steps = computed(() => [
   { id: 'personal', name: 'Personal Details', icon: User, status: getPersonalStatus(), path: '/editor/personal' },
@@ -343,7 +387,11 @@ useResizeObserver(previewPage, (entries) => {
               <span class="text-[11px] font-bold tracking-wide text-gray-600">Preview</span>
             </div>
 
-            <button class="flex items-center gap-2 px-4 py-2 bg-[#C54A22] hover:bg-[#A83D1B] text-white rounded-[10px] text-[12px] font-semibold transition-colors shadow-sm active:scale-95 shrink-0">
+            <button
+              type="button"
+              class="flex items-center gap-2 px-4 py-2 bg-[#C54A22] hover:bg-[#A83D1B] text-white rounded-[10px] text-[12px] font-semibold transition-colors shadow-sm active:scale-95 shrink-0"
+              @click="isExportModalOpen = true"
+            >
               <Download class="w-4 h-4" />
               <span class="hidden sm:inline">Export PDF</span>
             </button>
@@ -469,5 +517,14 @@ useResizeObserver(previewPage, (entries) => {
         </DialogContent>
       </DialogPortal>
     </DialogRoot>
+
+    <ExportModal
+      v-model="isExportModalOpen"
+      :active-template-component="activeTemplateComponent"
+      :data="resolvedPreviewData"
+      :is-exporting="isExporting"
+      @export="handleExport"
+      @print="handlePrint"
+    />
   </div>
 </template>
