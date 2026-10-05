@@ -14,8 +14,8 @@ export function parseDescription(text?: string | null): Array<{ type: 'p' | 'ul'
   let currentList: string[] | null = null
 
   for (const line of lines) {
-    if (line.startsWith('- ') || line.startsWith('-')) {
-      const itemText = line.replace(/^-+\s*/, '').trim()
+    if (line.startsWith('- ') || line.startsWith('* ') || line.startsWith('•') || line.startsWith('– ') || line.startsWith('— ')) {
+      const itemText = line.replace(/^([-*–—]\s+|•\s*)/, '').trim()
       if (itemText) {
         if (!currentList) {
           currentList = []
@@ -91,7 +91,7 @@ const MONTH_NAMES = [
  * Formats a YYYY-MM-01 date string into 'Month YYYY'.
  * If the string doesn't match the format, it returns it as is.
  */
-function formatMonthYear(dateString?: string | null): string {
+export function formatMonthYear(dateString?: string | null): string {
   if (!dateString) return ''
 
   const parts = dateString.split('-')

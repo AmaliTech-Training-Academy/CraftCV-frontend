@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { parseDescription, dateRangeLabel } from '~/utils/cvText'
+import { parseDescription, dateRangeLabel, formatMonthYear } from '~/utils/cvText'
 
 defineProps<{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -176,6 +176,58 @@ defineProps<{
               v-if="skill.level"
               class="text-[11px] text-gray-500"
             >({{ skill.level }})</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Certifications -->
+      <section
+        v-if="data.certifications && data.certifications.length > 0"
+        class="flex flex-col gap-2"
+      >
+        <h3 class="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 border-b border-gray-200 pb-1 mb-1">
+          Certifications
+        </h3>
+        <div class="flex flex-col gap-3 font-sans">
+          <div
+            v-for="cert in data.certifications"
+            :key="cert.id"
+            class="flex flex-col gap-0.5"
+          >
+            <div class="flex justify-between items-baseline">
+              <h4 class="text-[14px] font-bold text-gray-900">
+                {{ cert.name }}
+              </h4>
+              <span
+                v-if="cert.issue_date"
+                class="text-[11px] text-gray-500 font-semibold"
+              >{{ formatMonthYear(cert.issue_date) }}</span>
+            </div>
+            <div class="flex justify-between items-baseline">
+              <span class="text-[13px] text-[#C54A22] font-semibold">{{ cert.issuer }}</span>
+            </div>
+            <template
+              v-for="(blk, i) in parseDescription(cert.description)"
+              :key="i"
+            >
+              <p
+                v-if="blk.type === 'p'"
+                class="text-[13px] leading-relaxed text-gray-700 mt-0.5"
+              >
+                {{ blk.text }}
+              </p>
+              <ul
+                v-else
+                class="text-[13px] leading-relaxed text-gray-700 list-disc list-inside space-y-0.5 mt-0.5"
+              >
+                <li
+                  v-for="it in blk.items"
+                  :key="it"
+                >
+                  {{ it }}
+                </li>
+              </ul>
+            </template>
           </div>
         </div>
       </section>

@@ -95,6 +95,9 @@ describe('useCVState', () => {
       expect(getCertificationsStatus()).toBe('incomplete')
 
       certifications.value[0]!.issuer = 'Amazon'
+      expect(getCertificationsStatus()).toBe('incomplete')
+
+      certifications.value[0]!.date = 'May 2024'
       expect(getCertificationsStatus()).toBe('complete')
     })
   })

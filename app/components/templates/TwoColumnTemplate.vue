@@ -29,12 +29,12 @@ const p = computed(() => props.data.personal_details ?? {})
 
 <template>
   <!-- A4 proportions: 794px wide × 1123px tall at 96dpi -->
-  <div class="flex bg-white font-sans text-[13px] leading-snug min-h-[1056px] overflow-hidden">
+  <div class="flex bg-white font-sans text-[13px] leading-snug min-h-264 overflow-hidden">
     <!-- ═══════════ LEFT SIDEBAR ═══════════ -->
     <aside class="w-[30%] shrink-0 bg-[#2c3e50] text-white flex flex-col">
       <!-- Name block -->
       <div class="px-6 pt-8 pb-6 border-b border-white/10">
-        <h1 class="text-[22px] font-extrabold leading-tight tracking-wide uppercase break-words">
+        <h1 class="text-[22px] font-extrabold leading-tight tracking-wide uppercase wrap-break-word">
           {{ fullName }}
         </h1>
         <p
@@ -156,7 +156,10 @@ const p = computed(() => props.data.personal_details ?? {})
             class="flex items-center gap-2"
           >
             <span class="w-1 h-1 rounded-full bg-white/40 shrink-0" />
-            {{ skill.name }}
+            <span>{{ skill.name }}<span
+              v-if="skill.level"
+              class="text-white/60"
+            > ({{ skill.level }})</span></span>
           </li>
         </ul>
       </div>
@@ -281,20 +284,46 @@ const p = computed(() => props.data.personal_details ?? {})
           <div
             v-for="cert in data.certifications"
             :key="cert.id"
-            class="flex justify-between items-start gap-2"
+            class="space-y-1"
           >
-            <div>
-              <p class="font-semibold text-[12px] text-gray-900">
-                {{ cert.name }}
-              </p>
-              <p class="text-[11px] text-gray-500">
-                {{ cert.issuer }}
-              </p>
+            <div class="flex justify-between items-start gap-2">
+              <div>
+                <p class="font-semibold text-[12px] text-gray-900">
+                  {{ cert.name }}
+                </p>
+                <p class="text-[11px] text-gray-500">
+                  {{ cert.issuer }}
+                </p>
+              </div>
+              <span
+                v-if="cert.issue_date"
+                class="text-[11px] text-gray-400 shrink-0"
+              >{{ formatDate(cert.issue_date) }}</span>
             </div>
-            <span
-              v-if="cert.issue_date"
-              class="text-[11px] text-gray-400 shrink-0"
-            >{{ formatDate(cert.issue_date) }}</span>
+            <template
+              v-for="(blk, i) in parseDescription(cert.description)"
+              :key="i"
+            >
+              <p
+                v-if="blk.type === 'p'"
+                class="text-[11px] text-gray-700 mt-1 leading-relaxed"
+              >
+                {{ blk.text }}
+              </p>
+              <ul
+                v-else
+                class="mt-1 space-y-1"
+              >
+                <li
+                  v-for="it in blk.items"
+                  :key="it"
+                  class="text-[11px] text-gray-700 flex items-start gap-1.5"
+                >
+                  <span class="mt-1 w-1 h-1 rounded-full bg-gray-400 shrink-0" />
+                  {{ it }}
+                </li>
+              </ul>
+            </template>
           </div>
         </div>
       </section>

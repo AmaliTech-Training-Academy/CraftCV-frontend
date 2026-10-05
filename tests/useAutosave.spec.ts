@@ -161,4 +161,54 @@ describe('useAutosave', () => {
     // Check that the mock id was replaced with the real ID
     expect(state.experience.value[0]?.id).toBe('new-exp-id')
   })
+
+  it('does not POST blank new certifications until required fields are filled', async () => {
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-cert-test',
+      title: 'My CV',
+      certifications: [],
+    })
+
+    const { loadCV, triggerAutosave } = useAutosave()
+    await loadCV('cv-cert-test')
+    await vi.runAllTimersAsync()
+
+    const state = useCVState()
+    mockApi.mockReset()
+    mockApi.mockResolvedValue({ id: 'real-cert-id' })
+
+    // Add empty certification (as created by "Add Certification")
+    state.certifications.value.push({
+      id: 'cert_temp_123',
+      name: '',
+      issuer: '',
+      date: '',
+    })
+
+    triggerAutosave()
+    await flushMicrotasks()
+
+    // Should NOT have made a POST call to /cvs/certifications/
+    const certPostCalls = mockApi.mock.calls.filter(
+      call => call[0] === '/cvs/certifications/' && call[1]?.method === 'POST',
+    )
+    expect(certPostCalls).toHaveLength(0)
+
+    // Now fill in required fields
+    state.certifications.value[0]!.name = 'AWS Certified Solutions Architect'
+    state.certifications.value[0]!.issuer = 'Amazon Web Services'
+
+    triggerAutosave()
+    await flushMicrotasks()
+
+    // Should have made a POST call to /cvs/certifications/
+    expect(mockApi).toHaveBeenCalledWith('/cvs/certifications/', {
+      method: 'POST',
+      body: expect.objectContaining({
+        name: 'AWS Certified Solutions Architect',
+        issuer: 'Amazon Web Services',
+        displayOrder: 0,
+      }),
+    })
+  })
 })

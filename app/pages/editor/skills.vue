@@ -8,6 +8,9 @@ import {
   X,
   GripVertical,
   ChevronDown,
+  ArrowUp,
+  ArrowDown,
+  Trash2,
 } from '@lucide/vue'
 import { useCVState } from '~/composables/useCVState'
 
@@ -24,6 +27,7 @@ type SkillLevel = (typeof skillLevels)[number]
 const newSkillName = ref('')
 const newSkillLevel = ref<SkillLevel>('Intermediate')
 const inputError = ref('')
+const isClearAllDialogOpen = ref(false)
 
 const generateId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -65,8 +69,29 @@ const removeSkill = (id: string) => {
   }
 }
 
-const clearAllSkills = () => {
+const handlePromptClearAll = () => {
+  isClearAllDialogOpen.value = true
+}
+
+const confirmClearAll = () => {
   skills.value = []
+  isClearAllDialogOpen.value = false
+}
+
+const moveSkillUp = (index: number) => {
+  if (index <= 0) return
+  const item = skills.value.splice(index, 1)[0]
+  if (item) {
+    skills.value.splice(index - 1, 0, item)
+  }
+}
+
+const moveSkillDown = (index: number) => {
+  if (index >= skills.value.length - 1) return
+  const item = skills.value.splice(index, 1)[0]
+  if (item) {
+    skills.value.splice(index + 1, 0, item)
+  }
 }
 
 const getLevelBadgeClass = (level?: string) => {
@@ -253,7 +278,7 @@ const handleNext = async () => {
           type="button"
           aria-label="Clear all active skills"
           class="text-xs text-gray-400 hover:text-red-600 font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:underline"
-          @click="clearAllSkills"
+          @click="handlePromptClearAll"
         >
           Clear all
         </button>
@@ -270,7 +295,6 @@ const handleNext = async () => {
           v-for="(item, index) in skills"
           :key="item.id"
           draggable="true"
-          :aria-grabbed="draggedIndex === index"
           class="bg-white border rounded-xl p-3 sm:px-4 flex items-center justify-between transition-all shadow-xs group cursor-grab select-none"
           :class="[
             draggedIndex === index
@@ -297,8 +321,38 @@ const handleNext = async () => {
             </span>
           </div>
 
-          <!-- Right: Level Badge & Remove -->
-          <div class="flex items-center gap-3 shrink-0">
+          <!-- Right: Move Buttons, Level Badge & Remove -->
+          <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <!-- Move Up / Down Buttons for Keyboard Accessibility -->
+            <div class="flex items-center">
+              <button
+                type="button"
+                :disabled="index === 0"
+                aria-label="Move up"
+                :title="'Move up ' + item.name"
+                class="p-1 rounded-md text-gray-400 hover:text-gray-700 disabled:opacity-25 disabled:pointer-events-none hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/40 cursor-pointer"
+                @click="moveSkillUp(index)"
+              >
+                <ArrowUp
+                  class="w-4 h-4"
+                  aria-hidden="true"
+                />
+              </button>
+              <button
+                type="button"
+                :disabled="index === skills.length - 1"
+                aria-label="Move down"
+                :title="'Move down ' + item.name"
+                class="p-1 rounded-md text-gray-400 hover:text-gray-700 disabled:opacity-25 disabled:pointer-events-none hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/40 cursor-pointer"
+                @click="moveSkillDown(index)"
+              >
+                <ArrowDown
+                  class="w-4 h-4"
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
+
             <div class="relative">
               <select
                 v-model="item.level"
@@ -374,5 +428,45 @@ const handleNext = async () => {
         />
       </Button>
     </div>
+
+    <!-- Clear All Confirmation Dialog -->
+    <Dialog
+      :open="isClearAllDialogOpen"
+      @update:open="(val: boolean) => { isClearAllDialogOpen = val }"
+    >
+      <DialogContent
+        :show-close-button="false"
+        class="sm:max-w-95 p-6 sm:p-7 rounded-2xl flex flex-col items-center text-center gap-0 border-0 shadow-2xl"
+      >
+        <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mb-4">
+          <Trash2 class="w-5 h-5 text-red-500" />
+        </div>
+        <DialogHeader class="gap-0 flex flex-col items-center text-center">
+          <DialogTitle class="text-xl font-bold text-gray-900 mb-2">
+            Clear all skills?
+          </DialogTitle>
+          <DialogDescription class="text-sm text-gray-500 text-center max-w-65 leading-relaxed mb-6">
+            Are you sure you want to delete all skills from your list? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <div class="grid grid-cols-2 gap-3 w-full">
+          <Button
+            type="button"
+            variant="outline"
+            class="w-full py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium text-sm h-auto cursor-pointer"
+            @click="isClearAllDialogOpen = false"
+          >
+            Cancel
+          </Button>
+          <Button
+            class="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-medium text-sm shadow-xs h-auto cursor-pointer"
+            type="button"
+            @click="confirmClearAll"
+          >
+            Clear all skills
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>

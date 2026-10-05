@@ -314,7 +314,7 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
       expect(skills.value[0]!.id).toBe('2')
     })
 
-    it('clears all skills when clicking Clear all', async () => {
+    it('clears all skills when confirming in the dialog', async () => {
       const { skills } = useCVState()
       skills.value = [
         { id: '1', name: 'Skill 1', level: 'Beginner' },
@@ -327,7 +327,44 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
       expect(clearBtn).toBeDefined()
       await clearBtn!.trigger('click')
 
+      expect(wrapper.find('.stub-dialog').exists()).toBe(true)
+      const confirmBtn = wrapper.findAll('.stub-dialog button').find(b => b.text().includes('Clear all skills'))
+      expect(confirmBtn).toBeDefined()
+      await confirmBtn!.trigger('click')
+
       expect(skills.value.length).toBe(0)
+    })
+
+    it('reorders skills using Move up and Move down buttons', async () => {
+      const { skills } = useCVState()
+      skills.value = [
+        { id: '1', name: 'Skill 1', level: 'Beginner' },
+        { id: '2', name: 'Skill 2', level: 'Intermediate' },
+        { id: '3', name: 'Skill 3', level: 'Advanced' },
+      ]
+
+      const wrapper = mount(SkillsPage, { global: { stubs: sharedStubs } })
+      const moveUpBtns = wrapper.findAll('button[aria-label="Move up"]')
+      const moveDownBtns = wrapper.findAll('button[aria-label="Move down"]')
+
+      expect(moveUpBtns.length).toBe(3)
+      expect(moveDownBtns.length).toBe(3)
+
+      // First item move up should be disabled
+      expect(moveUpBtns[0]!.attributes('disabled')).toBeDefined()
+      // Last item move down should be disabled
+      expect(moveDownBtns[2]!.attributes('disabled')).toBeDefined()
+
+      // Move second item down
+      await moveDownBtns[1]!.trigger('click')
+      expect(skills.value.map(s => s.name)).toEqual(['Skill 1', 'Skill 3', 'Skill 2'])
+
+      // Re-query buttons to get fresh element references after list re-render
+      const updatedMoveUpBtns = wrapper.findAll('button[aria-label="Move up"]')
+
+      // Move third item (Skill 2 at index 2) up
+      await updatedMoveUpBtns[2]!.trigger('click')
+      expect(skills.value.map(s => s.name)).toEqual(['Skill 1', 'Skill 2', 'Skill 3'])
     })
 
     it('reorders skills when dragged and dropped', async () => {
@@ -380,6 +417,25 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
       expect(wrapper.text()).toContain('Issuing Organization')
     })
 
+    it('does not discard incomplete certifications on Finish and displays errors', async () => {
+      const { certifications } = useCVState()
+      certifications.value = [
+        { id: 'c1', name: 'Scrum Master', issuer: '', date: '' },
+      ]
+
+      const wrapper = mount(CertificationsPage, { global: { stubs: sharedStubs } })
+
+      const finishBtn = wrapper.findAll('button').find(b => b.text().includes('Finish & Go to Dashboard'))
+      expect(finishBtn).toBeDefined()
+      await finishBtn!.trigger('click')
+
+      // Should keep the half-filled certification entry
+      expect(certifications.value.length).toBe(1)
+      expect(certifications.value[0]!.name).toBe('Scrum Master')
+      // Should show error for missing issuer
+      expect(wrapper.text()).toContain('Issuing organization is required')
+    })
+
     it('prompts delete dialog and deletes certification by id', async () => {
       const { certifications } = useCVState()
       certifications.value = [
@@ -402,6 +458,20 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
 
       expect(certifications.value.length).toBe(1)
       expect(certifications.value[0]!.id).toBe('c2')
+    })
+
+    it('binds description and key competencies in the form', async () => {
+      const { certifications } = useCVState()
+      certifications.value = [
+        { id: 'c1', name: 'AWS Solutions Architect', issuer: 'Amazon', date: 'May 2024', description: '' },
+      ]
+
+      const wrapper = mount(CertificationsPage, { global: { stubs: sharedStubs } })
+      const descTextarea = wrapper.find('textarea[aria-label="Description & Key Competencies"]')
+      expect(descTextarea.exists()).toBe(true)
+
+      await descTextarea.setValue('• Scalability\n• Cloud Security')
+      expect(certifications.value[0]!.description).toBe('• Scalability\n• Cloud Security')
     })
   })
 })

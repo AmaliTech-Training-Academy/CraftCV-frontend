@@ -133,7 +133,7 @@ export const useCVState = () => {
 
   const getCertificationsStatus = (): StepStatus => {
     if (certifications.value.length === 0) return 'empty'
-    const isComplete = certifications.value.every(c => c.name.trim() && c.issuer.trim())
+    const isComplete = certifications.value.every(c => c.name.trim() && c.issuer.trim() && c.date.trim())
     return isComplete ? 'complete' : 'incomplete'
   }
 

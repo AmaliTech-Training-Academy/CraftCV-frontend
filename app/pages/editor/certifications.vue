@@ -43,11 +43,8 @@ const validateCertification = (item: CertificationItem) =>
   Boolean(
     item.name.trim()
     && item.issuer.trim()
-    && (!item.date.trim() || isValidDateString(item.date)),
+    && isValidDateString(item.date),
   )
-
-const isCertificationUntouched = (item: CertificationItem) =>
-  !item.name.trim() && !item.issuer.trim() && !item.date.trim()
 
 const {
   activeId,
@@ -56,12 +53,10 @@ const {
   handleAddEntry,
   promptDelete,
   confirmDelete,
-  validateAndProceed,
 } = useCVSectionEditor(
   certifications,
   createEmptyCertification,
   validateCertification,
-  isCertificationUntouched,
 )
 
 const months = [
@@ -93,11 +88,24 @@ const setIssueYear = (item: CertificationItem, year: string) => {
   item.date = year ? `${currentM} ${year}`.trim() : ''
 }
 
-const handleFinish = () => {
-  validateAndProceed(async () => {
-    hasActiveCV.value = true
-    await navigateTo('/dashboard')
-  })
+const handleFinish = async () => {
+  // Discard only entries that are completely untouched/blank
+  certifications.value = certifications.value.filter(
+    item => Boolean(item.name.trim() || item.issuer.trim() || item.date.trim() || item.description?.trim() || item.credentialId?.trim() || item.credentialUrl?.trim()),
+  )
+
+  const allValid = certifications.value.every(validateCertification)
+  if (!allValid) {
+    showErrors.value = true
+    const firstInvalid = certifications.value.find(item => !validateCertification(item))
+    if (firstInvalid) {
+      activeId.value = firstInvalid.id
+    }
+    return
+  }
+
+  hasActiveCV.value = true
+  await navigateTo('/dashboard')
 }
 </script>
 
@@ -252,7 +260,12 @@ const handleFinish = () => {
                   <select
                     :value="getMonthFromDate(item.date)"
                     aria-label="Issue Month"
-                    class="w-full h-11 px-3.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20"
+                    class="w-full h-11 px-3.5 rounded-xl border bg-white text-sm text-gray-700 cursor-pointer focus:outline-none transition-all"
+                    :class="[
+                      showErrors && !isValidDateString(item.date)
+                        ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
+                        : 'border-gray-200 focus:ring-2 focus:ring-[#C54A22]/20',
+                    ]"
                     @change="setIssueMonth(item, ($event.target as HTMLSelectElement).value)"
                   >
                     <option value="">
@@ -270,7 +283,12 @@ const handleFinish = () => {
                   <select
                     :value="getYearFromDate(item.date)"
                     aria-label="Issue Year"
-                    class="w-full h-11 px-3.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20"
+                    class="w-full h-11 px-3.5 rounded-xl border bg-white text-sm text-gray-700 cursor-pointer focus:outline-none transition-all"
+                    :class="[
+                      showErrors && !isValidDateString(item.date)
+                        ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
+                        : 'border-gray-200 focus:ring-2 focus:ring-[#C54A22]/20',
+                    ]"
                     @change="setIssueYear(item, ($event.target as HTMLSelectElement).value)"
                   >
                     <option value="">
@@ -285,6 +303,14 @@ const handleFinish = () => {
                     </option>
                   </select>
                 </div>
+                <span
+                  v-if="showErrors && !isValidDateString(item.date)"
+                  :id="'cert-date-error-' + item.id"
+                  role="alert"
+                  class="text-xs font-semibold text-red-500 mt-1 block"
+                >
+                  Issue date is required
+                </span>
               </div>
 
               <div>
