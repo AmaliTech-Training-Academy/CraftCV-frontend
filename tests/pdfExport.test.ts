@@ -166,6 +166,18 @@ describe('Classic PDF Renderer (buildClassicPdf)', () => {
     expect(serialized).not.toContain('Languages')
     expect(serialized).not.toContain('Awards')
   })
+
+  it('uses Roboto font (not Times) in defaultStyle to avoid missing-font crashes', () => {
+    const doc = buildDocumentDefinition({
+      cvData: fullCvData,
+      filename: 'test.pdf',
+      paperSize: 'a4',
+      templateSlug: 'classic',
+    })
+
+    expect(doc.defaultStyle).toBeDefined()
+    expect((doc.defaultStyle as Record<string, unknown>).font).toBe('Roboto')
+  })
 })
 
 describe('Modern PDF Renderer (buildModernPdf)', () => {

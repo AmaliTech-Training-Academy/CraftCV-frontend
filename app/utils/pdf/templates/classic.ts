@@ -251,7 +251,7 @@ export function buildClassicPdf(
     pageMargins: [30, 36, 30, 36],
     content,
     defaultStyle: {
-      font: 'Times',
+      font: 'Roboto',
       color: '#1F2937',
     },
     styles: {
