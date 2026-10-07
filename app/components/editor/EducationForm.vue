@@ -71,6 +71,7 @@ const toggleCurrent = (e: Event) => {
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <EditorMonthYearPicker
         v-model="item.startDate"
+        disable-future
         :error="(!isValidDateString(item.startDate) && item.startDate !== '') || (showErrors && !isValidDateString(item.startDate)) ? 'Required' : ''"
         :required="true"
         label="Start Date"

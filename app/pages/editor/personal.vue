@@ -39,11 +39,11 @@ const additionalFields = reactive<Record<string, boolean>>({
 })
 
 const additionalFieldConfigs = [
-  { id: 'website', label: 'Website', placeholder: 'e.g. www.portfolio.com' },
-  { id: 'nationality', label: 'Nationality', placeholder: 'e.g. American' },
-  { id: 'dateOfBirth', label: 'Date of Birth', placeholder: 'e.g. 24/08/1990' },
-  { id: 'passport', label: 'Passport / ID', placeholder: 'e.g. AB1234567' },
-  { id: 'availability', label: 'Availability', placeholder: 'e.g. Available immediately' },
+  { id: 'website', label: 'Website', placeholder: 'e.g. www.portfolio.com', kind: 'text' },
+  { id: 'nationality', label: 'Nationality', placeholder: 'e.g. American', kind: 'text' },
+  { id: 'dateOfBirth', label: 'Date of Birth', placeholder: 'DD/MM/YYYY', kind: 'date' },
+  { id: 'passport', label: 'Passport / ID', placeholder: 'e.g. AB1234567', kind: 'text' },
+  { id: 'availability', label: 'Availability', placeholder: 'e.g. Available immediately', kind: 'text' },
 ] as const
 </script>
 
@@ -133,7 +133,17 @@ const additionalFieldConfigs = [
             v-if="additionalFields[field.id]"
             class="animate-in fade-in slide-in-from-top-2 duration-200"
           >
+            <EditorMonthYearPicker
+              v-if="field.kind === 'date'"
+              v-model="personal[field.id]"
+              mode="day"
+              removable
+              :label="field.label"
+              :placeholder="field.placeholder"
+              @remove="additionalFields[field.id] = false"
+            />
             <EditorFormField
+              v-else
               v-model="personal[field.id]"
 
               :label="field.label"

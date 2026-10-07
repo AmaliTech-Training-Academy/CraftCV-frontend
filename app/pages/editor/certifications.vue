@@ -59,35 +59,6 @@ const {
   validateCertification,
 )
 
-const months = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-]
-const currentYear = new Date().getFullYear()
-const years = Array.from({ length: currentYear - 1970 + 1 }, (_, i) => currentYear - i)
-
-const getMonthFromDate = (dateStr?: string) => {
-  if (!dateStr) return ''
-  const parts = dateStr.trim().split(' ')
-  return parts.length >= 1 ? (parts[0] ?? '') : ''
-}
-
-const getYearFromDate = (dateStr?: string) => {
-  if (!dateStr) return ''
-  const parts = dateStr.trim().split(' ')
-  return parts.length >= 2 ? (parts[1] ?? '') : ''
-}
-
-const setIssueMonth = (item: CertificationItem, month: string) => {
-  const currentY = getYearFromDate(item.date) || currentYear.toString()
-  item.date = month ? `${month} ${currentY}`.trim() : ''
-}
-
-const setIssueYear = (item: CertificationItem, year: string) => {
-  const currentM = getMonthFromDate(item.date) || 'January'
-  item.date = year ? `${currentM} ${year}`.trim() : ''
-}
-
 const handleFinish = async () => {
   // Discard only entries that are completely untouched/blank
   certifications.value = certifications.value.filter(
@@ -249,92 +220,22 @@ const handleFinish = async () => {
             <!-- Row 2: Issue Date & Expiration Date -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-[13px] font-semibold text-gray-800 mb-2">
-                  Issue Date <span
-                    class="text-[#C54A22]"
-                    aria-hidden="true"
-                  >*</span>
-                  <span class="sr-only">(required)</span>
-                </label>
-                <div class="grid grid-cols-2 gap-2.5">
-                  <select
-                    :value="getMonthFromDate(item.date)"
-                    aria-label="Issue Month"
-                    class="w-full h-11 px-3.5 rounded-xl border bg-white text-sm text-gray-700 cursor-pointer focus:outline-none transition-all"
-                    :class="[
-                      showErrors && !isValidDateString(item.date)
-                        ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
-                        : 'border-gray-200 focus:ring-2 focus:ring-[#C54A22]/20',
-                    ]"
-                    @change="setIssueMonth(item, ($event.target as HTMLSelectElement).value)"
-                  >
-                    <option value="">
-                      Month
-                    </option>
-                    <option
-                      v-for="m in months"
-                      :key="m"
-                      :value="m"
-                    >
-                      {{ m }}
-                    </option>
-                  </select>
-
-                  <select
-                    :value="getYearFromDate(item.date)"
-                    aria-label="Issue Year"
-                    class="w-full h-11 px-3.5 rounded-xl border bg-white text-sm text-gray-700 cursor-pointer focus:outline-none transition-all"
-                    :class="[
-                      showErrors && !isValidDateString(item.date)
-                        ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
-                        : 'border-gray-200 focus:ring-2 focus:ring-[#C54A22]/20',
-                    ]"
-                    @change="setIssueYear(item, ($event.target as HTMLSelectElement).value)"
-                  >
-                    <option value="">
-                      Year
-                    </option>
-                    <option
-                      v-for="y in years"
-                      :key="y"
-                      :value="y.toString()"
-                    >
-                      {{ y }}
-                    </option>
-                  </select>
-                </div>
-                <span
-                  v-if="showErrors && !isValidDateString(item.date)"
-                  :id="'cert-date-error-' + item.id"
-                  role="alert"
-                  class="text-xs font-semibold text-red-500 mt-1 block"
-                >
-                  Issue date is required
-                </span>
+                <EditorMonthYearPicker
+                  v-model="item.date"
+                  disable-future
+                  required
+                  label="Issue Date"
+                  :error="showErrors && !isValidDateString(item.date) ? 'Issue date is required' : ''"
+                />
               </div>
 
               <div>
-                <label
-                  :for="'cert-exp-' + item.id"
-                  class="block text-[13px] font-semibold text-gray-800 mb-2"
-                >
-                  Expiration Date
-                </label>
-                <input
-                  :id="'cert-exp-' + item.id"
-                  :value="item.doesNotExpire !== false ? 'Does not expire' : (item.expirationDate ?? '')"
-                  type="text"
+                <EditorMonthYearPicker
+                  v-model="item.expirationDate"
                   :disabled="item.doesNotExpire !== false"
-                  aria-label="Expiration Date"
-                  placeholder="e.g. August 2028"
-                  class="w-full h-11 px-4 rounded-xl border text-sm transition-all focus:outline-none"
-                  :class="[
-                    item.doesNotExpire !== false
-                      ? 'bg-gray-50/80 text-gray-500 border-gray-200 cursor-not-allowed'
-                      : 'bg-white border-gray-200 focus:ring-2 focus:ring-[#C54A22]/20 text-gray-900',
-                  ]"
-                  @input="item.expirationDate = ($event.target as HTMLInputElement).value"
-                >
+                  :placeholder="item.doesNotExpire !== false ? 'Does not expire' : 'Select date'"
+                  label="Expiration Date"
+                />
                 <div class="mt-2.5 flex items-center gap-2">
                   <input
                     :id="'no-expire-' + item.id"
