@@ -121,4 +121,29 @@ describe('SingleColumnTemplate.vue', () => {
     expect(wrapper.text()).toContain('Junior Designer')
     expect(wrapper.text()).toContain('Past Corp')
   })
+
+  it('renders certifications with description', () => {
+    const wrapper = mount(SingleColumnTemplate, {
+      props: {
+        data: {
+          ...mockData,
+          certifications: [
+            {
+              id: 'c1',
+              name: 'AWS Solutions Architect',
+              issuer: 'Amazon Web Services',
+              issue_date: '2024-05',
+              description: 'Demonstrated cloud architecture skills.',
+              display_order: 0,
+            },
+          ],
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('Certifications')
+    expect(wrapper.text()).toContain('AWS Solutions Architect')
+    expect(wrapper.text()).toContain('Amazon Web Services')
+    expect(wrapper.text()).toContain('Demonstrated cloud architecture skills.')
+  })
 })

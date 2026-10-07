@@ -104,4 +104,29 @@ describe('TwoColumnTemplate.vue', () => {
 
     expect(wrapper.text()).toContain('Jan 2019 – Present')
   })
+
+  it('renders certification description when present', () => {
+    const wrapper = mount(TwoColumnTemplate, {
+      props: {
+        data: {
+          ...mockData,
+          certifications: [
+            {
+              id: 'cert1',
+              name: 'UX Certificate',
+              issuer: 'Google',
+              issue_date: '2023-01',
+              description: 'Advanced user experience design and research.',
+              display_order: 0,
+            },
+          ],
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('Certifications')
+    expect(wrapper.text()).toContain('UX Certificate')
+    expect(wrapper.text()).toContain('Google')
+    expect(wrapper.text()).toContain('Advanced user experience design and research.')
+  })
 })

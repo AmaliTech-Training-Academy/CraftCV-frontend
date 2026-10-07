@@ -63,8 +63,16 @@ export function useAutosave() {
       skills.value = data.skills || []
       certifications.value = data.certifications || []
 
-      // Store clone of data for diffing
-      captureSavedState()
+      // Store clone of data for diffing directly from loaded state
+      lastSavedData.value = clone({
+        title: cvTitle.value,
+        summary: summary.value,
+        personal: personal.value,
+        education: education.value,
+        experience: experience.value,
+        skills: skills.value,
+        certifications: certifications.value,
+      })
     }
     catch (err: any) {
       console.error('Failed to load CV:', err)
@@ -80,6 +88,12 @@ export function useAutosave() {
 
   // Capture the current state as the "last saved" baseline
   const captureSavedState = () => {
+    // Only treat certifications as saved on backend if they were already saved or have required fields filled
+    const savedCertifications = (certifications.value || []).filter((c: any) => {
+      const wasAlreadySaved = lastSavedData.value?.certifications?.some((lc: any) => lc.id === c.id)
+      return wasAlreadySaved || Boolean(c.name?.trim() && c.issuer?.trim())
+    })
+
     lastSavedData.value = clone({
       title: cvTitle.value,
       summary: summary.value,
@@ -87,7 +101,7 @@ export function useAutosave() {
       education: education.value,
       experience: experience.value,
       skills: skills.value,
-      certifications: certifications.value,
+      certifications: savedCertifications,
     })
   }
 
@@ -192,7 +206,7 @@ export function useAutosave() {
         const deletedIds = lastItems.filter((i: any) => !currentIds.has(i.id)).map((i: any) => i.id)
         for (const id of deletedIds) {
           try {
-            if (!id.startsWith('mock-') && !id.startsWith('temp_')) {
+            if (!id.startsWith('mock-') && !id.startsWith('temp_') && !id.startsWith('cert_') && !id.startsWith('skill_')) {
               await $api<any>(`/cvs/${endpoint}/${id}/`, { method: 'DELETE' })
             }
             sectionsChanged = true
@@ -208,6 +222,11 @@ export function useAutosave() {
           const isNew = !lastIds.has(item.id) || item.id.startsWith('mock-') || item.id.startsWith('temp_')
           const lastItem = lastItems.find((li: any) => li.id === item.id)
 
+          // Only save new certifications once required fields are filled (avoids POSTing blank certifications on "Add Certification")
+          if (isNew && localKey === 'certifications' && (!item.name?.trim() || !item.issuer?.trim())) {
+            continue
+          }
+
           // Always omit the frontend displayOrder, use array index, and remove local id for POST
           const { id, displayOrder, ...payload } = item
           payload.displayOrder = i
@@ -221,7 +240,11 @@ export function useAutosave() {
 
               // Mutate the reactive state directly so the UI knows the real ID
               const stateRef = (useCVState() as any)[localKey]
-              if (stateRef.value[i]) {
+              const targetItem = stateRef.value?.find((s: any) => s.id === item.id)
+              if (targetItem) {
+                targetItem.id = res?.id || res?.uuid || id
+              }
+              else if (stateRef.value?.[i]) {
                 stateRef.value[i].id = res?.id || res?.uuid || id
               }
               finalIds.push(res?.id || res?.uuid || id)

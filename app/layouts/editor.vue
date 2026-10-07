@@ -112,13 +112,19 @@ const resolvedPreviewData = computed<ResolvedCvData>(() => {
     skills: (previewData.value.skills ?? []).map((s, i) => ({
       id: s.id,
       name: s.name || '',
+      level: s.level,
       display_order: i,
     })),
-    certifications: (rawCVData.value?.certifications ?? []).map((c, i) => ({
+    certifications: (previewData.value.certifications ?? []).map((c, i) => ({
       id: c.id,
       name: c.name || '',
       issuer: c.issuer || '',
-      issue_date: c.date || '',
+      issue_date: c.date || undefined,
+      expiration_date: c.expirationDate || undefined,
+      does_not_expire: c.doesNotExpire ?? false,
+      credential_id: c.credentialId || undefined,
+      credential_url: c.credentialUrl || undefined,
+      description: c.description || undefined,
       display_order: i,
     })),
     languages: [],
@@ -222,7 +228,7 @@ useResizeObserver(previewPage, (entries) => {
 <template>
   <div class="h-screen w-full flex flex-col bg-[#F9F8F6] overflow-hidden font-['Inter']">
     <!-- 1. Header -->
-    <header class="h-16 flex-shrink-0 bg-white border-b border-gray-100 px-4 sm:px-6 flex items-center gap-3 z-20 relative">
+    <header class="h-16 shrink-0 bg-white border-b border-gray-100 px-4 sm:px-6 flex items-center gap-3 z-20 relative">
       <!-- Left: Logo, Title, Status (can shrink) -->
       <div class="flex min-w-0 flex-1 items-center gap-3 sm:gap-5">
         <!-- Logo -->
@@ -246,14 +252,14 @@ useResizeObserver(previewPage, (entries) => {
           </span>
         </NuxtLink>
 
-        <div class="h-5 w-[1px] bg-gray-200" />
+        <div class="h-5 w-px bg-gray-200" />
 
         <!-- Editable Title -->
         <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-          <div class="flex items-center gap-1.5 text-gray-900 group min-w-0 max-w-[14rem] flex-1">
+          <div class="flex items-center gap-1.5 text-gray-900 group min-w-0 max-w-56 flex-1">
             <input
               v-model="cvTitle"
-              class="text-[13px] font-semibold bg-gray-50 border border-gray-200 hover:border-gray-300 focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 focus:outline-none rounded-md px-2.5 py-1 w-full min-w-0 transition-all truncate"
+              class="text-[13px] font-semibold bg-gray-50 border border-gray-200 hover:border-gray-300 focus:ring-2 focus:ring-[#C54A22]/20 focus:outline-none rounded-md px-2.5 py-1 w-full min-w-0 transition-all truncate"
             >
             <Pencil class="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600 transition-colors pointer-events-none shrink-0" />
           </div>
@@ -320,8 +326,8 @@ useResizeObserver(previewPage, (entries) => {
     <div class="flex flex-1 min-h-0 overflow-hidden">
       <!-- 2. Sidebar -->
       <div
-        class="hidden lg:flex relative h-full flex-shrink-0 transition-all duration-300 z-20"
-        :class="isSidebarExpanded ? 'w-[260px]' : 'w-[80px]'"
+        class="hidden lg:flex relative h-full shrink-0 transition-all duration-300 z-20"
+        :class="isSidebarExpanded ? 'w-65' : 'w-20'"
       >
         <aside class="flex flex-col h-full bg-[#B64A22] text-white overflow-y-auto w-full">
           <!-- Floating Edge Button -->
@@ -343,7 +349,7 @@ useResizeObserver(previewPage, (entries) => {
               class="flex items-center justify-between px-4 py-3 rounded-xl transition-colors group text-white/80"
               :class="[
                 !isSidebarExpanded ? 'justify-center px-0' : '',
-                $route.path === step.path ? '!bg-[#FCF1EC] !text-[#B64A22] font-semibold shadow-sm' : 'hover:text-white hover:bg-white/10',
+                $route.path === step.path ? 'bg-[#FCF1EC]! text-[#B64A22]! font-semibold shadow-sm' : 'hover:text-white hover:bg-white/10',
               ]"
             >
               <div class="flex items-center gap-3">
@@ -361,7 +367,7 @@ useResizeObserver(previewPage, (entries) => {
               <template v-if="isSidebarExpanded">
                 <div
                   v-if="step.status === 'complete'"
-                  class="w-4 h-4 bg-emerald-500 rounded-full flex flex-col items-center justify-center flex-shrink-0"
+                  class="w-4 h-4 bg-emerald-500 rounded-full flex flex-col items-center justify-center shrink-0"
                 >
                   <Check
                     class="w-3 h-3 text-white"
@@ -370,11 +376,11 @@ useResizeObserver(previewPage, (entries) => {
                 </div>
                 <Circle
                   v-else-if="step.status === 'incomplete'"
-                  class="w-4 h-4 text-yellow-400 fill-yellow-400 flex-shrink-0"
+                  class="w-4 h-4 text-yellow-400 fill-yellow-400 shrink-0"
                 />
                 <Circle
                   v-else
-                  class="w-4 h-4 text-white/40 fill-white/40 flex-shrink-0"
+                  class="w-4 h-4 text-white/40 fill-white/40 shrink-0"
                 />
               </template>
             </div>
@@ -392,7 +398,7 @@ useResizeObserver(previewPage, (entries) => {
 
       <!-- 4. Live Preview Pane (Right) -->
       <aside
-        class="flex-1 lg:max-w-[640px] border-l border-gray-200 bg-[#F9F8F6] min-w-0 min-h-0 overflow-y-auto flex-col"
+        class="flex-1 lg:max-w-160 border-l border-gray-200 bg-[#F9F8F6] min-w-0 min-h-0 overflow-y-auto flex-col"
         :class="mobileView === 'edit' ? 'hidden lg:flex' : 'flex'"
       >
         <!-- Preview Toolbar -->
@@ -432,7 +438,7 @@ useResizeObserver(previewPage, (entries) => {
             :style="{ width: PAGE_W * previewScale + 'px', height: previewPageH * previewScale + 'px' }"
           >
             <button
-              class="w-[794px] origin-top-left bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] rounded-sm border border-gray-200 cursor-zoom-in group relative overflow-hidden focus:outline-none transition-shadow hover:ring-2 hover:ring-gray-300 block text-left"
+              class="w-198.5 origin-top-left bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] rounded-sm border border-gray-200 cursor-zoom-in group relative overflow-hidden focus:outline-none transition-shadow hover:ring-2 hover:ring-gray-300 block text-left"
               :style="{ transform: `scale(${previewScale})` }"
               @click="isPreviewModalOpen = true"
             >
@@ -456,8 +462,8 @@ useResizeObserver(previewPage, (entries) => {
     <!-- Live Preview Modal (Desktop Expansion) -->
     <DialogRoot v-model:open="isPreviewModalOpen">
       <DialogPortal>
-        <DialogOverlay class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-[100] animate-in fade-in transition-opacity" />
-        <DialogContent class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] w-full max-w-5xl h-[95vh] flex justify-center p-4 outline-none animate-in fade-in zoom-in-95 duration-200">
+        <DialogOverlay class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-100 animate-in fade-in transition-opacity" />
+        <DialogContent class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-full max-w-5xl h-[95vh] flex justify-center p-4 outline-none animate-in fade-in zoom-in-95 duration-200">
           <div class="relative h-full aspect-[1/1.414] bg-white shadow-2xl rounded-sm overflow-hidden flex flex-col items-center justify-center border border-gray-200">
             <DialogClose class="absolute top-4 right-4 p-2.5 bg-gray-100 hover:bg-gray-200 rounded-full shadow-sm transition-colors z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400">
               <X class="w-5 h-5 text-gray-700" />
@@ -476,8 +482,8 @@ useResizeObserver(previewPage, (entries) => {
     <!-- Mobile Sections Navigation Sheet -->
     <DialogRoot v-model:open="isMobileSectionsOpen">
       <DialogPortal>
-        <DialogOverlay class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[60] animate-in fade-in transition-opacity" />
-        <DialogContent class="fixed inset-x-0 bottom-0 z-[60] bg-white rounded-t-2xl shadow-2xl outline-none animate-in slide-in-from-bottom-full duration-300 max-h-[85vh] flex flex-col">
+        <DialogOverlay class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-60 animate-in fade-in transition-opacity" />
+        <DialogContent class="fixed inset-x-0 bottom-0 z-60 bg-white rounded-t-2xl shadow-2xl outline-none animate-in slide-in-from-bottom-full duration-300 max-h-[85vh] flex flex-col">
           <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10 rounded-t-2xl">
             <h3 class="text-lg font-bold text-gray-900">
               Jump to section

@@ -37,7 +37,7 @@ const contactItems = computed(() => {
 </script>
 
 <template>
-  <div class="bg-white font-sans text-[13px] leading-snug min-h-[1056px] overflow-hidden">
+  <div class="bg-white font-sans text-[13px] leading-snug min-h-264 overflow-hidden">
     <!-- ══════════ HEADER ══════════ -->
     <header class="px-10 pt-9 pb-6 border-b-2 border-gray-800">
       <h1 class="text-[28px] font-extrabold text-gray-900 tracking-tight leading-none mb-1">
@@ -258,7 +258,10 @@ const contactItems = computed(() => {
             :key="skill.id"
             class="px-2.5 py-0.5 border border-gray-300 rounded text-[11px] text-gray-700"
           >
-            {{ skill.name }}
+            {{ skill.name }}<span
+              v-if="skill.level"
+              class="text-gray-500"
+            > ({{ skill.level }})</span>
           </span>
         </div>
       </section>
@@ -272,22 +275,48 @@ const contactItems = computed(() => {
           <div
             v-for="cert in data.certifications"
             :key="cert.id"
-            class="flex justify-between items-start gap-2"
+            class="space-y-1"
           >
-            <div>
-              <p class="font-semibold text-[12px] text-gray-900">
-                {{ cert.name }}
-              </p>
-              <p class="text-[11px] text-gray-500">
-                {{ cert.issuer }}
-              </p>
+            <div class="flex justify-between items-start gap-2">
+              <div>
+                <p class="font-semibold text-[12px] text-gray-900">
+                  {{ cert.name }}
+                </p>
+                <p class="text-[11px] text-gray-500">
+                  {{ cert.issuer }}
+                </p>
+              </div>
+              <span
+                v-if="cert.issue_date"
+                class="text-[11px] text-gray-400 shrink-0 italic"
+              >
+                {{ formatDate(cert.issue_date) }}
+              </span>
             </div>
-            <span
-              v-if="cert.issue_date"
-              class="text-[11px] text-gray-400 shrink-0 italic"
+            <template
+              v-for="(blk, i) in parseDescription(cert.description)"
+              :key="i"
             >
-              {{ formatDate(cert.issue_date) }}
-            </span>
+              <p
+                v-if="blk.type === 'p'"
+                class="text-[11px] text-gray-600 mt-1 leading-relaxed"
+              >
+                {{ blk.text }}
+              </p>
+              <ul
+                v-else
+                class="mt-1 space-y-1"
+              >
+                <li
+                  v-for="it in blk.items"
+                  :key="it"
+                  class="text-[11px] text-gray-600 flex items-start gap-1.5"
+                >
+                  <span class="mt-1.5 w-1 h-1 rounded-full bg-gray-400 shrink-0" />
+                  {{ it }}
+                </li>
+              </ul>
+            </template>
           </div>
         </div>
       </section>

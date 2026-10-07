@@ -49,6 +49,11 @@ export interface CertificationItem {
   name: string
   issuer: string
   date: string
+  expirationDate?: string
+  doesNotExpire?: boolean
+  credentialId?: string
+  credentialUrl?: string
+  description?: string
 }
 
 export type StepStatus = 'empty' | 'incomplete' | 'complete'
@@ -128,7 +133,7 @@ export const useCVState = () => {
 
   const getCertificationsStatus = (): StepStatus => {
     if (certifications.value.length === 0) return 'empty'
-    const isComplete = certifications.value.every(c => c.name.trim() && c.issuer.trim())
+    const isComplete = certifications.value.every(c => c.name.trim() && c.issuer.trim() && c.date.trim())
     return isComplete ? 'complete' : 'incomplete'
   }
 
@@ -203,6 +208,7 @@ export const useCVState = () => {
             { id: 'mock-skill-2', name: 'Another Skill', level: 'Level' },
             { id: 'mock-skill-3', name: 'Relevant Tool', level: 'Level' },
           ],
+      certifications: certifications.value,
     }
   })
 

@@ -3,6 +3,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import ExperiencePage from '~/pages/editor/experience.vue'
 import EducationPage from '~/pages/editor/education.vue'
+import SkillsPage from '~/pages/editor/skills.vue'
+import CertificationsPage from '~/pages/editor/certifications.vue'
 import { isEndDateBeforeStartDate, isValidDateString } from '~/composables/useCVSectionEditor'
 import { useCVState } from '~/composables/useCVState'
 
@@ -93,11 +95,14 @@ const sharedStubs = {
   DialogClose: { template: '<button><slot /></button>' },
 }
 
-describe('Editor Sections: Experience and Education (Refactored)', () => {
+describe('Editor Sections: Experience, Education, Skills, and Certifications', () => {
   beforeEach(() => {
-    const { experience, education } = useCVState()
+    const { experience, education, skills, certifications, resetCV } = useCVState()
+    resetCV()
     experience.value = []
     education.value = []
+    skills.value = []
+    certifications.value = []
     vi.clearAllMocks()
   })
 
@@ -245,6 +250,228 @@ describe('Editor Sections: Experience and Education (Refactored)', () => {
 
       await checkbox.setValue(false)
       expect(education.value[0]!.endDate).toBe('June 2025')
+    })
+  })
+
+  describe('Skills Page', () => {
+    it('initializes cleanly without force-adding blank items', () => {
+      const { skills } = useCVState()
+      const wrapper = mount(SkillsPage, { global: { stubs: sharedStubs } })
+      expect(skills.value.length).toBe(0)
+      expect(wrapper.text()).toContain('Skills')
+      expect(wrapper.text()).toContain('Add a skill or keyword')
+    })
+
+    it('adds entry when submitting skill name in the form', async () => {
+      const { skills } = useCVState()
+      const wrapper = mount(SkillsPage, { global: { stubs: sharedStubs } })
+
+      const input = wrapper.find('input#skill-input')
+      await input.setValue('Design Systems')
+
+      const form = wrapper.find('form')
+      await form.trigger('submit')
+
+      expect(skills.value.length).toBe(1)
+      expect(skills.value[0]!.name).toBe('Design Systems')
+      expect(skills.value[0]!.level).toBe('Intermediate')
+    })
+
+    it('prevents adding duplicate skills', async () => {
+      const { skills } = useCVState()
+      skills.value = [{
+        id: 's-1',
+        name: 'Design Systems',
+        level: 'Intermediate',
+      }]
+
+      const wrapper = mount(SkillsPage, { global: { stubs: sharedStubs } })
+
+      const input = wrapper.find('input#skill-input')
+      await input.setValue('design systems')
+
+      const form = wrapper.find('form')
+      await form.trigger('submit')
+
+      expect(skills.value.length).toBe(1)
+      expect(wrapper.text()).toContain('This skill is already in your list')
+    })
+
+    it('removes skill when clicking X button', async () => {
+      const { skills } = useCVState()
+      skills.value = [
+        { id: '1', name: 'Design Systems', level: 'Advanced' },
+        { id: '2', name: 'Token Pipelines', level: 'Intermediate' },
+      ]
+
+      const wrapper = mount(SkillsPage, { global: { stubs: sharedStubs } })
+
+      const removeBtns = wrapper.findAll('button[aria-label="Remove skill"]')
+      expect(removeBtns.length).toBe(2)
+      await removeBtns[0]!.trigger('click')
+
+      expect(skills.value.length).toBe(1)
+      expect(skills.value[0]!.id).toBe('2')
+    })
+
+    it('clears all skills when confirming in the dialog', async () => {
+      const { skills } = useCVState()
+      skills.value = [
+        { id: '1', name: 'Skill 1', level: 'Beginner' },
+        { id: '2', name: 'Skill 2', level: 'Advanced' },
+      ]
+
+      const wrapper = mount(SkillsPage, { global: { stubs: sharedStubs } })
+
+      const clearBtn = wrapper.findAll('button').find(b => b.text().includes('Clear all'))
+      expect(clearBtn).toBeDefined()
+      await clearBtn!.trigger('click')
+
+      expect(wrapper.find('.stub-dialog').exists()).toBe(true)
+      const confirmBtn = wrapper.findAll('.stub-dialog button').find(b => b.text().includes('Clear all skills'))
+      expect(confirmBtn).toBeDefined()
+      await confirmBtn!.trigger('click')
+
+      expect(skills.value.length).toBe(0)
+    })
+
+    it('reorders skills using Move up and Move down buttons', async () => {
+      const { skills } = useCVState()
+      skills.value = [
+        { id: '1', name: 'Skill 1', level: 'Beginner' },
+        { id: '2', name: 'Skill 2', level: 'Intermediate' },
+        { id: '3', name: 'Skill 3', level: 'Advanced' },
+      ]
+
+      const wrapper = mount(SkillsPage, { global: { stubs: sharedStubs } })
+      const moveUpBtns = wrapper.findAll('button[aria-label="Move up"]')
+      const moveDownBtns = wrapper.findAll('button[aria-label="Move down"]')
+
+      expect(moveUpBtns.length).toBe(3)
+      expect(moveDownBtns.length).toBe(3)
+
+      // First item move up should be disabled
+      expect(moveUpBtns[0]!.attributes('disabled')).toBeDefined()
+      // Last item move down should be disabled
+      expect(moveDownBtns[2]!.attributes('disabled')).toBeDefined()
+
+      // Move second item down
+      await moveDownBtns[1]!.trigger('click')
+      expect(skills.value.map(s => s.name)).toEqual(['Skill 1', 'Skill 3', 'Skill 2'])
+
+      // Re-query buttons to get fresh element references after list re-render
+      const updatedMoveUpBtns = wrapper.findAll('button[aria-label="Move up"]')
+
+      // Move third item (Skill 2 at index 2) up
+      await updatedMoveUpBtns[2]!.trigger('click')
+      expect(skills.value.map(s => s.name)).toEqual(['Skill 1', 'Skill 2', 'Skill 3'])
+    })
+
+    it('reorders skills when dragged and dropped', async () => {
+      const { skills } = useCVState()
+      skills.value = [
+        { id: '1', name: 'Skill 1', level: 'Beginner' },
+        { id: '2', name: 'Skill 2', level: 'Intermediate' },
+        { id: '3', name: 'Skill 3', level: 'Advanced' },
+      ]
+
+      const wrapper = mount(SkillsPage, { global: { stubs: sharedStubs } })
+      const listItems = wrapper.findAll('li[draggable="true"]')
+      expect(listItems.length).toBe(3)
+
+      // Simulate dragging item 0 over item 2 and dropping
+      await listItems[0]!.trigger('dragstart', {
+        dataTransfer: {
+          effectAllowed: 'move',
+          setData: vi.fn(),
+        },
+      })
+      await listItems[2]!.trigger('dragover', {
+        dataTransfer: {
+          dropEffect: 'move',
+        },
+      })
+      await listItems[2]!.trigger('drop')
+
+      expect(skills.value.map(s => s.name)).toEqual(['Skill 2', 'Skill 3', 'Skill 1'])
+    })
+  })
+
+  describe('Certifications Page', () => {
+    it('initializes cleanly without blank entries', () => {
+      const { certifications } = useCVState()
+      const wrapper = mount(CertificationsPage, { global: { stubs: sharedStubs } })
+      expect(certifications.value.length).toBe(0)
+      expect(wrapper.text()).toContain('Certifications')
+    })
+
+    it('adds entry when Add Certification button is clicked', async () => {
+      const { certifications } = useCVState()
+      const wrapper = mount(CertificationsPage, { global: { stubs: sharedStubs } })
+
+      const addBtn = wrapper.findAll('button').find(b => b.text().includes('Add Certification'))
+      await addBtn!.trigger('click')
+
+      expect(certifications.value.length).toBe(1)
+      expect(wrapper.text()).toContain('Certification Name')
+      expect(wrapper.text()).toContain('Issuing Organization')
+    })
+
+    it('does not discard incomplete certifications on Finish and displays errors', async () => {
+      const { certifications } = useCVState()
+      certifications.value = [
+        { id: 'c1', name: 'Scrum Master', issuer: '', date: '' },
+      ]
+
+      const wrapper = mount(CertificationsPage, { global: { stubs: sharedStubs } })
+
+      const finishBtn = wrapper.findAll('button').find(b => b.text().includes('Finish & Go to Dashboard'))
+      expect(finishBtn).toBeDefined()
+      await finishBtn!.trigger('click')
+
+      // Should keep the half-filled certification entry
+      expect(certifications.value.length).toBe(1)
+      expect(certifications.value[0]!.name).toBe('Scrum Master')
+      // Should show error for missing issuer
+      expect(wrapper.text()).toContain('Issuing organization is required')
+    })
+
+    it('prompts delete dialog and deletes certification by id', async () => {
+      const { certifications } = useCVState()
+      certifications.value = [
+        { id: 'c1', name: 'Cert A', issuer: 'Org A', date: 'Jan 2023' },
+        { id: 'c2', name: 'Cert B', issuer: 'Org B', date: 'Feb 2024' },
+      ]
+
+      const wrapper = mount(CertificationsPage, { global: { stubs: sharedStubs } })
+
+      const collapseBtn = wrapper.findAll('button').find(b => b.text().includes('Collapse'))
+      if (collapseBtn) await collapseBtn.trigger('click')
+
+      const trashBtns = wrapper.findAll('button[aria-label="Delete entry"]')
+      await trashBtns[0]!.trigger('click')
+
+      expect(wrapper.find('.stub-dialog').exists()).toBe(true)
+
+      const confirmBtn = wrapper.findAll('.stub-dialog button').find(b => b.text().includes('Delete certification'))
+      await confirmBtn!.trigger('click')
+
+      expect(certifications.value.length).toBe(1)
+      expect(certifications.value[0]!.id).toBe('c2')
+    })
+
+    it('binds description and key competencies in the form', async () => {
+      const { certifications } = useCVState()
+      certifications.value = [
+        { id: 'c1', name: 'AWS Solutions Architect', issuer: 'Amazon', date: 'May 2024', description: '' },
+      ]
+
+      const wrapper = mount(CertificationsPage, { global: { stubs: sharedStubs } })
+      const descTextarea = wrapper.find('textarea[aria-label="Description & Key Competencies"]')
+      expect(descTextarea.exists()).toBe(true)
+
+      await descTextarea.setValue('• Scalability\n• Cloud Security')
+      expect(certifications.value[0]!.description).toBe('• Scalability\n• Cloud Security')
     })
   })
 })
