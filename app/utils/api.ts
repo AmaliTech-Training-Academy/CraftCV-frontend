@@ -6,24 +6,13 @@ export interface ApiFetchOptions<R extends NitroFetchRequest>
   unauthenticated?: boolean
 }
 
-export const getAuthCookieOptions = <T = unknown>(
-  rememberMe?: boolean,
-): CookieOptions<T> & { readonly?: false } => {
-  const options: CookieOptions<T> & { readonly?: false } = {
+export const getAuthCookieOptions = <T = unknown>(): CookieOptions<T> & { readonly?: false } => {
+  return {
     sameSite: 'lax',
-
     secure: import.meta.client
       ? window.location.protocol === 'https:'
       : false,
   }
-
-  if (rememberMe !== undefined) {
-    options.maxAge = rememberMe
-      ? 60 * 60 * 24 * 30
-      : undefined
-  }
-
-  return options
 }
 
 export function extractErrorMessage(

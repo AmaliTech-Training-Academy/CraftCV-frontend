@@ -75,13 +75,13 @@ export const useAuth = () => {
 
       const tokenValue = response.accessToken || response.access_token
       if (tokenValue) {
-        const tokenCookie = useCookie<string | null>('accessToken', getAuthCookieOptions(rememberMe))
+        const tokenCookie = useCookie<string | null>('accessToken', getAuthCookieOptions())
         tokenCookie.value = tokenValue
         token.value = tokenValue
       }
 
       if (response.user) {
-        const userCookie = useCookie<User | null>('authUser', getAuthCookieOptions(rememberMe))
+        const userCookie = useCookie<User | null>('authUser', getAuthCookieOptions())
         userCookie.value = response.user
         user.value = response.user
       }
