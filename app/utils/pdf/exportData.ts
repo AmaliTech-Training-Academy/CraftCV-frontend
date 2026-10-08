@@ -120,6 +120,10 @@ const emptyPersonal: CvExportPersonal = {
   twitter: '',
   first_name: '',
   last_name: '',
+  nationality: '',
+  dateOfBirth: '',
+  passport: '',
+  availability: '',
 }
 
 const asRecord = (value: unknown): Record<string, unknown> => (

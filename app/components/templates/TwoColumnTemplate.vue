@@ -120,28 +120,28 @@ const p = computed(() => props.data.personal_details ?? {})
             v-if="p.nationality"
             class="flex items-start gap-2 min-w-0"
           >
-            <div class="w-1.5 h-1.5 rounded-full bg-white/50 mt-1.5 shrink-0"></div>
+            <div class="w-1.5 h-1.5 rounded-full bg-white/50 mt-1.5 shrink-0" />
             <span class="break-words">{{ p.nationality }}</span>
           </li>
           <li
             v-if="p.date_of_birth"
             class="flex items-start gap-2 min-w-0"
           >
-            <div class="w-1.5 h-1.5 rounded-full bg-white/50 mt-1.5 shrink-0"></div>
+            <div class="w-1.5 h-1.5 rounded-full bg-white/50 mt-1.5 shrink-0" />
             <span class="break-words">DOB: {{ p.date_of_birth }}</span>
           </li>
           <li
             v-if="p.passport"
             class="flex items-start gap-2 min-w-0"
           >
-            <div class="w-1.5 h-1.5 rounded-full bg-white/50 mt-1.5 shrink-0"></div>
+            <div class="w-1.5 h-1.5 rounded-full bg-white/50 mt-1.5 shrink-0" />
             <span class="break-words">ID: {{ p.passport }}</span>
           </li>
           <li
             v-if="p.availability"
             class="flex items-start gap-2 min-w-0"
           >
-            <div class="w-1.5 h-1.5 rounded-full bg-white/50 mt-1.5 shrink-0"></div>
+            <div class="w-1.5 h-1.5 rounded-full bg-white/50 mt-1.5 shrink-0" />
             <span class="break-words">{{ p.availability }}</span>
           </li>
           <li
@@ -328,10 +328,18 @@ const p = computed(() => props.data.personal_details ?? {})
                 class="text-[11px] text-gray-400 shrink-0"
               >{{ formatDate(cert.issue_date) }}</span>
             </div>
-            <div v-if="cert.credential_id || cert.credential_url" class="text-[10px] text-gray-500 mt-0.5">
+            <div
+              v-if="cert.credential_id || cert.credential_url"
+              class="text-[10px] text-gray-500 mt-0.5"
+            >
               <span v-if="cert.credential_id">Credential ID: {{ cert.credential_id }}</span>
               <span v-if="cert.credential_id && cert.credential_url"> | </span>
-              <a v-if="cert.credential_url" :href="cert.credential_url" target="_blank" class="hover:underline text-[#2c3e50] font-medium break-all">
+              <a
+                v-if="cert.credential_url"
+                :href="cert.credential_url"
+                target="_blank"
+                class="hover:underline text-[#2c3e50] font-medium break-all"
+              >
                 Verify Credential ↗
               </a>
             </div>

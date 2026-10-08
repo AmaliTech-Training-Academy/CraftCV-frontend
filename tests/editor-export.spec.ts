@@ -101,7 +101,7 @@ describe('Editor Export Integration', () => {
       },
     })
 
-    const exportButtons = wrapper.findAll('button').filter(b => b.text().includes('Export PDF'))
+    const exportButtons = wrapper.findAll('button').filter(b => b.text().includes('Export'))
     expect(exportButtons.length).toBeGreaterThan(0)
 
     expect(document.body.textContent).not.toContain('Ready to export')

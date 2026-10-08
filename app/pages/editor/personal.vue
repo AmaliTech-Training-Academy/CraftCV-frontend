@@ -47,7 +47,7 @@ const toggleAdditionalField = (fieldId: string) => {
   additionalFields[fieldId] = !additionalFields[fieldId]
   if (!additionalFields[fieldId]) {
     // Clear the data when the field is hidden so it doesn't show in preview
-    ;(personal.value as any)[fieldId] = ''
+    personal.value[fieldId as keyof typeof personal.value] = ''
   }
 }
 

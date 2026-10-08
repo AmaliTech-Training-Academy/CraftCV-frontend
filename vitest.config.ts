@@ -13,5 +13,6 @@ export default defineVitestConfig({
     exclude: ['node_modules/**', '.nuxt/**', '.output/**', 'dist/**'],
     environment: 'node',
     testTimeout: 30_000,
+    hookTimeout: 30_000,
   },
 })

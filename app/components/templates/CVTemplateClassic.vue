@@ -230,10 +230,18 @@ defineProps<{
             <div class="flex justify-between items-baseline gap-2">
               <span class="text-[13px] text-[#C54A22] font-semibold min-w-0">{{ cert.issuer }}</span>
             </div>
-            <div v-if="cert.credential_id || cert.credential_url" class="text-[12px] text-gray-500 mt-0.5">
+            <div
+              v-if="cert.credential_id || cert.credential_url"
+              class="text-[12px] text-gray-500 mt-0.5"
+            >
               <span v-if="cert.credential_id">Credential ID: {{ cert.credential_id }}</span>
               <span v-if="cert.credential_id && cert.credential_url"> | </span>
-              <a v-if="cert.credential_url" :href="cert.credential_url" target="_blank" class="hover:underline text-[#C54A22] break-all">
+              <a
+                v-if="cert.credential_url"
+                :href="cert.credential_url"
+                target="_blank"
+                class="hover:underline text-[#C54A22] break-all"
+              >
                 Verify Credential ↗
               </a>
             </div>

@@ -137,7 +137,7 @@ const contactItems = computed(() => {
             /></svg>
           </template>
           <template v-else>
-            <div class="w-1 h-1 rounded-full bg-gray-400 shrink-0"></div>
+            <div class="w-1 h-1 rounded-full bg-gray-400 shrink-0" />
           </template>
           <span class="break-all">{{ item.value }}</span>
         </span>
@@ -300,10 +300,18 @@ const contactItems = computed(() => {
                 {{ formatDate(cert.issue_date) }}
               </span>
             </div>
-            <div v-if="cert.credential_id || cert.credential_url" class="text-[11px] text-gray-500 mt-0.5">
+            <div
+              v-if="cert.credential_id || cert.credential_url"
+              class="text-[11px] text-gray-500 mt-0.5"
+            >
               <span v-if="cert.credential_id">Credential ID: {{ cert.credential_id }}</span>
               <span v-if="cert.credential_id && cert.credential_url"> | </span>
-              <a v-if="cert.credential_url" :href="cert.credential_url" target="_blank" class="hover:underline text-gray-900 font-medium break-all">
+              <a
+                v-if="cert.credential_url"
+                :href="cert.credential_url"
+                target="_blank"
+                class="hover:underline text-gray-900 font-medium break-all"
+              >
                 Verify Credential ↗
               </a>
             </div>
