@@ -8,7 +8,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="w-full h-full bg-white px-10 py-12 text-gray-900 font-serif shadow-sm flex flex-col text-left">
+  <div class="w-full h-full bg-white px-10 py-12 text-gray-900 font-serif shadow-sm flex flex-col text-left break-words">
     <!-- Header -->
     <div class="flex flex-col border-b border-gray-300 pb-6 mb-6">
       <h1 class="text-4xl font-bold uppercase tracking-widest mb-2 text-gray-900">
@@ -20,22 +20,46 @@ defineProps<{
 
       <!-- Contact Info -->
       <div class="flex flex-wrap gap-x-4 gap-y-2 text-xs text-gray-600 font-sans">
-        <div class="flex items-center gap-1">
-          {{ data.personal_details.email }}
+        <div class="flex items-center gap-1 min-w-0">
+          <span class="truncate">{{ data.personal_details.email }}</span>
         </div>
         <span class="text-gray-300">|</span>
-        <div class="flex items-center gap-1">
-          {{ data.personal_details.phone }}
+        <div class="flex items-center gap-1 min-w-0">
+          <span class="truncate">{{ data.personal_details.phone }}</span>
         </div>
         <span class="text-gray-300">|</span>
-        <div class="flex items-center gap-1">
-          {{ data.personal_details.location }}
+        <div class="flex items-center gap-1 min-w-0">
+          <span class="truncate">{{ data.personal_details.location }}</span>
         </div>
 
         <template v-if="data.personal_details.website && data.personal_details.website !== 'www.yourwebsite.com'">
           <span class="text-gray-300">|</span>
-          <div class="flex items-center gap-1">
-            {{ data.personal_details.website }}
+          <div class="flex items-center gap-1 min-w-0">
+            <span class="truncate">{{ data.personal_details.website }}</span>
+          </div>
+        </template>
+        <template v-if="data.personal_details.nationality">
+          <span class="text-gray-300">|</span>
+          <div class="flex items-center gap-1 min-w-0">
+            <span class="truncate">{{ data.personal_details.nationality }}</span>
+          </div>
+        </template>
+        <template v-if="data.personal_details.date_of_birth">
+          <span class="text-gray-300">|</span>
+          <div class="flex items-center gap-1 min-w-0">
+            <span class="truncate">DOB: {{ data.personal_details.date_of_birth }}</span>
+          </div>
+        </template>
+        <template v-if="data.personal_details.passport">
+          <span class="text-gray-300">|</span>
+          <div class="flex items-center gap-1 min-w-0">
+            <span class="truncate">ID: {{ data.personal_details.passport }}</span>
+          </div>
+        </template>
+        <template v-if="data.personal_details.availability">
+          <span class="text-gray-300">|</span>
+          <div class="flex items-center gap-1 min-w-0">
+            <span class="truncate">{{ data.personal_details.availability }}</span>
           </div>
         </template>
       </div>
@@ -70,15 +94,15 @@ defineProps<{
             :key="job.id"
             class="flex flex-col gap-1 font-sans"
           >
-            <div class="flex justify-between items-baseline">
-              <h4 class="text-[14px] font-bold text-gray-900">
+            <div class="flex justify-between items-baseline gap-2">
+              <h4 class="text-[14px] font-bold text-gray-900 min-w-0">
                 {{ job.role }}
               </h4>
-              <span class="text-[11px] text-gray-500 font-semibold">{{ dateRangeLabel(job.start_date, job.end_date, !job.end_date) }}</span>
+              <span class="text-[11px] text-gray-500 font-semibold shrink-0">{{ dateRangeLabel(job.start_date, job.end_date, !job.end_date) }}</span>
             </div>
-            <div class="flex justify-between items-baseline mb-1">
-              <span class="text-[13px] text-[#C54A22] font-semibold">{{ job.company }}</span>
-              <span class="text-[11px] text-gray-500">{{ job.location }}</span>
+            <div class="flex justify-between items-baseline mb-1 gap-2">
+              <span class="text-[13px] text-[#C54A22] font-semibold min-w-0">{{ job.company }}</span>
+              <span class="text-[11px] text-gray-500 shrink-0">{{ job.location }}</span>
             </div>
             <template
               v-for="(blk, i) in parseDescription(job.description)"
@@ -120,15 +144,15 @@ defineProps<{
             :key="edu.id"
             class="flex flex-col gap-1 font-sans"
           >
-            <div class="flex justify-between items-baseline">
-              <h4 class="text-[14px] font-bold text-gray-900">
+            <div class="flex justify-between items-baseline gap-2">
+              <h4 class="text-[14px] font-bold text-gray-900 min-w-0">
                 {{ edu.degree }}
               </h4>
-              <span class="text-[11px] text-gray-500 font-semibold">{{ dateRangeLabel(edu.start_date, edu.end_date, !edu.end_date) }}</span>
+              <span class="text-[11px] text-gray-500 font-semibold shrink-0">{{ dateRangeLabel(edu.start_date, edu.end_date, !edu.end_date) }}</span>
             </div>
-            <div class="flex justify-between items-baseline mb-1">
-              <span class="text-[13px] text-[#C54A22] font-semibold">{{ edu.institution }}</span>
-              <span class="text-[11px] text-gray-500">{{ edu.location }}</span>
+            <div class="flex justify-between items-baseline mb-1 gap-2">
+              <span class="text-[13px] text-[#C54A22] font-semibold min-w-0">{{ edu.institution }}</span>
+              <span class="text-[11px] text-gray-500 shrink-0">{{ edu.location }}</span>
             </div>
             <template
               v-for="(blk, i) in parseDescription(edu.description)"
@@ -194,17 +218,24 @@ defineProps<{
             :key="cert.id"
             class="flex flex-col gap-0.5"
           >
-            <div class="flex justify-between items-baseline">
-              <h4 class="text-[14px] font-bold text-gray-900">
+            <div class="flex justify-between items-baseline gap-2">
+              <h4 class="text-[14px] font-bold text-gray-900 min-w-0">
                 {{ cert.name }}
               </h4>
               <span
                 v-if="cert.issue_date"
-                class="text-[11px] text-gray-500 font-semibold"
+                class="text-[11px] text-gray-500 font-semibold shrink-0"
               >{{ formatMonthYear(cert.issue_date) }}</span>
             </div>
-            <div class="flex justify-between items-baseline">
-              <span class="text-[13px] text-[#C54A22] font-semibold">{{ cert.issuer }}</span>
+            <div class="flex justify-between items-baseline gap-2">
+              <span class="text-[13px] text-[#C54A22] font-semibold min-w-0">{{ cert.issuer }}</span>
+            </div>
+            <div v-if="cert.credential_id || cert.credential_url" class="text-[12px] text-gray-500 mt-0.5">
+              <span v-if="cert.credential_id">Credential ID: {{ cert.credential_id }}</span>
+              <span v-if="cert.credential_id && cert.credential_url"> | </span>
+              <a v-if="cert.credential_url" :href="cert.credential_url" target="_blank" class="hover:underline text-[#C54A22] break-all">
+                Verify Credential ↗
+              </a>
             </div>
             <template
               v-for="(blk, i) in parseDescription(cert.description)"

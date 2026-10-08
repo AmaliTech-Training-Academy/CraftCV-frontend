@@ -1,6 +1,6 @@
 // @vitest-environment nuxt
 import { mount, type VueWrapper } from '@vue/test-utils'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { CalendarDate, getLocalTimeZone, today } from '@internationalized/date'
 import MonthYearPicker, { MONTH_NAMES, formatDateValue, parseDateValue } from '../../app/components/editor/MonthYearPicker.vue'
@@ -165,7 +165,12 @@ describe('MonthYearPicker.vue', () => {
     await nextTick()
 
     expect(wrapper.emitted('update:modelValue')?.[0]).toEqual(['June 2023'])
-    expect(cells(MONTH)).toHaveLength(0)
+
+    // The panel is taken down by reka's `Presence`, which waits for the leave
+    // transition to finish rather than dropping out of the DOM on the same tick
+    // the value is committed. Poll for it — and if it never goes, that is the
+    // panel genuinely failing to close, not the assertion being impatient.
+    await vi.waitFor(() => expect(cells(MONTH)).toHaveLength(0))
   })
 
   it('steps the heading year with prev and next', async () => {

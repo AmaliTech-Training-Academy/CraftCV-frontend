@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useAuth } from '../app/composables/useAuth'
-import { extractErrorMessage } from '../app/utils/api'
+import { extractErrorMessage, extractFieldErrors } from '../app/utils/api'
 import authMiddleware from '../app/middleware/auth'
 
 const { mockApi, cookies, mockNavigateTo, getCookieRef, getStateRef } = vi.hoisted(() => {
@@ -296,6 +296,66 @@ describe('Authentication Flow', () => {
           data: { email: ['Email already exists.'], password: ['Password too short.'] },
         }),
       ).toBe('Email already exists. Password too short.')
+    })
+  })
+
+  describe('extractFieldErrors', () => {
+    it('reads each field message out of a DRF validation body', () => {
+      expect(
+        extractFieldErrors({
+          data: {
+            phone: ['This field may not be blank.'],
+            location: ['This field may not be blank.'],
+            message: 'Invalid CV data.',
+          },
+        }),
+      ).toEqual({
+        phone: 'This field may not be blank.',
+        location: 'This field may not be blank.',
+      })
+    })
+
+    it('finds the body on the response object too', () => {
+      expect(
+        extractFieldErrors({ response: { _data: { firstName: ['This field is required.'] } } }),
+      ).toEqual({ firstName: 'This field is required.' })
+    })
+
+    it('leaves out the summaries, which name no field to show them beside', () => {
+      expect(
+        extractFieldErrors({
+          data: {
+            detail: 'Not found.',
+            message: 'Invalid CV data.',
+            error: 'Nope.',
+            non_field_errors: ['Bad request.'],
+          },
+        }),
+      ).toEqual({})
+    })
+
+    it('takes the first message when one field carries several', () => {
+      expect(
+        extractFieldErrors({ data: { email: ['Enter a valid email address.', 'Too long.'] } }),
+      ).toEqual({ email: 'Enter a valid email address.' })
+    })
+
+    it('skips nested serializers, whose entries hold no message of their own', () => {
+      expect(
+        extractFieldErrors({
+          data: {
+            experiences: [{ role: ['This field is required.'] }, {}],
+            phone: 'This field may not be blank.',
+          },
+        }),
+      ).toEqual({ phone: 'This field may not be blank.' })
+    })
+
+    it('has no fields when the response is not a field map', () => {
+      expect(extractFieldErrors(null)).toEqual({})
+      expect(extractFieldErrors(new Error('network down'))).toEqual({})
+      expect(extractFieldErrors({ statusCode: 502, data: '<html>502 Bad Gateway</html>' })).toEqual({})
+      expect(extractFieldErrors({ data: ['a', 'b'] })).toEqual({})
     })
   })
 

@@ -44,8 +44,8 @@ const handleDone = () => {
       v-show="isOpen"
       class="p-6 border border-gray-200 rounded-xl bg-white shadow-sm mb-4"
     >
-      <div class="flex items-center justify-between mb-4 border-b pb-4">
-        <h3 class="font-bold text-gray-900">
+      <div class="flex items-center justify-between gap-4 mb-4 border-b pb-4">
+        <h3 class="font-bold text-gray-900 truncate min-w-0">
           {{ title }}
         </h3>
       </div>
@@ -76,19 +76,19 @@ const handleDone = () => {
         <DialogOverlay class="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity" />
         <DialogContent class="fixed inset-0 z-40 bg-[#F9F6F0] flex flex-col overflow-hidden outline-none duration-300 animate-in slide-in-from-bottom-full sm:max-w-none">
           <!-- Sticky Header -->
-          <div class="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-white border-b border-gray-100 shadow-sm">
+          <div class="sticky top-0 z-10 flex items-center justify-between gap-3 px-4 py-3 bg-white border-b border-gray-100 shadow-sm">
             <button
-              class="text-sm font-semibold text-gray-600 p-2 -ml-2"
+              class="text-sm font-semibold text-gray-600 p-2 -ml-2 shrink-0"
               aria-label="Cancel"
               @click="handleCancel"
             >
               Cancel
             </button>
-            <DialogTitle class="text-[15px] font-bold text-gray-900 tracking-tight">
+            <DialogTitle class="text-[15px] font-bold text-gray-900 tracking-tight truncate min-w-0 text-center">
               {{ title }}
             </DialogTitle>
             <button
-              class="text-sm font-bold text-[#B64A22] p-2 -mr-2"
+              class="text-sm font-bold text-[#B64A22] p-2 -mr-2 shrink-0"
               aria-label="Done"
               @click="handleDone"
             >

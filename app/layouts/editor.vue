@@ -32,6 +32,7 @@ import type { ExportPayload } from '~/types/export'
 import { generatePDF, generatePlainText, printDocument } from '~/utils/pdfExport'
 
 const {
+  cvId,
   cvTitle,
   rawCVData,
   getPersonalStatus,
@@ -49,10 +50,24 @@ const {
 
 const { loadCV } = useAutosave()
 
-onMounted(() => {
-  const { cvId } = useCVState()
+/**
+ * The editor's fields read from shared state, which starts empty on a fresh
+ * page load — so until the fetch lands they render blank and a CV that has
+ * content looks like it lost it. Holding the workspace behind a loading state
+ * until the response is in means they are never seen empty.
+ *
+ * The flag is read during setup rather than in `onMounted` on purpose: set any
+ * later and it is false for the first paint, which is exactly the flash of
+ * empty fields this is here to prevent.
+ */
+const isBootstrapping = ref(Boolean(cvId.value))
+
+onMounted(async () => {
+  // No id means a CV that does not exist yet: there is nothing to fetch, and
+  // the flag is already false.
   if (cvId.value) {
-    loadCV(cvId.value)
+    await loadCV(cvId.value)
+    isBootstrapping.value = false
   }
 })
 
@@ -87,6 +102,10 @@ const resolvedPreviewData = computed<ResolvedCvData>(() => {
       phone: p.phone || '',
       location: p.location || '',
       website: p.website || '',
+      nationality: p.nationality || '',
+      date_of_birth: p.dateOfBirth || '',
+      passport: p.passport || '',
+      availability: p.availability || '',
     },
     experiences: (previewData.value.experience ?? []).map((e, i) => ({
       id: e.id,
@@ -185,6 +204,31 @@ const handlePrint = async () => {
     exportError.value = error instanceof Error ? error.message : 'Failed to initialize printing. Please try again.'
   }
 }
+
+const tooltipState = ref({ visible: false, text: '', top: 0, left: 0 })
+
+const onHover = (name: string, event: Event) => {
+  if (isSidebarExpanded.value) return
+  const el = event.currentTarget as HTMLElement
+  if (!el) return
+
+  const rect = el.getBoundingClientRect()
+  tooltipState.value = {
+    visible: true,
+    text: name,
+    top: rect.top + (rect.height / 2) - 14, // center vertically roughly
+    left: rect.right + 12, // tether to the right of the icon button + 12px gap
+  }
+}
+
+const onLeave = () => {
+  tooltipState.value.visible = false
+}
+
+// Watch sidebar state to hide tooltip if expanded while hovering
+watch(isSidebarExpanded, (expanded) => {
+  if (expanded) tooltipState.value.visible = false
+})
 
 const steps = computed(() => [
   { id: 'personal', name: 'Personal Details', icon: User, status: getPersonalStatus(), path: '/editor/personal' },
@@ -322,8 +366,24 @@ useResizeObserver(previewPage, (entries) => {
       </div>
     </header>
 
+    <!-- Loading state: the workspace is held back until the CV has arrived, so
+         the fields are never rendered empty (see `isBootstrapping`). -->
+    <div
+      v-if="isBootstrapping"
+      role="status"
+      class="flex flex-1 min-h-0 flex-col items-center justify-center gap-3 bg-[#F9F8F6] animate-in fade-in duration-300"
+    >
+      <Loader2 class="w-6 h-6 text-[#C54A22] animate-spin" />
+      <p class="text-[13px] font-medium text-gray-500">
+        Loading your CV...
+      </p>
+    </div>
+
     <!-- Main Workspace -->
-    <div class="flex flex-1 min-h-0 overflow-hidden">
+    <div
+      v-else
+      class="flex flex-1 min-h-0 overflow-hidden"
+    >
       <!-- 2. Sidebar -->
       <div
         class="hidden lg:flex relative h-full shrink-0 transition-all duration-300 z-20"
@@ -342,15 +402,22 @@ useResizeObserver(previewPage, (entries) => {
             />
           </button>
 
-          <nav class="flex-1 px-3 pt-10 pb-6 flex flex-col gap-1">
-            <div
+          <nav
+            class="flex-1 px-3 pt-10 pb-6 flex flex-col gap-1 relative"
+            @mouseleave="onLeave"
+          >
+            <NuxtLink
               v-for="step in steps"
               :key="step.id"
-              class="flex items-center justify-between px-4 py-3 rounded-xl transition-colors group text-white/80"
+              :to="step.path"
+              class="flex items-center justify-between px-4 py-3 rounded-xl transition-colors group text-white/80 outline-none focus-visible:ring-2 focus-visible:ring-white/50"
               :class="[
                 !isSidebarExpanded ? 'justify-center px-0' : '',
                 $route.path === step.path ? 'bg-[#FCF1EC]! text-[#B64A22]! font-semibold shadow-sm' : 'hover:text-white hover:bg-white/10',
               ]"
+              @mouseenter="onHover(step.name, $event)"
+              @focus="onHover(step.name, $event)"
+              @blur="onLeave"
             >
               <div class="flex items-center gap-3">
                 <component
@@ -383,10 +450,25 @@ useResizeObserver(previewPage, (entries) => {
                   class="w-4 h-4 text-white/40 fill-white/40 shrink-0"
                 />
               </template>
-            </div>
+            </NuxtLink>
           </nav>
         </aside>
       </div>
+
+      <!-- Tooltip for collapsed sidebar -->
+      <Teleport to="body">
+        <div
+          v-if="tooltipState.visible && !isSidebarExpanded"
+          class="fixed z-50 px-3 py-1.5 bg-gray-900 text-white text-xs font-semibold tracking-wide rounded shadow-xl pointer-events-none transition-all duration-150 ease-out"
+          :class="tooltipState.visible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'"
+          :style="{
+            top: tooltipState.top + 'px',
+            left: tooltipState.left + 'px',
+          }"
+        >
+          {{ tooltipState.text }}
+        </div>
+      </Teleport>
 
       <!-- 3. Form Area (Middle Slot) -->
       <main

@@ -12,10 +12,17 @@ const emit = defineEmits<{
   (e: 'toggle-current', isCurrent: boolean): void
 }>()
 
-const { education } = useCVState()
+const { education, saveErrorFor } = useCVState()
 
 const itemIndex = computed(() => education.value.findIndex(e => e.id === props.id))
 const item = computed(() => education.value[itemIndex.value])
+
+/**
+ * The message a rejected save put on one of this entry's fields, or ''. Scoped
+ * to this record by id, so a message the backend sent about another entry
+ * cannot appear here.
+ */
+const backendError = (key: string) => saveErrorFor(props.id, key)
 
 const onEdit = () => {
   // No longer needed to emit for autosave, state is watched globally
@@ -38,7 +45,7 @@ const toggleCurrent = (e: Event) => {
       <EditorFormField
         v-model="item.school"
         :required="true"
-        :error="showErrors && !item.school.trim() ? 'Required' : ''"
+        :error="backendError('school') || (showErrors && !item.school.trim() ? 'Required' : '')"
         label="School / University"
         placeholder="e.g. KNUST"
         @update:model-value="onEdit"
@@ -47,6 +54,7 @@ const toggleCurrent = (e: Event) => {
         v-model="item.location"
         label="Location"
         placeholder="e.g. Kumasi, Ghana"
+        :error="backendError('location')"
         @update:model-value="onEdit"
       />
     </div>
@@ -55,7 +63,7 @@ const toggleCurrent = (e: Event) => {
       <EditorFormField
         v-model="item.degree"
         :required="true"
-        :error="showErrors && !item.degree.trim() ? 'Required' : ''"
+        :error="backendError('degree') || (showErrors && !item.degree.trim() ? 'Required' : '')"
         label="Degree / Certificate"
         placeholder="e.g. B.S."
         @update:model-value="onEdit"
@@ -64,6 +72,7 @@ const toggleCurrent = (e: Event) => {
         v-model="item.fieldOfStudy"
         label="Field of Study"
         placeholder="e.g. Computer Science"
+        :error="backendError('fieldOfStudy')"
         @update:model-value="onEdit"
       />
     </div>
@@ -72,7 +81,7 @@ const toggleCurrent = (e: Event) => {
       <EditorMonthYearPicker
         v-model="item.startDate"
         disable-future
-        :error="(!isValidDateString(item.startDate) && item.startDate !== '') || (showErrors && !isValidDateString(item.startDate)) ? 'Required' : ''"
+        :error="backendError('startDate') || ((!isValidDateString(item.startDate) && item.startDate !== '') || (showErrors && !isValidDateString(item.startDate)) ? 'Required' : '')"
         :required="true"
         label="Start Date"
         @update:model-value="onEdit"
@@ -81,7 +90,7 @@ const toggleCurrent = (e: Event) => {
         <EditorMonthYearPicker
           v-model="item.endDate"
           :disabled="item.isCurrent"
-          :error="isEndDateBeforeStartDate(item.startDate, item.endDate, item.isCurrent) ? 'End date must be after the start date' : (showErrors && !item.isCurrent && !isValidDateString(item.endDate) ? 'Required' : '')"
+          :error="backendError('endDate') || (isEndDateBeforeStartDate(item.startDate, item.endDate, item.isCurrent) ? 'End date must be after the start date' : (showErrors && !item.isCurrent && !isValidDateString(item.endDate) ? 'Required' : ''))"
           label="End Date"
           @update:model-value="onEdit"
         />

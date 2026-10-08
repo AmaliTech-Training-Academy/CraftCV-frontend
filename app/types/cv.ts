@@ -8,6 +8,10 @@ export interface PersonalDetails {
   website?: string
   github?: string
   twitter?: string
+  nationality?: string
+  date_of_birth?: string
+  passport?: string
+  availability?: string
 }
 
 export interface Education {

@@ -20,10 +20,18 @@ describe('useCVState', () => {
       personal.value.lastName = 'Doe'
       personal.value.email = 'john@example.com'
 
+      // Phone and location are required by the backend — it rejects either one
+      // blank — so the trio on its own leaves required fields missing and the
+      // step reports nothing yet rather than "nearly there".
+      expect(getPersonalStatus()).toBe('empty')
+
+      personal.value.phone = '1234567890'
+      personal.value.location = 'Accra'
+
       expect(getPersonalStatus()).toBe('incomplete')
     })
 
-    it('returns complete for personal status when required and standard optional fields are filled', () => {
+    it('returns complete for personal status when the required fields and the title are filled', () => {
       const { personal, getPersonalStatus } = useCVState()
       personal.value.firstName = 'John'
       personal.value.lastName = 'Doe'

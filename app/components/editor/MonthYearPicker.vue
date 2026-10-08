@@ -1,5 +1,46 @@
 <script lang="ts">
-import { CalendarDate, getLocalTimeZone, today, type DateValue } from '@internationalized/date'
+import { CalendarDate, getLocalTimeZone, today } from '@internationalized/date'
+import { computed, ref, shallowRef, useId, watch } from 'vue'
+import { CalendarDays, ChevronLeft, ChevronRight } from '@lucide/vue'
+import {
+  CalendarCell,
+  CalendarCellTrigger,
+  CalendarGrid,
+  CalendarGridBody,
+  CalendarGridHead,
+  CalendarGridRow,
+  CalendarHeadCell,
+  CalendarHeader,
+  CalendarHeading,
+  CalendarNext,
+  CalendarPrev,
+  CalendarRoot,
+  type DateValue,
+  MonthPickerCell,
+  MonthPickerCellTrigger,
+  MonthPickerGrid,
+  MonthPickerGridBody,
+  MonthPickerGridRow,
+  MonthPickerHeader,
+  MonthPickerHeading,
+  MonthPickerNext,
+  MonthPickerPrev,
+  MonthPickerRoot,
+  PopoverContent,
+  PopoverPortal,
+  PopoverRoot,
+  PopoverTrigger,
+  YearPickerCell,
+  YearPickerCellTrigger,
+  YearPickerGrid,
+  YearPickerGridBody,
+  YearPickerGridRow,
+  YearPickerHeader,
+  YearPickerHeading,
+  YearPickerNext,
+  YearPickerPrev,
+  YearPickerRoot,
+} from 'reka-ui'
 
 export type DatePickerMode = 'month' | 'day'
 
@@ -54,47 +95,6 @@ export function formatDateValue(date: DateValue, mode: DatePickerMode = 'month')
 </script>
 
 <script setup lang="ts">
-import { computed, ref, useId, watch } from 'vue'
-import { CalendarDays, ChevronLeft, ChevronRight } from '@lucide/vue'
-import {
-  CalendarCell,
-  CalendarCellTrigger,
-  CalendarGrid,
-  CalendarGridBody,
-  CalendarGridHead,
-  CalendarGridRow,
-  CalendarHeadCell,
-  CalendarHeader,
-  CalendarHeading,
-  CalendarNext,
-  CalendarPrev,
-  CalendarRoot,
-  MonthPickerCell,
-  MonthPickerCellTrigger,
-  MonthPickerGrid,
-  MonthPickerGridBody,
-  MonthPickerGridRow,
-  MonthPickerHeader,
-  MonthPickerHeading,
-  MonthPickerNext,
-  MonthPickerPrev,
-  MonthPickerRoot,
-  PopoverContent,
-  PopoverPortal,
-  PopoverRoot,
-  PopoverTrigger,
-  YearPickerCell,
-  YearPickerCellTrigger,
-  YearPickerGrid,
-  YearPickerGridBody,
-  YearPickerGridRow,
-  YearPickerHeader,
-  YearPickerHeading,
-  YearPickerNext,
-  YearPickerPrev,
-  YearPickerRoot,
-} from 'reka-ui'
-
 const props = withDefaults(
   defineProps<{
     modelValue?: string | null
@@ -169,10 +169,12 @@ const displayValue = computed(() => (props.modelValue ?? '').trim())
  * paging the month grid or the year grid updates this, so drilling up or down
  * lands on the page you were just looking at instead of snapping back.
  *
- * Typed as `DateValue` rather than `CalendarDate` because reka writes the
- * bound value back through `update:placeholder`.
+ * A `shallowRef` holding reka's own `DateValue` rather than a `ref`: `ref` runs
+ * the union through Vue's `UnwrapRef`, which rebuilds each calendar class as a
+ * mapped type and drops its `#private` brand, leaving a value the `placeholder`
+ * prop no longer accepts.
  */
-const placeholderDate = ref<DateValue>(selectedDate.value ?? today(getLocalTimeZone()))
+const placeholderDate = shallowRef<DateValue>(selectedDate.value ?? today(getLocalTimeZone()))
 
 const panel = ref<Panel>(props.mode === 'day' ? 'days' : 'months')
 

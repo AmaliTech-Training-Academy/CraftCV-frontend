@@ -270,7 +270,7 @@ const submitExport = () => {
   <Dialog v-model:open="isOpen">
     <DialogContent
       :show-close-button="false"
-      class="sm:max-w-none w-[calc(100%-2rem)] max-w-[1280px] h-[min(780px,calc(100vh-2rem))] max-h-[calc(100vh-2rem)] gap-0 overflow-hidden rounded-2xl bg-stone-50 p-0 text-stone-900 shadow-2xl z-[70]"
+      class="sm:max-w-none w-[calc(100%-2rem)] max-w-[1024px] h-[min(780px,calc(100vh-2rem))] max-h-[calc(100vh-2rem)] gap-0 overflow-hidden rounded-2xl bg-stone-50 p-0 text-stone-900 shadow-2xl z-[70]"
     >
       <DialogHeader class="flex h-13 shrink-0 flex-row items-center justify-between border-b border-stone-200 bg-white px-5 py-0 text-left">
         <div class="flex items-center gap-3">
