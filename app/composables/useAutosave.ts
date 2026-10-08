@@ -55,6 +55,14 @@ export function useAutosave() {
   }
 
   /**
+   * The personal-details fields the editor collects that the backend does not
+   * model. Nothing can bring them back from a fetch, so they are merged forward
+   * on a re-read of the CV already open — and cleared when a different one is
+   * opened, because otherwise the CV being left would keep supplying them.
+   */
+  const localOnlyPersonalKeys = ['title', 'nationality', 'dateOfBirth', 'passport', 'availability'] as const
+
+  /**
    * Whether the backend already holds a personal-details record for the open CV.
    *
    * It does not create one alongside the CV: `/cvs/personal-details/` exposes
@@ -131,9 +139,20 @@ export function useAutosave() {
     isLoading.value = true
     try {
       const data = await $api<any>(`/cvs/${id}/`)
+      const incomingId = data.cvId || data.id || data.uuid || id
+
+      // Opening a CV other than the one already open replaces the editor's
+      // fields wholesale. The sections below are assigned outright, but the
+      // personal record is merged, and its local-only fields have no backend
+      // field to come back from — left alone they would carry the CV being
+      // left into the one being opened, professional title included, which is
+      // what the CV's own name is derived from.
+      if (cvId.value && cvId.value !== incomingId) {
+        for (const key of localOnlyPersonalKeys) personal.value[key] = ''
+      }
 
       // Populate local state
-      cvId.value = data.cvId || data.id || data.uuid || id
+      cvId.value = incomingId
       cvTitle.value = data.title || 'Untitled'
       summary.value = data.professionalSummary || ''
       selectedTemplateId.value = data.template || ''

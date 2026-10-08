@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, computed, ref } from 'vue'
+import { reactive, computed, ref, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { Check } from '@lucide/vue'
 import { useCVState } from '~/composables/useCVState'
@@ -57,6 +57,15 @@ const additionalFields = reactive<Record<string, boolean>>({
   dateOfBirth: false,
   passport: false,
   availability: false,
+})
+
+// Initialize toggles if data was loaded from backend
+watchEffect(() => {
+  if (personal.value.website) additionalFields.website = true
+  if (personal.value.nationality) additionalFields.nationality = true
+  if (personal.value.dateOfBirth) additionalFields.dateOfBirth = true
+  if (personal.value.passport) additionalFields.passport = true
+  if (personal.value.availability) additionalFields.availability = true
 })
 
 const additionalFieldConfigs = [

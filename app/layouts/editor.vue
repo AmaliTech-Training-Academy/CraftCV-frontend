@@ -16,6 +16,10 @@ import {
   Download,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  FileText,
+  UserCircle,
+  LogOut,
   X,
   Loader2,
   AlertCircle,
@@ -23,6 +27,8 @@ import {
 
 import { useCVState } from '~/composables/useCVState'
 import { useAutosave } from '~/composables/useAutosave'
+import { useCVs, type CVSummary } from '~/composables/useCVs'
+import { useAuth } from '~/composables/useAuth'
 import type { ResolvedCvData } from '~/types/cv'
 import CVTemplateClassic from '~/components/templates/CVTemplateClassic.vue'
 import SingleColumnTemplate from '~/components/templates/SingleColumnTemplate.vue'
@@ -49,6 +55,18 @@ const {
 } = useCVState()
 
 const { loadCV } = useAutosave()
+
+// The saved-CV collection, for the resume switcher in the header. Its state is
+// shared, so a list the dashboard already fetched is reused rather than
+// re-requested.
+const { cvs, loaded: cvsLoaded, fetchCVs } = useCVs()
+const { isAuthenticated, logout } = useAuth()
+
+onMounted(() => {
+  // Reached by deep link, the editor is the first screen to need the list, so
+  // it fetches its own; arrived at from My Resumes, the list is already there.
+  if (!cvsLoaded.value) fetchCVs()
+})
 
 /**
  * The editor's fields read from shared state, which starts empty on a fresh
@@ -157,6 +175,42 @@ const isSidebarExpanded = ref(true)
 const isExportModalOpen = ref(false)
 const isExporting = ref(false)
 const exportError = ref<string | null>(null)
+const isResumeMenuOpen = ref(false)
+const isAccountMenuOpen = ref(false)
+
+/**
+ * Opens another saved CV without leaving the editor.
+ *
+ * This layout stays mounted across a switch, so its `onMounted` never runs again
+ * and the CV has to be fetched from here. `loadCV` replaces the editor's state
+ * only once the response is in hand, so a switch that fails leaves the CV
+ * already open exactly as it was rather than half-replaced — which is why
+ * nothing is cleared first.
+ */
+const switchCV = async (cv: CVSummary) => {
+  isResumeMenuOpen.value = false
+  if (cv.cvId === cvId.value) return
+
+  isBootstrapping.value = true
+  await loadCV(cv.cvId)
+  isBootstrapping.value = false
+}
+
+/**
+ * Opening the menu re-reads the list, so the CV that was just created from the
+ * template picker — this editor is often the first screen after it — is in the
+ * switcher rather than only the older ones.
+ */
+const toggleResumeMenu = () => {
+  isAccountMenuOpen.value = false
+  isResumeMenuOpen.value = !isResumeMenuOpen.value
+  if (isResumeMenuOpen.value) fetchCVs()
+}
+
+const toggleAccountMenu = () => {
+  isResumeMenuOpen.value = false
+  isAccountMenuOpen.value = !isAccountMenuOpen.value
+}
 
 const handleExport = async (payload: ExportPayload) => {
   isExporting.value = true
@@ -347,8 +401,11 @@ useResizeObserver(previewPage, (entries) => {
         </div>
       </div>
 
-      <!-- Center Navigation (Middle: only when there's real room) -->
-      <nav class="hidden shrink-0 items-center gap-6 xl:flex text-[13px] font-semibold text-gray-500">
+      <!-- Center Navigation (Middle: only when there's real room).
+           Pinned to the header's own centre rather than left in the flow: the
+           block on the left grows to fill the row, so in flow this would end up
+           flush against the right-hand buttons instead of in the middle. -->
+      <nav class="hidden shrink-0 items-center gap-6 xl:flex text-[13px] font-semibold text-gray-500 absolute left-1/2 -translate-x-1/2">
         <NuxtLink
           to="/dashboard"
           class="transition-colors hover:text-gray-900"
@@ -360,7 +417,123 @@ useResizeObserver(previewPage, (entries) => {
       </nav>
 
       <!-- Right: Never shrinks -->
-      <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+        <!-- Resume switcher: hops between saved CVs without a trip back to My
+             Resumes. -->
+        <div class="relative">
+          <button
+            type="button"
+            aria-haspopup="menu"
+            :aria-expanded="isResumeMenuOpen"
+            class="flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-lg border border-gray-200 bg-white text-[13px] font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/30"
+            @click="toggleResumeMenu"
+          >
+            <FileText class="w-4 h-4 text-gray-400 shrink-0" />
+            <span class="hidden md:inline">Resumes</span>
+            <ChevronDown class="w-3.5 h-3.5 text-gray-400 shrink-0" />
+          </button>
+
+          <div
+            v-if="isResumeMenuOpen"
+            class="fixed inset-0 z-10 cursor-default"
+            @click="isResumeMenuOpen = false"
+          />
+
+          <div
+            v-if="isResumeMenuOpen"
+            role="menu"
+            class="absolute right-0 mt-2 w-64 max-h-80 overflow-y-auto bg-white rounded-xl shadow-[0_4px_20px_-5px_rgba(0,0,0,0.1)] border border-gray-100 z-20 py-1.5"
+          >
+            <p class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-gray-400">
+              Your resumes
+            </p>
+
+            <p
+              v-if="cvs.length === 0"
+              class="px-3 py-2 text-[13px] text-gray-500"
+            >
+              No other resumes yet.
+            </p>
+
+            <button
+              v-for="cv in cvs"
+              :key="cv.cvId"
+              type="button"
+              role="menuitem"
+              class="w-full flex items-center justify-between gap-3 px-3 py-2 text-left text-[13px] font-medium transition-colors hover:bg-gray-50"
+              :class="cv.cvId === cvId ? 'text-[#B64A22] font-semibold' : 'text-gray-700'"
+              @click="switchCV(cv)"
+            >
+              <span class="truncate">{{ cv.title }}</span>
+              <Check
+                v-if="cv.cvId === cvId"
+                class="w-4 h-4 shrink-0"
+                stroke-width="3"
+              />
+            </button>
+
+            <div class="h-px bg-gray-100 my-1" />
+
+            <NuxtLink
+              to="/dashboard"
+              class="block px-3 py-2 text-[13px] font-semibold text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              @click="isResumeMenuOpen = false"
+            >
+              All resumes
+            </NuxtLink>
+          </div>
+        </div>
+
+        <!-- Export: kept in the header rather than the preview pane so it stays
+             reachable on mobile, where the preview pane is hidden while editing. -->
+        <button
+          type="button"
+          class="hidden lg:flex items-center gap-2 h-9 px-3 sm:px-4 bg-[#C54A22] hover:bg-[#A83D1B] text-white rounded-lg text-[13px] font-semibold transition-colors shadow-sm active:scale-95 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/40"
+          @click="isExportModalOpen = true"
+        >
+          <Download class="w-4 h-4 shrink-0" />
+          <span class="hidden sm:inline">Export</span>
+        </button>
+
+        <!-- Account menu -->
+        <div
+          v-if="isAuthenticated"
+          class="relative hidden xl:block"
+        >
+          <button
+            type="button"
+            title="Account"
+            aria-haspopup="menu"
+            :aria-expanded="isAccountMenuOpen"
+            class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#C54A22] focus:ring-offset-2"
+            @click="toggleAccountMenu"
+          >
+            <UserCircle class="w-5 h-5" />
+          </button>
+
+          <div
+            v-if="isAccountMenuOpen"
+            class="fixed inset-0 z-10 cursor-default"
+            @click="isAccountMenuOpen = false"
+          />
+
+          <div
+            v-if="isAccountMenuOpen"
+            role="menu"
+            class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-[0_4px_20px_-5px_rgba(0,0,0,0.1)] border border-gray-100 z-20 py-1.5 overflow-hidden"
+          >
+            <button
+              type="button"
+              role="menuitem"
+              class="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+              @click="logout(); isAccountMenuOpen = false"
+            >
+              <LogOut class="w-4 h-4 text-gray-400" />
+              Sign out
+            </button>
+          </div>
+        </div>
+
         <!-- The mobile nav menu acts as the menu button below xl -->
         <LayoutMobileNavMenu class="xl:hidden" />
       </div>
@@ -483,31 +656,32 @@ useResizeObserver(previewPage, (entries) => {
         class="flex-1 lg:max-w-160 border-l border-gray-200 bg-[#F9F8F6] min-w-0 min-h-0 overflow-y-auto flex-col"
         :class="mobileView === 'edit' ? 'hidden lg:flex' : 'flex'"
       >
-        <!-- Preview Toolbar -->
-        <div class="h-16 px-4 lg:px-6 flex items-center justify-between shrink-0">
-          <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full shadow-sm">
-              <div class="w-2 h-2 rounded-full bg-green-500" />
-              <span class="text-[11px] font-bold tracking-wide text-gray-600">Preview</span>
-            </div>
-
-            <button
-              type="button"
-              class="flex items-center gap-2 px-4 py-2 bg-[#C54A22] hover:bg-[#A83D1B] text-white rounded-[10px] text-[12px] font-semibold transition-colors shadow-sm active:scale-95 shrink-0"
-              @click="isExportModalOpen = true"
-            >
-              <Download class="w-4 h-4" />
-              <span class="hidden sm:inline">Export PDF</span>
-            </button>
+        <!-- Preview Toolbar. Mobile only: export lives in the header now, and on
+             desktop this pane needs no chrome of its own. -->
+        <div class="h-16 px-4 lg:px-6 flex lg:hidden items-center justify-between shrink-0">
+          <div class="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full shadow-sm">
+            <div class="w-2 h-2 rounded-full bg-green-500" />
+            <span class="text-[11px] font-bold tracking-wide text-gray-600">Preview</span>
           </div>
 
-          <button
-            class="lg:hidden flex items-center gap-1.5 text-sm font-semibold text-[#B64A22] px-3 py-1.5 bg-white rounded-full border border-gray-200 shadow-sm"
-            @click="mobileView = 'edit'"
-          >
-            <Pencil class="w-3.5 h-3.5" />
-            Edit
-          </button>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              class="flex items-center gap-2 h-9 px-3 bg-[#C54A22] hover:bg-[#A83D1B] text-white rounded-full text-[13px] font-semibold transition-colors shadow-sm active:scale-95 focus:outline-none"
+              @click="isExportModalOpen = true"
+            >
+              <Download class="w-3.5 h-3.5" />
+              <span class="hidden sm:inline">Export</span>
+            </button>
+
+            <button
+              class="flex items-center gap-1.5 text-sm font-semibold text-[#B64A22] px-3 py-1.5 bg-white rounded-full border border-gray-200 shadow-sm"
+              @click="mobileView = 'edit'"
+            >
+              <Pencil class="w-3.5 h-3.5" />
+              Edit
+            </button>
+          </div>
         </div>
 
         <!-- Canvas Area with ResizeObserver -->
