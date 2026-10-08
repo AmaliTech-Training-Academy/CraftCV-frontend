@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, computed, ref } from 'vue'
+import { reactive, computed, ref, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { Check } from '@lucide/vue'
 import { useCVState } from '~/composables/useCVState'
@@ -11,15 +11,28 @@ definePageMeta({
   middleware: ['auth'],
 })
 
-const { personal } = useCVState()
+const { personal, saveErrorFor } = useCVState()
 
 const router = useRouter()
 const showErrors = ref(false)
 
+/**
+ * A rejected save names the fields it rejected; the editor shows each message
+ * beside the input that caused it instead of in the header badge, where all it
+ * could say was DRF's summary: "Invalid CV data." These belong to the
+ * personal-details record, so `saveErrorFor` scopes them to it.
+ */
+const backendError = (key: string) => saveErrorFor('personal', key)
+
+// Phone and location are required by the backend, not optional extras: it
+// rejects either one blank with "This field may not be blank", so a save cannot
+// succeed without them and Next should not wave them through.
 const isValid = computed(() => {
   return personal.value.firstName.trim() !== ''
     && personal.value.lastName.trim() !== ''
     && personal.value.email.trim() !== ''
+    && personal.value.phone.trim() !== ''
+    && personal.value.location.trim() !== ''
 })
 
 const handleNext = () => {
@@ -30,6 +43,14 @@ const handleNext = () => {
   router.push('/editor/summary')
 }
 
+const toggleAdditionalField = (fieldId: string) => {
+  additionalFields[fieldId] = !additionalFields[fieldId]
+  if (!additionalFields[fieldId]) {
+    // Clear the data when the field is hidden so it doesn't show in preview
+    personal.value[fieldId as keyof typeof personal.value] = ''
+  }
+}
+
 const additionalFields = reactive<Record<string, boolean>>({
   website: false,
   nationality: false,
@@ -38,12 +59,21 @@ const additionalFields = reactive<Record<string, boolean>>({
   availability: false,
 })
 
+// Initialize toggles if data was loaded from backend
+watchEffect(() => {
+  if (personal.value.website) additionalFields.website = true
+  if (personal.value.nationality) additionalFields.nationality = true
+  if (personal.value.dateOfBirth) additionalFields.dateOfBirth = true
+  if (personal.value.passport) additionalFields.passport = true
+  if (personal.value.availability) additionalFields.availability = true
+})
+
 const additionalFieldConfigs = [
-  { id: 'website', label: 'Website', placeholder: 'e.g. www.portfolio.com' },
-  { id: 'nationality', label: 'Nationality', placeholder: 'e.g. American' },
-  { id: 'dateOfBirth', label: 'Date of Birth', placeholder: 'e.g. 24/08/1990' },
-  { id: 'passport', label: 'Passport / ID', placeholder: 'e.g. AB1234567' },
-  { id: 'availability', label: 'Availability', placeholder: 'e.g. Available immediately' },
+  { id: 'website', label: 'Website', placeholder: 'e.g. www.portfolio.com', kind: 'text' },
+  { id: 'nationality', label: 'Nationality', placeholder: 'e.g. American', kind: 'text' },
+  { id: 'dateOfBirth', label: 'Date of Birth', placeholder: 'DD/MM/YYYY', kind: 'date' },
+  { id: 'passport', label: 'Passport / ID', placeholder: 'e.g. AB1234567', kind: 'text' },
+  { id: 'availability', label: 'Availability', placeholder: 'e.g. Available immediately', kind: 'text' },
 ] as const
 </script>
 
@@ -67,7 +97,7 @@ const additionalFieldConfigs = [
           placeholder="e.g. Alexandra"
           autocomplete="given-name"
           required
-          :error="showErrors && !personal.firstName.trim() ? 'First name is required' : ''"
+          :error="backendError('firstName') || (showErrors && !personal.firstName.trim() ? 'First name is required' : '')"
         />
         <EditorFormField
           v-model="personal.lastName"
@@ -76,7 +106,7 @@ const additionalFieldConfigs = [
           placeholder="e.g. Chen"
           autocomplete="family-name"
           required
-          :error="showErrors && !personal.lastName.trim() ? 'Last name is required' : ''"
+          :error="backendError('lastName') || (showErrors && !personal.lastName.trim() ? 'Last name is required' : '')"
         />
       </div>
 
@@ -100,7 +130,7 @@ const additionalFieldConfigs = [
           autocomplete="email"
           placeholder="e.g. email@example.com"
           required
-          :error="showErrors && !personal.email.trim() ? 'Email address is required' : ''"
+          :error="backendError('email') || (showErrors && !personal.email.trim() ? 'Email address is required' : '')"
         />
         <EditorFormField
           v-model="personal.phone"
@@ -110,6 +140,8 @@ const additionalFieldConfigs = [
           inputmode="tel"
           autocomplete="tel"
           placeholder="e.g. +1 (555) 382-9014"
+          required
+          :error="backendError('phone') || (showErrors && !personal.phone.trim() ? 'Phone number is required' : '')"
         />
         <EditorFormField
           v-model="personal.location"
@@ -117,6 +149,8 @@ const additionalFieldConfigs = [
           label="Location"
           autocomplete="address-level2"
           placeholder="e.g. San Francisco, CA"
+          required
+          :error="backendError('location') || (showErrors && !personal.location.trim() ? 'Location is required' : '')"
         />
       </div>
 
@@ -133,12 +167,23 @@ const additionalFieldConfigs = [
             v-if="additionalFields[field.id]"
             class="animate-in fade-in slide-in-from-top-2 duration-200"
           >
+            <EditorMonthYearPicker
+              v-if="field.kind === 'date'"
+              v-model="personal[field.id]"
+              mode="day"
+              removable
+              :label="field.label"
+              :placeholder="field.placeholder"
+              @remove="toggleAdditionalField(field.id)"
+            />
             <EditorFormField
+              v-else
               v-model="personal[field.id]"
 
               :label="field.label"
               :placeholder="field.placeholder"
-              @remove="additionalFields[field.id] = false"
+              :error="backendError(field.id)"
+              @remove="toggleAdditionalField(field.id)"
             />
           </div>
         </template>
@@ -155,7 +200,7 @@ const additionalFieldConfigs = [
             :key="field.id"
             :class="additionalFields[field.id] ? 'bg-[#FCF1EC] border-[#C54A22] text-[#C54A22]' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'"
             class="px-3 py-1.5 rounded-full border text-[13px] font-medium flex items-center gap-1.5 transition-colors"
-            @click="additionalFields[field.id] = !additionalFields[field.id]"
+            @click="toggleAdditionalField(field.id)"
           >
             <span
               v-if="!additionalFields[field.id]"

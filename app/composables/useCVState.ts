@@ -58,6 +58,35 @@ export interface CertificationItem {
 
 export type StepStatus = 'empty' | 'incomplete' | 'complete'
 
+/**
+ * The field messages a rejected save came back with, and the editor record they
+ * belong to.
+ *
+ * `target` is the id of the section item that was being written, or
+ * `'personal'` for the personal-details record; a page shows a message only on
+ * the record it belongs to, so one rejected entry cannot put a message under
+ * another. `fields` is keyed by the backend's own field name.
+ */
+export interface SaveErrorDetail {
+  target: string | null
+  fields: Record<string, string>
+}
+
+/**
+ * The backend's name for a field the editor calls something else.
+ *
+ * Sending a field under the editor's name means DRF drops it without
+ * complaint, and naming it back is what lets a rejection land on the input that
+ * caused it. `title` is the experience's job title — the CV-level title is not
+ * a field of any record an error is shown against.
+ */
+const backendFieldNames: Record<string, string> = {
+  website: 'websiteUrl',
+  title: 'role',
+  school: 'institution',
+  date: 'issueDate',
+}
+
 export const useCVState = () => {
   const hasActiveCV = useState<boolean>('cv-has-active', () => false)
   const cvId = useCookie<string | null>('cv-id', { default: () => null })
@@ -67,6 +96,22 @@ export const useCVState = () => {
   const lastSavedAt = useState<string | null>('cv-last-saved-at', () => null)
   const saveState = useState<'saving' | 'saved' | 'error' | 'idle'>('cv-save-state', () => 'idle')
   const saveErrorMessage = useState<string | null>('cv-save-error', () => null)
+  /**
+   * The fields a rejected save named. `saveErrorMessage` is the header badge
+   * and has room for one sentence; this is what the editor pages render beside
+   * the offending field, on the record it belongs to.
+   */
+  const saveErrorDetail = useState<SaveErrorDetail>('cv-save-error-detail', () => ({ target: null, fields: {} }))
+
+  /**
+   * The message the backend sent for one field of one record, or '' when it had
+   * nothing to say about it.
+   */
+  const saveErrorFor = (target: string, key: string): string => {
+    const detail = saveErrorDetail.value
+    if (detail.target !== target) return ''
+    return detail.fields[backendFieldNames[key] ?? key] ?? ''
+  }
 
   const personal = useState<PersonalDetails>('cv-personal', () => ({
     firstName: '',
@@ -95,10 +140,19 @@ export const useCVState = () => {
   const getPersonalStatus = (): StepStatus => {
     const p = personal.value
 
-    const reqFilled = !!(p.firstName.trim() && p.lastName.trim() && p.email.trim())
-    const standardOptionalFilled = !!(p.title.trim() && p.phone.trim() && p.location.trim())
+    // Phone and location are required by the backend — it answers either one
+    // blank with "This field may not be blank" — so they sit with the required
+    // trio rather than with the optional extras.
+    const reqFilled = !!(
+      p.firstName.trim()
+      && p.lastName.trim()
+      && p.email.trim()
+      && p.phone.trim()
+      && p.location.trim()
+    )
+    const titleFilled = !!p.title.trim()
 
-    if (reqFilled && standardOptionalFilled) return 'complete'
+    if (reqFilled && titleFilled) return 'complete'
     if (reqFilled) return 'incomplete'
     return 'empty'
   }
@@ -226,6 +280,12 @@ export const useCVState = () => {
 
   const resetCV = () => {
     hasActiveCV.value = false
+    // A field error belongs to the record that was open, so it goes with it.
+    saveErrorDetail.value = { target: null, fields: {} }
+    // Clearing this matters as much as the rest: cvId is a cookie, so leaving it
+    // set would point the editor at a CV that was just deleted or replaced, and
+    // the next mount would happily load it back.
+    cvId.value = null
     cvTitle.value = 'Untitled'
     selectedTemplateId.value = ''
     selectedTemplateSlug.value = 'classic'
@@ -258,6 +318,8 @@ export const useCVState = () => {
     lastSavedAt,
     saveState,
     saveErrorMessage,
+    saveErrorDetail,
+    saveErrorFor,
     personal,
     summary,
     experience,

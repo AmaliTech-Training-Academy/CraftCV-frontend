@@ -126,6 +126,18 @@ export function buildProfessionalPdf(
       margin: [0, 0, 0, 3],
     })
   }
+  if (personal.nationality) {
+    contactLines.push({ text: personal.nationality, color: '#E2E8F0', fontSize: 8.5, margin: [0, 0, 0, 3] })
+  }
+  if (personal.dateOfBirth) {
+    contactLines.push({ text: `DOB: ${personal.dateOfBirth}`, color: '#E2E8F0', fontSize: 8.5, margin: [0, 0, 0, 3] })
+  }
+  if (personal.passport) {
+    contactLines.push({ text: `ID: ${personal.passport}`, color: '#E2E8F0', fontSize: 8.5, margin: [0, 0, 0, 3] })
+  }
+  if (personal.availability) {
+    contactLines.push({ text: personal.availability, color: '#E2E8F0', fontSize: 8.5, margin: [0, 0, 0, 3] })
+  }
 
   if (contactLines.length > 0) {
     sidebarStack.push(sidebarSectionHeader('Contact'))

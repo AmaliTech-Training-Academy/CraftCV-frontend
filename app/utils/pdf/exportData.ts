@@ -13,6 +13,10 @@ export interface CvExportPersonal {
   twitter: string
   first_name: string
   last_name: string
+  nationality: string
+  dateOfBirth: string
+  passport: string
+  availability: string
 }
 
 export interface CvExportExperience {
@@ -116,6 +120,10 @@ const emptyPersonal: CvExportPersonal = {
   twitter: '',
   first_name: '',
   last_name: '',
+  nationality: '',
+  dateOfBirth: '',
+  passport: '',
+  availability: '',
 }
 
 const asRecord = (value: unknown): Record<string, unknown> => (
@@ -152,6 +160,10 @@ export function toExportData(source: unknown): CvExportData {
   const rawLinkedin = firstString(personalRecord, 'linkedin')
   const rawGithub = firstString(personalRecord, 'github')
   const rawTwitter = firstString(personalRecord, 'twitter')
+  const rawNationality = firstString(personalRecord, 'nationality')
+  const rawDateOfBirth = firstString(personalRecord, 'dateOfBirth', 'date_of_birth')
+  const rawPassport = firstString(personalRecord, 'passport')
+  const rawAvailability = firstString(personalRecord, 'availability')
 
   const firstName = isRealText(rawFirstName) ? rawFirstName : ''
   const lastName = isRealText(rawLastName) ? rawLastName : ''
@@ -163,6 +175,10 @@ export function toExportData(source: unknown): CvExportData {
   const linkedin = isRealText(rawLinkedin) ? rawLinkedin : ''
   const github = isRealText(rawGithub) ? rawGithub : ''
   const twitter = isRealText(rawTwitter) ? rawTwitter : ''
+  const nationality = isRealText(rawNationality) ? rawNationality : ''
+  const dateOfBirth = isRealText(rawDateOfBirth) ? rawDateOfBirth : ''
+  const passport = isRealText(rawPassport) ? rawPassport : ''
+  const availability = isRealText(rawAvailability) ? rawAvailability : ''
 
   const personal: CvExportPersonal = {
     ...emptyPersonal,
@@ -178,6 +194,10 @@ export function toExportData(source: unknown): CvExportData {
     linkedin,
     github,
     twitter,
+    nationality,
+    dateOfBirth,
+    passport,
+    availability,
   }
 
   const rawSummary = firstString(data, 'summary', 'professional_summary')
