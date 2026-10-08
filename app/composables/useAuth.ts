@@ -24,6 +24,7 @@ export interface User {
 export interface TokenPayload {
   user?: User
   accessToken?: string
+  access_token?: string
 }
 
 export const useAuth = () => {
@@ -31,6 +32,14 @@ export const useAuth = () => {
   const user = useCookie<User | null>('authUser', getAuthCookieOptions())
   const loading = ref(false)
   const error = ref<string | null>(null)
+
+  const refreshToken = async () => {
+    const config = useRuntimeConfig()
+    const baseURL = config.public.apiBase as string
+    const newAccessToken = await requestTokenRefresh(baseURL)
+    token.value = newAccessToken
+    return newAccessToken
+  }
 
   const fetchUser = async () => {
     if (!token.value) {
@@ -64,10 +73,11 @@ export const useAuth = () => {
         unauthenticated: true,
       })
 
-      if (response.accessToken) {
+      const tokenValue = response.accessToken || response.access_token
+      if (tokenValue) {
         const tokenCookie = useCookie<string | null>('accessToken', getAuthCookieOptions(rememberMe))
-        tokenCookie.value = response.accessToken
-        token.value = response.accessToken
+        tokenCookie.value = tokenValue
+        token.value = tokenValue
       }
 
       if (response.user) {
@@ -106,8 +116,9 @@ export const useAuth = () => {
         unauthenticated: true,
       })
 
-      if (response.accessToken) {
-        token.value = response.accessToken
+      const tokenValue = response.accessToken || response.access_token
+      if (tokenValue) {
+        token.value = tokenValue
       }
 
       if (response.user) {
@@ -146,6 +157,7 @@ export const useAuth = () => {
     token,
     user,
     fetchUser,
+    refreshToken,
     loading,
     error,
     login,

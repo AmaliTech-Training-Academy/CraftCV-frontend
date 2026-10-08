@@ -136,7 +136,7 @@ function getStatusCode(error: unknown): number | undefined {
  */
 let refreshPromise: Promise<string> | null = null
 
-async function requestTokenRefresh(
+export async function requestTokenRefresh(
   baseURL: string,
 ): Promise<string> {
   const performRefresh = async (): Promise<string> => {
@@ -156,7 +156,8 @@ async function requestTokenRefresh(
     }
 
     const response = await $fetch<{
-      accessToken: string
+      accessToken?: string
+      access_token?: string
     }>('/auth/refresh/', {
       baseURL,
       method: 'POST',
@@ -164,17 +165,18 @@ async function requestTokenRefresh(
       headers: refreshHeaders,
     })
 
+    const token = response?.accessToken || response?.access_token
+
     if (
-      !response
-      || typeof response.accessToken !== 'string'
-      || !response.accessToken
+      !token
+      || typeof token !== 'string'
     ) {
       throw new Error(
         'The refresh endpoint did not return an access token.',
       )
     }
 
-    return response.accessToken
+    return token
   }
 
   // SSR requests must have their own refresh operation.
