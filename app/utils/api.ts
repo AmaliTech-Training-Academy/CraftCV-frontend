@@ -256,12 +256,11 @@ export const $api = async <T>(
     )
   }
   catch (error: unknown) {
-    // Public requests should never trigger token refresh.
-    //
-    // Only a 401 should trigger refresh.
+    // Public requests or logout requests should never trigger token refresh.
     if (
       isUnauthenticated
       || getStatusCode(error) !== 401
+      || String(request).includes('/auth/logout')
     ) {
       throw error
     }
