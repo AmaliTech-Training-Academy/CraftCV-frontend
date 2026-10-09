@@ -6,13 +6,17 @@ export interface ApiFetchOptions<R extends NitroFetchRequest>
   unauthenticated?: boolean
 }
 
-export const getAuthCookieOptions = <T = unknown>(): CookieOptions<T> & { readonly?: false } => {
-  return {
+export const getAuthCookieOptions = <T = unknown>(rememberMe?: boolean): CookieOptions<T> & { readonly?: false } => {
+  const options: CookieOptions<T> & { readonly?: false } = {
     sameSite: 'lax',
     secure: import.meta.client
       ? window.location.protocol === 'https:'
       : false,
   }
+  if (rememberMe !== undefined) {
+    options.maxAge = rememberMe ? 60 * 60 * 24 * 30 : undefined
+  }
+  return options
 }
 
 export function extractErrorMessage(
@@ -147,6 +151,8 @@ export async function requestTokenRefresh(
     const response = await $fetch<{
       accessToken?: string
       access_token?: string
+      access?: string
+      token?: string
     }>('/auth/refresh/', {
       baseURL,
       method: 'POST',
@@ -154,7 +160,7 @@ export async function requestTokenRefresh(
       headers: refreshHeaders,
     })
 
-    const token = response?.accessToken || response?.access_token
+    const token = response?.accessToken || response?.access_token || response?.access || response?.token
 
     if (
       !token

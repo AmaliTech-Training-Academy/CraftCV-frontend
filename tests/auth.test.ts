@@ -152,7 +152,50 @@ describe('Authentication Flow', () => {
       expect(error.value).toBe('Invalid email or password.')
     })
 
-    it('posts to /auth/register/ with agreeToTerms and redirects to dashboard on registration', async () => {
+    it('redirects to /verify-email without setting session tokens when login response indicates unverified user', async () => {
+      mockApi.mockResolvedValueOnce({
+        user: { id: 'user-unverified', email: 'unverified@example.com', isVerified: false },
+        accessToken: 'should-not-be-saved',
+      })
+
+      const { login, token, user, isAuthenticated } = useAuth()
+
+      await login({ email: 'unverified@example.com', password: 'password123' }, false)
+
+      expect(token.value).toBeNull()
+      expect(user.value).toBeNull()
+      expect(isAuthenticated.value).toBe(false)
+      expect(mockNavigateTo).toHaveBeenCalledWith({
+        path: '/verify-email',
+        query: { email: 'unverified@example.com', unverified: 'true' },
+      })
+    })
+
+    it('clears session state and redirects to /verify-email when login error payload indicates unverified email', async () => {
+      mockApi.mockRejectedValueOnce({
+        status: 400,
+        data: { code: 'EMAIL_NOT_VERIFIED', detail: 'Email address is not verified.' },
+      })
+
+      const { login, token, user, isAuthenticated } = useAuth()
+
+      try {
+        await login({ email: 'unverified@example.com', password: 'password123' }, false)
+      }
+      catch {
+        // expected rethrow
+      }
+
+      expect(token.value).toBeNull()
+      expect(user.value).toBeNull()
+      expect(isAuthenticated.value).toBe(false)
+      expect(mockNavigateTo).toHaveBeenCalledWith({
+        path: '/verify-email',
+        query: { email: 'unverified@example.com', unverified: 'true' },
+      })
+    })
+
+    it('posts to /auth/register/ with agreeToTerms and redirects to verify-email on registration', async () => {
       const mockUser = { id: 'user-2', email: 'newuser@example.com', createdAt: '2026-09-29T12:00:00Z' }
       mockApi.mockResolvedValueOnce({
         user: mockUser,
@@ -180,7 +223,10 @@ describe('Authentication Flow', () => {
       expect(token.value).toBe('fake-register-access')
       expect(user.value).toEqual(mockUser)
       expect(isAuthenticated.value).toBe(true)
-      expect(mockNavigateTo).toHaveBeenCalledWith('/dashboard')
+      expect(mockNavigateTo).toHaveBeenCalledWith({
+        path: '/verify-email',
+        query: { email: 'newuser@example.com' },
+      })
     })
 
     it('sets error message on failed registration response with field errors', async () => {
@@ -202,6 +248,52 @@ describe('Authentication Flow', () => {
       }
 
       expect(error.value).toBe('A user with that email already exists.')
+    })
+
+    it('posts to /auth/verify-email/ and sets session tokens in verifyEmail', async () => {
+      const mockUser = { id: 'user-3', email: 'verified@example.com' }
+      mockApi.mockResolvedValueOnce({
+        user: mockUser,
+        accessToken: 'fake-verify-access',
+      })
+
+      const { verifyEmail, token, user, isAuthenticated } = useAuth()
+
+      const response = await verifyEmail({
+        email: 'verified@example.com',
+        code: '123456',
+      })
+
+      expect(mockApi).toHaveBeenCalledWith('/auth/verify-email/', {
+        method: 'POST',
+        body: { email: 'verified@example.com', code: '123456' },
+        unauthenticated: true,
+      })
+
+      expect(response.accessToken).toBe('fake-verify-access')
+      expect(token.value).toBe('fake-verify-access')
+      expect(user.value).toEqual(mockUser)
+      expect(isAuthenticated.value).toBe(true)
+    })
+
+    it('sets error message on failed verifyEmail response', async () => {
+      mockApi.mockRejectedValueOnce({
+        data: { message: 'Invalid or expired verification code.' },
+      })
+
+      const { verifyEmail, error } = useAuth()
+
+      try {
+        await verifyEmail({
+          email: 'verified@example.com',
+          code: '000000',
+        })
+      }
+      catch {
+        // error is rethrown
+      }
+
+      expect(error.value).toBe('Invalid or expired verification code.')
     })
 
     it('fetches authenticated user profile via /auth/me/', async () => {
