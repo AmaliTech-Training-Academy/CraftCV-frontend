@@ -184,15 +184,19 @@ const resolvedPreviewData = computed<ResolvedCvData>(() => {
       const parts = []
       if (c.credentialId) parts.push(`Credential ID: ${c.credentialId}`)
       if (c.credentialUrl) parts.push(`URL: ${c.credentialUrl}`)
-      if (c.expirationDate && !c.doesNotExpire) parts.push(`Expires: ${c.expirationDate}`)
       const extraDesc = parts.length > 0 ? parts.join(' | ') : ''
       const finalDesc = [extraDesc, c.description].filter(Boolean).join('\n\n')
+
+      let dateLabel = c.date || ''
+      if (c.expirationDate && !c.doesNotExpire) {
+        dateLabel = dateLabel ? `${dateLabel} – Expires ${c.expirationDate}` : `Expires ${c.expirationDate}`
+      }
 
       return {
         id: c.id,
         name: c.name || '',
         issuer: c.issuer || '',
-        issue_date: c.date || undefined,
+        issue_date: dateLabel || undefined,
         expiration_date: c.expirationDate || undefined,
         does_not_expire: c.doesNotExpire ?? false,
         credential_id: c.credentialId || undefined,

@@ -269,20 +269,24 @@ export function toExportData(source: unknown): CvExportData {
       const expirationDate = firstString(item, 'expirationDate', 'expiration_date')
       const doesNotExpire = item.doesNotExpire ?? item.does_not_expire
       const rawDescription = firstString(item, 'description')
-      
+
       const parts = []
       if (credentialId) parts.push(`Credential ID: ${credentialId}`)
       if (credentialUrl) parts.push(`URL: ${credentialUrl}`)
-      if (expirationDate && !doesNotExpire) parts.push(`Expires: ${expirationDate}`)
       const extraDesc = parts.length > 0 ? parts.join(' | ') : ''
       const finalDesc = [extraDesc, rawDescription].filter(Boolean).join('\n\n')
+
+      let dateLabel = date || ''
+      if (expirationDate && !doesNotExpire) {
+        dateLabel = dateLabel ? `${dateLabel} – Expires ${expirationDate}` : `Expires ${expirationDate}`
+      }
 
       return {
         id: firstString(item, 'id') || `certification-${index}`,
         name,
         issuer: isRealText(issuer) ? issuer : '',
-        date: isRealText(date) ? date : '',
-        issue_date: isRealText(date) ? date : '',
+        date: dateLabel,
+        issue_date: dateLabel,
         credentialUrl: isRealText(credentialUrl) ? credentialUrl : '',
         credential_url: isRealText(credentialUrl) ? credentialUrl : '',
         description: finalDesc || undefined,

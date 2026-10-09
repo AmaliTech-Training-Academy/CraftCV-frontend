@@ -18,7 +18,7 @@ type Template = ReturnType<typeof useTemplates>['templates']['value'][number]
 const isModalOpen = ref(false)
 const selectedTemplate = ref<Template | null>(null)
 
-const { templates, activeCategory, categories } = useTemplates()
+const { activeCategory, categories } = useTemplates()
 
 const openPreview = (template: Template) => {
   selectedTemplate.value = template
@@ -117,9 +117,9 @@ const handleUseTemplate = async (template: Template) => {
       </div>
 
       <!-- Template Grid -->
-      <TemplatesTemplateSelector 
+      <TemplatesTemplateSelector
         :active-category="activeCategory"
-        @open-preview="openPreview" 
+        @open-preview="openPreview"
       />
     </div>
 

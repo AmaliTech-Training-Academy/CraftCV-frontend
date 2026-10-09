@@ -36,13 +36,22 @@ const getMeterWidthStr = (level?: string) => {
             class="text-gray-500"
           >{{ data.title }}</span>
 
-          <span v-if="data.title && data.personal_details.location" class="text-gray-400">&bull;</span>
+          <span
+            v-if="data.title && data.personal_details.location"
+            class="text-gray-400"
+          >&bull;</span>
           <span v-if="data.personal_details.location">{{ data.personal_details.location }}</span>
 
-          <span v-if="data.personal_details.location && data.personal_details.email" class="text-gray-400">&bull;</span>
+          <span
+            v-if="data.personal_details.location && data.personal_details.email"
+            class="text-gray-400"
+          >&bull;</span>
           <span v-if="data.personal_details.email">{{ data.personal_details.email }}</span>
 
-          <span v-if="data.personal_details.email && data.personal_details.phone" class="text-gray-400">&bull;</span>
+          <span
+            v-if="data.personal_details.email && data.personal_details.phone"
+            class="text-gray-400"
+          >&bull;</span>
           <span v-if="data.personal_details.phone">{{ data.personal_details.phone }}</span>
 
           <template v-if="data.personal_details.websiteUrl && data.personal_details.websiteUrl !== 'www.yourwebsite.com'">
@@ -139,7 +148,7 @@ const getMeterWidthStr = (level?: string) => {
           class="font-bold text-[12px] tracking-[2px] uppercase"
           :style="{ color: accentColor }"
         >
-          Selected Projects
+          Additional Information
         </h2>
         <div class="flex flex-col gap-4">
           <div
@@ -187,7 +196,7 @@ const getMeterWidthStr = (level?: string) => {
 
     <!-- RIGHT COLUMN (Sidebar, ~31%) -->
     <div
-      class="w-[31%] h-full pl-[6px] pr-[53px] py-[53px] flex flex-col gap-[21px]"
+      class="w-[31%] h-full px-[28px] py-[53px] flex flex-col gap-[21px]"
       :style="{ backgroundColor: accentTint(accentColor, 0.07) }"
     >
       <!-- Skills -->

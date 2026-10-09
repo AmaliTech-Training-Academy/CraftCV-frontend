@@ -86,32 +86,32 @@ const getMeterWidth = (level?: string) => {
 
               <!-- Bullets -->
               <template
-              v-for="(blk, idx) in parseDescription(exp.description)"
-              :key="idx"
-            >
-              <p
-                v-if="blk.type === 'p'"
-                class="text-sm text-gray-700 space-y-1"
+                v-for="(blk, idx) in parseDescription(exp.description)"
+                :key="idx"
               >
-                {{ blk.text }}
-              </p>
-              <ul
-                v-else
-                class="text-sm text-gray-700 space-y-1"
-              >
-                <li
-                  v-for="(bullet, bIdx) in blk.items"
-                  :key="bIdx"
-                  class="flex gap-2"
+                <p
+                  v-if="blk.type === 'p'"
+                  class="text-sm text-gray-700 space-y-1"
                 >
-                  <span
-                    class="text-[10px] mt-1 shrink-0"
-                    :style="{ color: accentColor }"
-                  >&bull;</span>
-                  <span>{{ bullet }}</span>
-                </li>
-              </ul>
-            </template>
+                  {{ blk.text }}
+                </p>
+                <ul
+                  v-else
+                  class="text-sm text-gray-700 space-y-1"
+                >
+                  <li
+                    v-for="(bullet, bIdx) in blk.items"
+                    :key="bIdx"
+                    class="flex gap-2"
+                  >
+                    <span
+                      class="text-[10px] mt-1 shrink-0"
+                      :style="{ color: accentColor }"
+                    >&bull;</span>
+                    <span>{{ bullet }}</span>
+                  </li>
+                </ul>
+              </template>
             </div>
           </div>
         </section>

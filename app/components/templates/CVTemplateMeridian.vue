@@ -12,10 +12,10 @@ const { accentColor } = useCVState()
 
 <template>
   <div
-    class="w-full min-h-[1123px] bg-white font-serif text-left break-words overflow-hidden border-[16px]"
+    class="w-full h-[1123px] bg-white font-serif text-left break-words overflow-hidden border-[16px] box-border"
     :style="{ borderColor: accentColor }"
   >
-    <div class="px-12 py-14 flex flex-col gap-6">
+    <div class="px-12 py-8 flex flex-col gap-4.5">
       <!-- Header -->
       <header class="w-full flex flex-col items-center text-center">
         <h1

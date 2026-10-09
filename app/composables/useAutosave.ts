@@ -186,7 +186,16 @@ export function useAutosave() {
       education.value = (data.educations || []).map((e: any) => ({ ...e, school: e.school || e.institution }))
       experience.value = (data.experiences || []).map((e: any) => ({ ...e, title: e.title || e.role }))
       skills.value = data.skills || []
-      certifications.value = data.certifications || []
+      certifications.value = (data.certifications || []).map((c: any) => ({
+        ...c,
+        id: c.certificationId || c.id,
+        date: c.date || c.issueDate || '',
+        expirationDate: c.expirationDate || '',
+        doesNotExpire: c.doesNotExpire ?? false,
+        credentialId: c.credentialId || '',
+        credentialUrl: c.credentialUrl || '',
+        description: c.description || '',
+      }))
 
       // Store clone of data for diffing directly from loaded state
       lastSavedData.value = clone({
@@ -251,15 +260,11 @@ export function useAutosave() {
    * Experience calls the job `role` and education calls the school
    * `institution`; sent under the editor's names, DRF silently drops both and
    * the record saves without them.
-   *
-   * Certifications is deliberately absent. The editor's `date` is the backend's
-   * `issueDate`, but that field is a DRF date and the editor holds "January
-   * 2024" — renaming it would take a save that currently succeeds (the value is
-   * ignored under the wrong name) and turn it into a 400.
    */
   const sectionFieldNames: Record<string, Record<string, string>> = {
     experiences: { title: 'role' },
     educations: { school: 'institution' },
+    certifications: { date: 'issueDate' },
   }
 
   // The main save function
@@ -465,7 +470,27 @@ export function useAutosave() {
           const rename = sectionFieldNames[endpoint]
           const payload: Record<string, any> = {}
           for (const [key, value] of Object.entries(fields)) {
-            payload[rename?.[key] ?? key] = value
+            const apiKey = rename?.[key] ?? key
+            payload[apiKey] = value
+          }
+
+          // Special formatting for certifications payload according to ReDoc schema
+          if (localKey === 'certifications') {
+            const normalizeDate = (d?: string | null) => {
+              if (!d || !d.trim()) return null
+              const trimmed = d.trim()
+              if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed
+              if (/^\d{4}-\d{2}$/.test(trimmed)) return `${trimmed}-01`
+              if (/^\d{4}$/.test(trimmed)) return `${trimmed}-01-01`
+              return trimmed
+            }
+
+            payload.issueDate = normalizeDate(payload.issueDate) || '2024-01-01'
+            payload.expirationDate = normalizeDate(payload.expirationDate)
+            payload.doesNotExpire = Boolean(payload.doesNotExpire)
+            if (!payload.credentialUrl?.trim()) payload.credentialUrl = null
+            if (!payload.credentialId?.trim()) payload.credentialId = ''
+            if (!payload.description?.trim()) payload.description = ''
           }
 
           try {

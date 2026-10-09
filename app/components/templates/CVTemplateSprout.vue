@@ -136,7 +136,7 @@ const { accentColor } = useCVState()
           class="font-bold text-xs tracking-widest uppercase"
           :style="{ color: accentColor }"
         >
-          Projects
+          Additional Information
         </h2>
         <div class="flex flex-col gap-4">
           <div

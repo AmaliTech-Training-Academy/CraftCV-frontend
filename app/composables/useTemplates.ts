@@ -45,75 +45,83 @@ export const useTemplates = () => {
       const normalizedData = Array.isArray(data) ? data : []
 
       // Inject some mock images for the known slugs as the API doesn't provide them
-      templates.value = normalizedData.map((t: any) => {
-        let image = undefined
-        let vibe = undefined
-        let category = undefined
-        let bestFor: string[] = []
+      templates.value = normalizedData
+        .filter((t: any) => (t.slug || t.name || '').toLowerCase() !== 'modern')
+        .map((t: any) => {
+          let image = undefined
+          let vibe = undefined
+          let category = undefined
+          let bestFor: string[] = []
 
-        const rawSlug = t.slug || t.name || ''
-        const normalizedSlug = rawSlug.toLowerCase()
+          const rawSlug = t.slug || t.name || ''
+          const normalizedSlug = rawSlug.toLowerCase()
 
-        if (normalizedSlug === 'professional') {
-          image = '/templates/professional.png'
-          vibe = 'STRUCTURED'
-          category = 'Classic'
-          bestFor = ['Product Managers', 'Engineers', 'Tech Leads']
-        }
-        else if (normalizedSlug === 'modern') {
-          image = '/templates/modern.png'
-          vibe = 'MINIMAL'
-          category = 'Modern'
-          bestFor = ['Finance', 'Law', 'Consulting', 'Academia']
-        }
-        else if (normalizedSlug === 'inkwell') {
-          image = '/templates/inkwell.png'
-          vibe = 'BOLD'
-          category = 'Creative'
-          bestFor = ['Designers', 'Writers', 'Marketers', 'Creatives']
-        }
-        else if (normalizedSlug === 'prism') {
-          image = '/templates/prism.png'
-          vibe = 'CREATIVE'
-          category = 'Creative'
-          bestFor = ['Designers', 'Frontend Devs', 'Marketers']
-        }
-        else if (normalizedSlug === 'campus') {
-          image = '/templates/campus.png'
-          vibe = 'CLASSIC'
-          category = 'Classic'
-          bestFor = ['Graduates', 'Academics', 'Traditional Corporate']
-        }
-        else if (normalizedSlug === 'sprout') {
-          image = '/templates/sprout.png'
-          vibe = 'MODERN'
-          category = 'Beginner'
-          bestFor = ['Juniors', 'Students', 'Tech Interns']
-        }
-        else if (normalizedSlug === 'northstar') {
-          image = '/templates/northstar.png'
-          vibe = 'MODERN'
-          category = 'Modern'
-          bestFor = ['Senior Professionals', 'Product Managers', 'Tech Leads']
-        }
-        else if (normalizedSlug === 'meridian') {
-          image = '/templates/meridian.png'
-          vibe = 'CLASSIC'
-          category = 'Classic'
-          bestFor = ['Executives', 'Senior Leaders', 'Directors']
-        }
+          if (normalizedSlug === 'professional' || normalizedSlug === 'classic') {
+            image = '/templates/ModernCV.png'
+            vibe = 'STRUCTURED'
+            category = 'Classic'
+            bestFor = ['Product Managers', 'Engineers', 'Tech Leads']
+          }
+          else if (normalizedSlug === 'single-column' || normalizedSlug === 'single_column') {
+            image = '/templates/SingleCol.png'
+            vibe = 'MINIMAL'
+            category = 'Modern'
+            bestFor = ['Finance', 'Law', 'Consulting', 'Academia']
+          }
+          else if (normalizedSlug === 'two-column' || normalizedSlug === 'two_column' || normalizedSlug === 'double-column' || normalizedSlug === 'doublecol') {
+            image = '/templates/DoubleCol.png'
+            vibe = 'BALANCED'
+            category = 'Modern'
+            bestFor = ['Developers', 'Designers', 'Project Managers']
+          }
+          else if (normalizedSlug === 'inkwell') {
+            image = '/templates/Inkwell.png'
+            vibe = 'BOLD'
+            category = 'Creative'
+            bestFor = ['Designers', 'Writers', 'Marketers', 'Creatives']
+          }
+          else if (normalizedSlug === 'prism') {
+            image = '/templates/Prism.png'
+            vibe = 'CREATIVE'
+            category = 'Creative'
+            bestFor = ['Designers', 'Frontend Devs', 'Marketers']
+          }
+          else if (normalizedSlug === 'campus') {
+            image = '/templates/Campus.png'
+            vibe = 'CLASSIC'
+            category = 'Classic'
+            bestFor = ['Graduates', 'Academics', 'Traditional Corporate']
+          }
+          else if (normalizedSlug === 'sprout') {
+            image = '/templates/Sprout.png'
+            vibe = 'MODERN'
+            category = 'Beginner'
+            bestFor = ['Juniors', 'Students', 'Tech Interns']
+          }
+          else if (normalizedSlug === 'northstar') {
+            image = '/templates/Northstar.png'
+            vibe = 'MODERN'
+            category = 'Modern'
+            bestFor = ['Senior Professionals', 'Product Managers', 'Tech Leads']
+          }
+          else if (normalizedSlug === 'meridian') {
+            image = '/templates/Meridian.png'
+            vibe = 'CLASSIC'
+            category = 'Classic'
+            bestFor = ['Executives', 'Senior Leaders', 'Directors']
+          }
 
-        return {
-          templateId: t.templateId,
-          name: t.name,
-          description: t.description,
-          slug: normalizedSlug,
-          image,
-          vibe,
-          category,
-          bestFor,
-        }
-      })
+          return {
+            templateId: t.templateId,
+            name: t.name,
+            description: t.description,
+            slug: normalizedSlug,
+            image,
+            vibe,
+            category,
+            bestFor,
+          }
+        })
     }
     catch (err: any) {
       error.value = err?.message || 'Failed to load templates'

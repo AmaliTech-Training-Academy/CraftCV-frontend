@@ -314,10 +314,10 @@ export const useCVState = () => {
         { id: 'mock-lang-2', name: 'Spanish', proficiency: 'Fluent' },
       ],
       awards: [
-        { id: 'mock-award-1', title: 'Award Title', date: 'YYYY-MM-01', description: 'Brief description of the award.' }
+        { id: 'mock-award-1', title: 'Award Title', date: 'YYYY-MM-01', description: 'Brief description of the award.' },
       ],
       additional_information: [
-        { id: 'mock-info-1', title: 'Project Title', description: 'Describe a significant project or key achievement.' }
+        { id: 'mock-info-1', title: 'Project Title', description: 'Describe a significant project or key achievement.' },
       ],
     }
   })
