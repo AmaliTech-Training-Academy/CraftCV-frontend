@@ -2,6 +2,7 @@ import type { Content, TDocumentDefinitions } from 'pdfmake/build/pdfmake'
 import type { CvExportData } from '../exportData'
 import type { PdfTemplateOptions } from './classic'
 import { formatDateRange, normalizeBullets } from '../formatters'
+import { accentTint, TEMPLATE_ACCENT_DEFAULTS } from '../../templateAccents'
 
 function toUrl(value: string): string {
   return value.startsWith('http://') || value.startsWith('https://')
@@ -9,7 +10,7 @@ function toUrl(value: string): string {
     : `https://${value}`
 }
 
-const sectionHeader = (text: string, lineWidth: number): Content => ({
+const sectionHeader = (text: string, lineWidth: number, lineColor: string): Content => ({
   stack: [
     { text: text.toUpperCase(), style: 'sectionTitle' },
     {
@@ -20,7 +21,7 @@ const sectionHeader = (text: string, lineWidth: number): Content => ({
         x2: lineWidth,
         y2: 1,
         lineWidth: 0.75,
-        lineColor: '#D1D5DB',
+        lineColor,
       }],
       margin: [0, 2, 0, 0],
     },
@@ -34,6 +35,12 @@ export function buildModernPdf(
 ): TDocumentDefinitions {
   const { personal } = data
   const contentWidth = options.paperSize === 'a4' ? 535 : 552
+  // The headings sit in the accent; the rule beneath it is washed out, which
+  // is what keeps the default — near-black — drawing the pale divider the
+  // template ships with. Mirrors SingleColumnTemplate.vue.
+  const accent = options.accentColor || TEMPLATE_ACCENT_DEFAULTS.modern
+  const ruleColor = accentTint(accent, 0.2)
+  const header = (text: string) => sectionHeader(text, contentWidth, ruleColor)
 
   const rawContactParts = [
     personal.email ? { text: personal.email, link: options.includeLinks ? `mailto:${personal.email}` : undefined } : null,
@@ -88,13 +95,13 @@ export function buildModernPdf(
 
   const summaryText = (data.summary || data.professional_summary || '').trim()
   if (summaryText) {
-    content.push(sectionHeader('Professional Summary', contentWidth))
+    content.push(header('Professional Summary'))
     content.push({ text: summaryText, style: 'body' })
   }
 
   const experiences = data.experiences || data.experience || []
   if (experiences.length > 0) {
-    content.push(sectionHeader('Professional Experience', contentWidth))
+    content.push(header('Professional Experience'))
     experiences.forEach((exp) => {
       const companyLocation = [exp.company, exp.location].filter(Boolean).join(' • ')
       const dateText = formatDateRange(exp.start_date || exp.startDate, exp.end_date || exp.endDate)
@@ -138,7 +145,7 @@ export function buildModernPdf(
 
   const educations = data.educations || data.education || []
   if (educations.length > 0) {
-    content.push(sectionHeader('Education', contentWidth))
+    content.push(header('Education'))
     educations.forEach((edu) => {
       const degreeText = [edu.degree, edu.fieldOfStudy || edu.field_of_study].filter(Boolean).join(', ')
       const institutionLocation = [edu.school || edu.institution, edu.location].filter(Boolean).join(' • ')
@@ -182,7 +189,7 @@ export function buildModernPdf(
   }
 
   if (data.skills && data.skills.length > 0) {
-    content.push(sectionHeader('Skills', contentWidth))
+    content.push(header('Skills'))
     const skillItems = data.skills.map(s => s.level ? `${s.name} (${s.level})` : s.name).filter(Boolean)
     content.push({
       text: skillItems.join('   •   '),
@@ -192,7 +199,7 @@ export function buildModernPdf(
   }
 
   if (data.certifications && data.certifications.length > 0) {
-    content.push(sectionHeader('Certifications', contentWidth))
+    content.push(header('Certifications'))
     data.certifications.forEach((cert) => {
       const certStack: Content[] = [
         {
@@ -216,7 +223,7 @@ export function buildModernPdf(
   }
 
   if (data.languages && data.languages.length > 0) {
-    content.push(sectionHeader('Languages', contentWidth))
+    content.push(header('Languages'))
     content.push({
       columns: [
         {
@@ -229,7 +236,7 @@ export function buildModernPdf(
   }
 
   if (data.awards && data.awards.length > 0) {
-    content.push(sectionHeader('Awards', contentWidth))
+    content.push(header('Awards'))
     data.awards.forEach((award) => {
       const awardStack: Content[] = [
         {
@@ -246,7 +253,7 @@ export function buildModernPdf(
   }
 
   if (data.additional_information && data.additional_information.length > 0) {
-    content.push(sectionHeader('Additional Information', contentWidth))
+    content.push(header('Additional Information'))
     data.additional_information.forEach((info) => {
       content.push({
         stack: [
@@ -289,7 +296,7 @@ export function buildModernPdf(
       sectionTitle: {
         fontSize: 9.5,
         bold: true,
-        color: '#1F2937',
+        color: accent,
         characterSpacing: 1.5,
       },
       itemTitle: {

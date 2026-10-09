@@ -1,5 +1,6 @@
 import { useState } from '#imports'
 import { computed } from 'vue'
+import { templateAccent } from '../utils/templateAccents'
 
 export interface PersonalDetails {
   firstName: string
@@ -96,6 +97,41 @@ export const useCVState = () => {
   const lastSavedAt = useState<string | null>('cv-last-saved-at', () => null)
   const saveState = useState<'saving' | 'saved' | 'error' | 'idle'>('cv-save-state', () => 'idle')
   const saveErrorMessage = useState<string | null>('cv-save-error', () => null)
+  /**
+   * The accent colour of every CV that has had one chosen, keyed by CV id.
+   *
+   * One colour for the whole account was the wrong shape: picking a colour on
+   * one CV repainted every other one. A CV that has never had a colour chosen
+   * takes its template's own (see `templateAccent`), so a template that was
+   * never customised keeps the look it was designed with.
+   *
+   * A CV that does not exist yet has no id to key on — the editor creates one
+   * on the first save, and a colour can be picked before that — so that choice
+   * lives under `draft` until the CV has a colour of its own.
+   */
+  const accentColorsCookie = useCookie<Record<string, string>>('cv-accent-colors', {
+    default: () => ({}),
+    maxAge: 60 * 60 * 24 * 365,
+    path: '/',
+  })
+
+  const accentColorsShared = useState<Record<string, string>>('cv-accent-colors-shared', () => accentColorsCookie.value || {})
+
+  const DRAFT_ACCENT_KEY = 'draft'
+
+  const accentColor = computed<string>({
+    get: () => {
+      const stored = accentColorsShared.value || {}
+      return stored[cvId.value || DRAFT_ACCENT_KEY]
+        || stored[DRAFT_ACCENT_KEY]
+        || templateAccent(selectedTemplateSlug.value)
+    },
+    set: (value: string) => {
+      const updated = { ...(accentColorsShared.value || {}), [cvId.value || DRAFT_ACCENT_KEY]: value }
+      accentColorsShared.value = updated
+      accentColorsCookie.value = updated
+    },
+  })
   /**
    * The fields a rejected save named. `saveErrorMessage` is the header badge
    * and has room for one sentence; this is what the editor pages render beside
@@ -282,6 +318,15 @@ export const useCVState = () => {
     hasActiveCV.value = false
     // A field error belongs to the record that was open, so it goes with it.
     saveErrorDetail.value = { target: null, fields: {} }
+    // The colour belongs to the CV it was chosen for, so only that CV's entry
+    // goes — the other CVs keep theirs. The draft goes too: it was picked for
+    // the CV being left, not for whichever one is opened next. Read before
+    // `cvId` is cleared below, which is what names the entry.
+    const accentKeys = { ...(accentColorsShared.value || {}) }
+    Reflect.deleteProperty(accentKeys, cvId.value || DRAFT_ACCENT_KEY)
+    Reflect.deleteProperty(accentKeys, DRAFT_ACCENT_KEY)
+    accentColorsShared.value = accentKeys
+    accentColorsCookie.value = accentKeys
     // Clearing this matters as much as the rest: cvId is a cookie, so leaving it
     // set would point the editor at a CV that was just deleted or replaced, and
     // the next mount would happily load it back.
@@ -320,6 +365,7 @@ export const useCVState = () => {
     saveErrorMessage,
     saveErrorDetail,
     saveErrorFor,
+    accentColor,
     personal,
     summary,
     experience,

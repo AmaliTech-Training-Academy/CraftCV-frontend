@@ -1,7 +1,8 @@
-import type { Content, TDocumentDefinitions, StyleDictionary } from 'pdfmake/build/pdfmake'
+import type { Content, TDocumentDefinitions } from 'pdfmake/build/pdfmake'
 import type { CvExportData } from '../exportData'
 import type { PdfTemplateOptions } from './classic'
 import { formatDateRange, normalizeBullets } from '../formatters'
+import { TEMPLATE_ACCENT_DEFAULTS } from '../../templateAccents'
 
 function toUrl(value: string): string {
   return value.startsWith('http://') || value.startsWith('https://')
@@ -9,7 +10,6 @@ function toUrl(value: string): string {
     : `https://${value}`
 }
 
-const PRIMARY_COLOR = '#1f3a5f' // Navy
 const BORDER_COLOR = '#d1d5db' // Slate-300 / Gray-300
 const BORDER_WIDTH = 12
 
@@ -18,7 +18,7 @@ const sectionTitle = (title: string): Content => {
     {
       text: title.toUpperCase(),
       style: 'sectionLabel',
-      margin: [0, 16, 0, 4]
+      margin: [0, 16, 0, 4],
     },
     {
       canvas: [
@@ -29,11 +29,11 @@ const sectionTitle = (title: string): Content => {
           x2: 595 - 80 - (BORDER_WIDTH * 2), // Rough page width - margins - borders. Handled dynamically below.
           y2: 0,
           lineWidth: 1,
-          lineColor: '#e5e7eb'
-        }
+          lineColor: '#e5e7eb',
+        },
       ],
-      margin: [0, 0, 0, 8]
-    }
+      margin: [0, 0, 0, 8],
+    },
   ]
 }
 
@@ -42,6 +42,7 @@ export function buildMeridianPdf(
   options: PdfTemplateOptions,
 ): TDocumentDefinitions {
   const { personal } = data
+  const PRIMARY_COLOR = options.accentColor || TEMPLATE_ACCENT_DEFAULTS.meridian
   const PAGE_WIDTH = options.paperSize === 'a4' ? 595.28 : 612
   const PAGE_HEIGHT = options.paperSize === 'a4' ? 841.89 : 792
 
@@ -58,10 +59,10 @@ export function buildMeridianPdf(
         x2: contentWidth,
         y2: 0,
         lineWidth: 1,
-        lineColor: '#e5e7eb'
-      }
+        lineColor: '#e5e7eb',
+      },
     ],
-    margin: [0, 0, 0, 12]
+    margin: [0, 0, 0, 12],
   })
 
   const makeSectionTitle = (title: string): Content => {
@@ -69,9 +70,9 @@ export function buildMeridianPdf(
       {
         text: title.toUpperCase(),
         style: 'sectionLabel',
-        margin: [0, 16, 0, 4]
+        margin: [0, 16, 0, 4],
       },
-      makeDivider()
+      makeDivider(),
     ]
   }
 
@@ -107,7 +108,7 @@ export function buildMeridianPdf(
   if (contactLine.length > 0) {
     content.push({ text: contactLine, margin: [0, 6, 0, 12], alignment: 'center' })
   }
-  
+
   // Thick Navy Line
   content.push({
     canvas: [{
@@ -116,9 +117,9 @@ export function buildMeridianPdf(
       y: 0,
       w: contentWidth,
       h: 2,
-      color: PRIMARY_COLOR
+      color: PRIMARY_COLOR,
     }],
-    margin: [0, 0, 0, 16]
+    margin: [0, 0, 0, 16],
   })
 
   // Executive Summary
@@ -128,17 +129,17 @@ export function buildMeridianPdf(
   }
 
   // Key Achievements
-  if (data.additionalInfo && data.additionalInfo.length > 0) {
+  if (data.additional_information && data.additional_information.length > 0) {
     content.push(makeSectionTitle('Key Achievements'))
-    data.additionalInfo.forEach((info, idx) => {
-      const isLast = idx === data.additionalInfo!.length - 1
+    data.additional_information.forEach((info, idx) => {
+      const isLast = idx === data.additional_information!.length - 1
       content.push({
         text: [
           { text: '•  ', style: 'bulletPoint' },
           { text: `${info.title}: `, bold: true, color: '#374151' },
-          { text: info.content || '', style: 'bodyText' }
+          { text: info.content || '', style: 'bodyText' },
         ],
-        margin: [0, 0, 0, isLast ? 0 : 8]
+        margin: [0, 0, 0, isLast ? 0 : 8],
       })
     })
   }
@@ -149,7 +150,7 @@ export function buildMeridianPdf(
     data.experiences.forEach((exp, idx) => {
       const isLast = idx === data.experiences!.length - 1
       content.push({ text: exp.role || '', style: 'itemTitle' })
-      content.push({ text: `${exp.company || ''} • ${formatDateRange(exp.startDate, exp.endDate, exp.isCurrent)}`, style: 'itemMeta' })
+      content.push({ text: `${exp.company || ''} • ${formatDateRange(exp.startDate, exp.endDate)}`, style: 'itemMeta' })
 
       const bullets = normalizeBullets(exp.description)
       if (bullets.length > 0) {
@@ -164,22 +165,22 @@ export function buildMeridianPdf(
   const awards = (data as any).awards || []
   if (awards.length > 0) {
     content.push(makeSectionTitle('Awards'))
-    awards.forEach((award: any, idx: number) => {
+    awards.forEach((award, idx) => {
       const isLast = idx === awards.length - 1
-      
+
       const meta = [award.issuer, award.date].filter(Boolean).join(' • ')
       const headerText = [
         { text: '•  ', style: 'bulletPoint' },
-        { text: award.name || '', bold: true, color: '#111827' }
+        { text: award.name || '', bold: true, color: '#111827' },
       ]
-      
+
       if (meta) {
         headerText.push({ text: ` • ${meta}`, bold: false, color: '#6B7280' })
       }
 
       content.push({
         text: headerText,
-        margin: [0, 0, 0, award.description ? 4 : (isLast ? 0 : 10)]
+        margin: [0, 0, 0, award.description ? 4 : (isLast ? 0 : 10)],
       })
 
       if (award.description) {
@@ -194,68 +195,68 @@ export function buildMeridianPdf(
     data.educations.forEach((edu, idx) => {
       const isLast = idx === data.educations!.length - 1
       const degreeText = edu.degree + (edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : '')
-      
+
       content.push({ text: degreeText, style: 'itemTitle' })
-      content.push({ text: `${edu.institution || ''} • ${formatDateRange(edu.startDate, edu.endDate, edu.isCurrent)}`, style: 'itemMeta' })
+      content.push({ text: `${edu.institution || ''} • ${formatDateRange(edu.startDate, edu.endDate)}`, style: 'itemMeta' })
 
       if (!isLast) content.push({ text: '', margin: [0, 0, 0, 12] })
     })
   }
 
-  const styles: StyleDictionary = {
+  const styles: any = {
     headerName: {
       font: 'Times',
       fontSize: 34,
       bold: true,
-      color: PRIMARY_COLOR
+      color: PRIMARY_COLOR,
     },
     contactText: {
       font: 'Times',
       fontSize: 11,
-      color: '#6B7280'
+      color: '#6B7280',
     },
     contactBullet: {
       font: 'Times',
       fontSize: 11,
-      color: '#9CA3AF'
+      color: '#9CA3AF',
     },
     sectionLabel: {
       font: 'Times',
       fontSize: 10,
       bold: true,
       color: PRIMARY_COLOR,
-      letterSpacing: 1.5
+      letterSpacing: 1.5,
     },
     itemTitle: {
       font: 'Times',
       fontSize: 13,
       bold: true,
-      color: PRIMARY_COLOR
+      color: PRIMARY_COLOR,
     },
     itemMeta: {
       font: 'Times',
       fontSize: 11,
       color: '#6B7280',
-      margin: [0, 2, 0, 6]
+      margin: [0, 2, 0, 6],
     },
     bodyText: {
       font: 'Times',
       fontSize: 11,
       color: '#374151',
-      lineHeight: 1.4
+      lineHeight: 1.4,
     },
     list: {
       font: 'Times',
       fontSize: 11,
       color: '#374151',
       lineHeight: 1.4,
-      markerColor: PRIMARY_COLOR
+      markerColor: PRIMARY_COLOR,
     },
     bulletPoint: {
       font: 'Times',
       fontSize: 12,
-      color: PRIMARY_COLOR
-    }
+      color: PRIMARY_COLOR,
+    },
   }
 
   return {
@@ -269,7 +270,7 @@ export function buildMeridianPdf(
             y: 0,
             w: BORDER_WIDTH,
             h: PAGE_HEIGHT,
-            color: BORDER_COLOR
+            color: BORDER_COLOR,
           },
           // Right Border
           {
@@ -278,7 +279,7 @@ export function buildMeridianPdf(
             y: 0,
             w: BORDER_WIDTH,
             h: PAGE_HEIGHT,
-            color: BORDER_COLOR
+            color: BORDER_COLOR,
           },
           // Top Border
           {
@@ -287,7 +288,7 @@ export function buildMeridianPdf(
             y: 0,
             w: PAGE_WIDTH,
             h: BORDER_WIDTH,
-            color: BORDER_COLOR
+            color: BORDER_COLOR,
           },
           // Bottom Border
           {
@@ -296,15 +297,15 @@ export function buildMeridianPdf(
             y: PAGE_HEIGHT - BORDER_WIDTH,
             w: PAGE_WIDTH,
             h: BORDER_WIDTH,
-            color: BORDER_COLOR
-          }
-        ]
+            color: BORDER_COLOR,
+          },
+        ],
       }
     },
     content,
     styles,
     defaultStyle: {
-      font: 'Times'
+      font: 'Times',
     },
     pageMargins: [40 + BORDER_WIDTH, 40 + BORDER_WIDTH, 40 + BORDER_WIDTH, 40 + BORDER_WIDTH],
     pageSize: options.paperSize.toUpperCase() as 'A4' | 'LETTER',

@@ -12,6 +12,7 @@ export interface ExportPdfOptions {
   includeLinks?: boolean
   templateId?: string
   templateSlug?: string
+  accentColor?: string
 }
 
 type PdfMake = typeof import('pdfmake/build/pdfmake')
@@ -57,6 +58,7 @@ export function buildDocumentDefinition(options: ExportPdfOptions): TDocumentDef
   return renderer(data, {
     paperSize: options.paperSize,
     includeLinks: options.includeLinks !== false,
+    accentColor: options.accentColor,
   })
 }
 

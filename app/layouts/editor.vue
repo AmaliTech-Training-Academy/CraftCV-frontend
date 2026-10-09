@@ -29,6 +29,7 @@ import { useCVState } from '~/composables/useCVState'
 import { useAutosave } from '~/composables/useAutosave'
 import { useCVs, type CVSummary } from '~/composables/useCVs'
 import { useAuth } from '~/composables/useAuth'
+import { templateAccent } from '~/utils/templateAccents'
 import type { ResolvedCvData } from '~/types/cv'
 import CVTemplateClassic from '~/components/templates/CVTemplateClassic.vue'
 import SingleColumnTemplate from '~/components/templates/SingleColumnTemplate.vue'
@@ -58,9 +59,24 @@ const {
   saveState,
   lastSavedAt,
   saveErrorMessage,
+  accentColor,
 } = useCVState()
 
 const { loadCV } = useAutosave()
+
+/**
+ * The swatches the colour control offers.
+ *
+ * The template's own colour leads the row: a CV that has never had a colour
+ * chosen is set in it, so without it the control would show nothing selected
+ * and leave no way back to the template's palette once another colour was
+ * picked. Presets the template already uses are not repeated.
+ */
+const accentPresets = computed(() => {
+  const presets = ['#F26438', '#0F172A', '#059669', '#2563EB', '#D946EF']
+  const templateColor = templateAccent(selectedTemplateSlug.value)
+  return presets.includes(templateColor) ? presets : [templateColor, ...presets]
+})
 
 // The saved-CV collection, for the resume switcher in the header. Its state is
 // shared, so a list the dashboard already fetched is reused rather than
@@ -240,6 +256,7 @@ const handleExport = async (payload: ExportPayload) => {
         paperSize: payload.paperSize,
         includeLinks: payload.includeLinks,
         templateSlug: selectedTemplateSlug.value || 'classic',
+        accentColor: accentColor.value,
       })
     }
   }
@@ -263,6 +280,7 @@ const handlePrint = async () => {
       paperSize: 'a4',
       includeLinks: true,
       templateSlug: selectedTemplateSlug.value || 'classic',
+      accentColor: accentColor.value,
     })
   }
   catch (error) {
@@ -694,6 +712,18 @@ useResizeObserver(previewPage, (entries) => {
               Edit
             </button>
           </div>
+        </div>
+
+        <!-- Color Picker -->
+        <div class="px-4 lg:px-8 py-3 flex items-center justify-center gap-3 shrink-0">
+          <button
+            v-for="color in accentPresets"
+            :key="color"
+            :class="['w-6 h-6 rounded-full shadow-sm transition-transform cursor-pointer', accentColor === color ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : 'hover:scale-110']"
+            :style="{ backgroundColor: color }"
+            :aria-label="`Set theme color to ${color}`"
+            @click="accentColor = color"
+          />
         </div>
 
         <!-- Canvas Area with ResizeObserver -->

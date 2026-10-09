@@ -1,7 +1,8 @@
-import type { Content, TDocumentDefinitions, StyleDictionary } from 'pdfmake/build/pdfmake'
+import type { Content, TDocumentDefinitions } from 'pdfmake/build/pdfmake'
 import type { CvExportData } from '../exportData'
 import type { PdfTemplateOptions } from './classic'
 import { formatDateRange, normalizeBullets } from '../formatters'
+import { accentTint, TEMPLATE_ACCENT_DEFAULTS } from '../../templateAccents'
 
 function toUrl(value: string): string {
   return value.startsWith('http://') || value.startsWith('https://')
@@ -9,8 +10,7 @@ function toUrl(value: string): string {
     : `https://${value}`
 }
 
-const PRIMARY_COLOR = '#7f1d1d' // dark red
-const CHIP_BG = '#fae8e8' // light red tint
+const CHIP_TINT_WEIGHT = 0.1
 
 const sectionRow = (label: string, contentStack: Content[], isLast: boolean): Content[] => {
   const row: Content[] = [
@@ -19,17 +19,17 @@ const sectionRow = (label: string, contentStack: Content[], isLast: boolean): Co
         {
           width: '23%',
           text: label.toUpperCase(),
-          style: 'sectionLabel'
+          style: 'sectionLabel',
         },
         {
           width: '77%',
-          stack: contentStack
-        }
+          stack: contentStack,
+        },
       ],
-      margin: [0, 16, 0, 16]
-    }
+      margin: [0, 16, 0, 16],
+    },
   ]
-  
+
   if (!isLast) {
     row.push({
       canvas: [{
@@ -39,11 +39,11 @@ const sectionRow = (label: string, contentStack: Content[], isLast: boolean): Co
         x2: 515, // Approx A4 content width (595 - 80)
         y2: 0,
         lineWidth: 0.5,
-        lineColor: '#e5e7eb'
-      }]
+        lineColor: '#e5e7eb',
+      }],
     })
   }
-  
+
   return row
 }
 
@@ -52,9 +52,11 @@ export function buildCampusPdf(
   options: PdfTemplateOptions,
 ): TDocumentDefinitions {
   const { personal } = data
+  const PRIMARY_COLOR = options.accentColor || TEMPLATE_ACCENT_DEFAULTS.campus
+  // Derived rather than fixed, so the chips follow the accent instead of
+  // staying red on a CV that was recoloured.
+  const CHIP_BG = accentTint(PRIMARY_COLOR, CHIP_TINT_WEIGHT)
   const contentWidth = options.paperSize === 'a4' ? 515 : 532
-  const PAGE_WIDTH = options.paperSize === 'a4' ? 595.28 : 612
-
   const fullName = `${personal.firstName} ${personal.lastName}`.trim()
   const jobTitle = (personal.title || data.title || '').trim()
 
@@ -87,7 +89,7 @@ export function buildCampusPdf(
   if (contactLine.length > 0) {
     content.push({ text: contactLine, margin: [0, 4, 0, 10] })
   }
-  
+
   // Thick red horizontal line
   content.push({
     canvas: [{
@@ -96,9 +98,9 @@ export function buildCampusPdf(
       y: 0,
       w: contentWidth,
       h: 1.5,
-      color: PRIMARY_COLOR
+      color: PRIMARY_COLOR,
     }],
-    margin: [0, 0, 0, 8]
+    margin: [0, 0, 0, 8],
   })
 
   // Body Sections
@@ -108,7 +110,7 @@ export function buildCampusPdf(
   if (data.summary?.trim()) {
     sections.push({
       label: 'Profile',
-      stack: [{ text: data.summary.trim(), style: 'bodyText' }]
+      stack: [{ text: data.summary.trim(), style: 'bodyText' }],
     })
   }
 
@@ -118,9 +120,9 @@ export function buildCampusPdf(
     data.educations.forEach((edu, idx) => {
       const isLast = idx === data.educations!.length - 1
       const degreeText = edu.degree + (edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : '')
-      
+
       eduStack.push({ text: degreeText, style: 'itemTitle' })
-      eduStack.push({ text: `${edu.institution || ''} • ${formatDateRange(edu.startDate, edu.endDate, edu.isCurrent)}`, style: 'itemMeta' })
+      eduStack.push({ text: `${edu.institution || ''} • ${formatDateRange(edu.startDate, edu.endDate)}`, style: 'itemMeta' })
 
       const bullets = normalizeBullets(edu.description)
       if (bullets.length > 0) {
@@ -137,7 +139,7 @@ export function buildCampusPdf(
     data.experiences.forEach((exp, idx) => {
       const isLast = idx === data.experiences!.length - 1
       expStack.push({ text: exp.role || '', style: 'itemTitle' })
-      expStack.push({ text: `${exp.company || ''} • ${formatDateRange(exp.startDate, exp.endDate, exp.isCurrent)}`, style: 'itemMeta' })
+      expStack.push({ text: `${exp.company || ''} • ${formatDateRange(exp.startDate, exp.endDate)}`, style: 'itemMeta' })
 
       const bullets = normalizeBullets(exp.description)
       if (bullets.length > 0) {
@@ -161,10 +163,10 @@ export function buildCampusPdf(
   }
 
   // Projects / Additional Info
-  if (data.additionalInfo && data.additionalInfo.length > 0) {
+  if (data.additional_information && data.additional_information.length > 0) {
     const projStack: Content[] = []
-    data.additionalInfo.forEach((info, idx) => {
-      const isLast = idx === data.additionalInfo!.length - 1
+    data.additional_information.forEach((info, idx) => {
+      const isLast = idx === data.additional_information!.length - 1
       projStack.push({ text: info.title || '', style: 'itemTitle' })
       if (info.description) {
         projStack.push({ text: info.description, style: 'bodyText', margin: [0, 2, 0, 0] })
@@ -176,11 +178,11 @@ export function buildCampusPdf(
 
   // Skills
   if (data.skills && data.skills.length > 0) {
-    const skillChips: any[] = data.skills.map(s => {
+    const skillChips: any[] = data.skills.map((s) => {
       return {
         table: {
           widths: ['auto'],
-          body: [[{ text: s.name, style: 'chipText', border: [false, false, false, false], fillColor: CHIP_BG, margin: [6, 2, 6, 2] }]]
+          body: [[{ text: s.name, style: 'chipText', border: [false, false, false, false], fillColor: CHIP_BG, margin: [6, 2, 6, 2] }]],
         },
         layout: {
           hLineColor: () => CHIP_BG,
@@ -190,23 +192,23 @@ export function buildCampusPdf(
           paddingTop: () => 0,
           paddingBottom: () => 0,
         },
-        margin: [0, 0, 4, 4]
+        margin: [0, 0, 4, 4],
       }
     })
-    
+
     sections.push({
       label: 'Skills',
-      stack: [{ columns: skillChips.map(c => ({ width: 'auto', ...c })) }]
+      stack: [{ columns: skillChips.map(c => ({ width: 'auto', ...c })) }],
     })
   }
 
   // Languages
   if (data.languages && data.languages.length > 0) {
-    const langChips: any[] = data.languages.map(l => {
+    const langChips: any[] = data.languages.map((l) => {
       return {
         table: {
           widths: ['auto'],
-          body: [[{ text: l.name, style: 'chipText', border: [false, false, false, false], fillColor: CHIP_BG, margin: [6, 2, 6, 2] }]]
+          body: [[{ text: l.name, style: 'chipText', border: [false, false, false, false], fillColor: CHIP_BG, margin: [6, 2, 6, 2] }]],
         },
         layout: {
           hLineColor: () => CHIP_BG,
@@ -216,13 +218,13 @@ export function buildCampusPdf(
           paddingTop: () => 0,
           paddingBottom: () => 0,
         },
-        margin: [0, 0, 4, 4]
+        margin: [0, 0, 4, 4],
       }
     })
-    
+
     sections.push({
       label: 'Languages',
-      stack: [{ columns: langChips.map(c => ({ width: 'auto', ...c })) }]
+      stack: [{ columns: langChips.map(c => ({ width: 'auto', ...c })) }],
     })
   }
 
@@ -232,69 +234,68 @@ export function buildCampusPdf(
     content.push(...sectionRow(sec.label, sec.stack, isLast))
   })
 
-
-  const styles: StyleDictionary = {
+  const styles: any = {
     headerName: {
       font: 'Times',
       fontSize: 32,
       bold: true,
-      color: '#111827'
+      color: '#111827',
     },
     contactText: {
       font: 'Times',
       fontSize: 10,
-      color: '#6B7280'
+      color: '#6B7280',
     },
     contactBullet: {
       font: 'Times',
       fontSize: 10,
-      color: '#9CA3AF'
+      color: '#9CA3AF',
     },
     sectionLabel: {
       font: 'Times',
       fontSize: 9,
       bold: true,
       color: PRIMARY_COLOR,
-      letterSpacing: 2
+      letterSpacing: 2,
     },
     itemTitle: {
       font: 'Times',
       fontSize: 11,
       bold: true,
-      color: '#111827'
+      color: '#111827',
     },
     itemMeta: {
       font: 'Times',
       fontSize: 10,
       color: '#6B7280',
-      margin: [0, 2, 0, 4]
+      margin: [0, 2, 0, 4],
     },
     bodyText: {
       font: 'Times',
       fontSize: 10,
       color: '#374151',
-      lineHeight: 1.4
+      lineHeight: 1.4,
     },
     list: {
       font: 'Times',
       fontSize: 10,
       color: '#374151',
       lineHeight: 1.4,
-      markerColor: PRIMARY_COLOR
+      markerColor: PRIMARY_COLOR,
     },
     chipText: {
       font: 'Times',
       fontSize: 9,
       bold: true,
-      color: PRIMARY_COLOR
-    }
+      color: PRIMARY_COLOR,
+    },
   }
 
   return {
     content,
     styles,
     defaultStyle: {
-      font: 'Times'
+      font: 'Times',
     },
     pageMargins: [40, 40, 40, 40],
     pageSize: options.paperSize.toUpperCase() as 'A4' | 'LETTER',

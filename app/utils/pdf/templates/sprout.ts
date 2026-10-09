@@ -1,7 +1,8 @@
-import type { Content, TDocumentDefinitions, StyleDictionary } from 'pdfmake/build/pdfmake'
+import type { Content, TDocumentDefinitions } from 'pdfmake/build/pdfmake'
 import type { CvExportData } from '../exportData'
 import type { PdfTemplateOptions } from './classic'
 import { formatDateRange, normalizeBullets } from '../formatters'
+import { accentTint, TEMPLATE_ACCENT_DEFAULTS } from '../../templateAccents'
 
 function toUrl(value: string): string {
   return value.startsWith('http://') || value.startsWith('https://')
@@ -9,14 +10,13 @@ function toUrl(value: string): string {
     : `https://${value}`
 }
 
-const PRIMARY_COLOR = '#6d28d9' // purple
-const CHIP_BG = '#f3e8ff' // light purple tint
+const CHIP_TINT_WEIGHT = 0.12
 
 const sectionTitle = (title: string): Content => {
   return {
     text: title.toUpperCase(),
     style: 'sectionLabel',
-    margin: [0, 16, 0, 8]
+    margin: [0, 16, 0, 8],
   }
 }
 
@@ -25,6 +25,10 @@ export function buildSproutPdf(
   options: PdfTemplateOptions,
 ): TDocumentDefinitions {
   const { personal } = data
+  const PRIMARY_COLOR = options.accentColor || TEMPLATE_ACCENT_DEFAULTS.sprout
+  // Derived rather than fixed, so the chips follow the accent instead of
+  // staying purple on a CV that was recoloured.
+  const CHIP_BG = accentTint(PRIMARY_COLOR, CHIP_TINT_WEIGHT)
 
   const fullName = `${personal.firstName} ${personal.lastName}`.trim()
   const jobTitle = (personal.title || data.title || '').trim()
@@ -58,7 +62,7 @@ export function buildSproutPdf(
   if (contactLine.length > 0) {
     content.push({ text: contactLine, margin: [0, 4, 0, 12] })
   }
-  
+
   // Thick purple horizontal bar
   content.push({
     canvas: [{
@@ -68,9 +72,9 @@ export function buildSproutPdf(
       w: 64, // ~4rem
       h: 4,
       r: 2, // rounded corners
-      color: PRIMARY_COLOR
+      color: PRIMARY_COLOR,
     }],
-    margin: [0, 0, 0, 16]
+    margin: [0, 0, 0, 16],
   })
 
   // Body Sections
@@ -87,9 +91,9 @@ export function buildSproutPdf(
     data.educations.forEach((edu, idx) => {
       const isLast = idx === data.educations!.length - 1
       const degreeText = edu.degree + (edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : '')
-      
+
       content.push({ text: degreeText, style: 'itemTitle' })
-      content.push({ text: `${edu.institution || ''} • ${formatDateRange(edu.startDate, edu.endDate, edu.isCurrent)}`, style: 'itemMeta' })
+      content.push({ text: `${edu.institution || ''} • ${formatDateRange(edu.startDate, edu.endDate)}`, style: 'itemMeta' })
 
       const bullets = normalizeBullets(edu.description)
       if (bullets.length > 0) {
@@ -100,10 +104,10 @@ export function buildSproutPdf(
   }
 
   // 2. Projects / Additional Info
-  if (data.additionalInfo && data.additionalInfo.length > 0) {
+  if (data.additional_information && data.additional_information.length > 0) {
     content.push(sectionTitle('Projects'))
-    data.additionalInfo.forEach((info, idx) => {
-      const isLast = idx === data.additionalInfo!.length - 1
+    data.additional_information.forEach((info, idx) => {
+      const isLast = idx === data.additional_information!.length - 1
       content.push({ text: info.title || '', style: 'itemTitle' })
       if (info.description) {
         content.push({ text: info.description, style: 'bodyText', margin: [0, 2, 0, 0] })
@@ -115,11 +119,11 @@ export function buildSproutPdf(
   // 3. Skills
   if (data.skills && data.skills.length > 0) {
     content.push(sectionTitle('Skills'))
-    const skillChips: any[] = data.skills.map(s => {
+    const skillChips: any[] = data.skills.map((s) => {
       return {
         table: {
           widths: ['auto'],
-          body: [[{ text: s.name, style: 'chipText', border: [false, false, false, false], fillColor: CHIP_BG, margin: [8, 3, 8, 3] }]]
+          body: [[{ text: s.name, style: 'chipText', border: [false, false, false, false], fillColor: CHIP_BG, margin: [8, 3, 8, 3] }]],
         },
         layout: {
           hLineColor: () => CHIP_BG,
@@ -130,7 +134,7 @@ export function buildSproutPdf(
           paddingBottom: () => 0,
           defaultBorder: false,
         },
-        margin: [0, 0, 6, 6]
+        margin: [0, 0, 6, 6],
       }
     })
     content.push({ columns: skillChips.map(c => ({ width: 'auto', ...c })) })
@@ -142,7 +146,7 @@ export function buildSproutPdf(
     data.experiences.forEach((exp, idx) => {
       const isLast = idx === data.experiences!.length - 1
       content.push({ text: exp.role || '', style: 'itemTitle' })
-      content.push({ text: `${exp.company || ''} • ${formatDateRange(exp.startDate, exp.endDate, exp.isCurrent)}`, style: 'itemMeta' })
+      content.push({ text: `${exp.company || ''} • ${formatDateRange(exp.startDate, exp.endDate)}`, style: 'itemMeta' })
 
       const bullets = normalizeBullets(exp.description)
       if (bullets.length > 0) {
@@ -166,11 +170,11 @@ export function buildSproutPdf(
   // 6. Languages
   if (data.languages && data.languages.length > 0) {
     content.push(sectionTitle('Languages'))
-    const langChips: any[] = data.languages.map(l => {
+    const langChips: any[] = data.languages.map((l) => {
       return {
         table: {
           widths: ['auto'],
-          body: [[{ text: l.name, style: 'chipText', border: [false, false, false, false], fillColor: CHIP_BG, margin: [8, 3, 8, 3] }]]
+          body: [[{ text: l.name, style: 'chipText', border: [false, false, false, false], fillColor: CHIP_BG, margin: [8, 3, 8, 3] }]],
         },
         layout: {
           hLineColor: () => CHIP_BG,
@@ -181,74 +185,74 @@ export function buildSproutPdf(
           paddingBottom: () => 0,
           defaultBorder: false,
         },
-        margin: [0, 0, 6, 6]
+        margin: [0, 0, 6, 6],
       }
     })
     content.push({ columns: langChips.map(c => ({ width: 'auto', ...c })) })
   }
 
-  const styles: StyleDictionary = {
+  const styles: any = {
     headerName: {
       font: 'Roboto',
       fontSize: 32,
       bold: true,
-      color: '#111827'
+      color: '#111827',
     },
     contactText: {
       font: 'Roboto',
       fontSize: 10,
-      color: '#6B7280'
+      color: '#6B7280',
     },
     contactBullet: {
       font: 'Roboto',
       fontSize: 10,
-      color: '#9CA3AF'
+      color: '#9CA3AF',
     },
     sectionLabel: {
       font: 'Roboto',
       fontSize: 10,
       bold: true,
       color: PRIMARY_COLOR,
-      letterSpacing: 2
+      letterSpacing: 2,
     },
     itemTitle: {
       font: 'Roboto',
       fontSize: 11.5,
       bold: true,
-      color: '#111827'
+      color: '#111827',
     },
     itemMeta: {
       font: 'Roboto',
       fontSize: 10,
       color: '#6B7280',
-      margin: [0, 2, 0, 4]
+      margin: [0, 2, 0, 4],
     },
     bodyText: {
       font: 'Roboto',
       fontSize: 10,
       color: '#374151',
-      lineHeight: 1.4
+      lineHeight: 1.4,
     },
     list: {
       font: 'Roboto',
       fontSize: 10,
       color: '#374151',
       lineHeight: 1.4,
-      markerColor: PRIMARY_COLOR
+      markerColor: PRIMARY_COLOR,
     },
     chipText: {
       font: 'Roboto',
       fontSize: 9.5,
       bold: true,
-      color: PRIMARY_COLOR
-    }
+      color: PRIMARY_COLOR,
+    },
   }
 
   return {
     content,
     styles,
     defaultStyle: {
-      font: 'Roboto'
+      font: 'Roboto',
     },
     pageMargins: [40, 40, 40, 40],
     pageSize: options.paperSize.toUpperCase() as 'A4' | 'LETTER',

@@ -132,317 +132,317 @@ const handleFinish = async () => {
       >
         <template #item="{ element: item, index }">
           <div class="mb-5">
-        <!-- 1. Expanded Form Card (Active Item) -->
-        <div
-          v-if="activeId === item.id"
-          class="border-2 border-[#C54A22] rounded-2xl bg-white p-6 sm:p-7 shadow-sm transition-all"
-        >
-          <!-- Card Header Bar -->
-          <div class="flex items-center justify-between pb-4 border-b border-gray-100">
-            <div class="flex items-center gap-3 min-w-0 pr-4">
-              <GripVertical
-                class="w-4 h-4 text-gray-400 shrink-0 cursor-grab"
-                aria-hidden="true"
-              />
-              <h2 class="text-base font-bold text-gray-900 truncate">
-                {{ item.name.trim() || `New Certification #${index + 1}` }}
-              </h2>
-            </div>
-            <button
-              type="button"
-              aria-label="Delete entry"
-              :title="'Delete ' + (item.name.trim() || 'certification')"
-              class="text-gray-400 hover:text-red-600 p-1.5 rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-              @click="promptDelete(item.id)"
+            <!-- 1. Expanded Form Card (Active Item) -->
+            <div
+              v-if="activeId === item.id"
+              class="border-2 border-[#C54A22] rounded-2xl bg-white p-6 sm:p-7 shadow-sm transition-all"
             >
-              <Trash2
-                class="w-4 h-4"
-                aria-hidden="true"
-              />
-            </button>
-          </div>
-
-          <!-- Form Fields Grid -->
-          <div class="space-y-5 pt-5">
-            <!-- Row 1: Name & Issuer -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label
-                  :for="'cert-name-' + item.id"
-                  class="block text-[13px] font-semibold text-gray-800 mb-2"
-                >
-                  Certification Name <span
-                    class="text-[#C54A22]"
-                    aria-hidden="true"
-                  >*</span>
-                  <span class="sr-only">(required)</span>
-                </label>
-                <input
-                  :id="'cert-name-' + item.id"
-                  v-model="item.name"
-                  type="text"
-                  placeholder="e.g. UX Master Certified (UXMC)"
-                  :aria-required="true"
-                  :aria-invalid="Boolean(nameError(item))"
-                  :aria-describedby="nameError(item) ? 'cert-name-error-' + item.id : undefined"
-                  class="w-full h-11 px-4 rounded-xl border text-sm transition-all focus:outline-none"
-                  :class="[
-                    nameError(item)
-                      ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
-                      : 'border-gray-200 focus:ring-2 focus:ring-[#C54A22]/20',
-                  ]"
-                >
-                <span
-                  v-if="nameError(item)"
-                  :id="'cert-name-error-' + item.id"
-                  role="alert"
-                  class="text-xs font-semibold text-red-500 mt-1 block"
-                >
-                  {{ nameError(item) }}
-                </span>
-              </div>
-
-              <div>
-                <label
-                  :for="'cert-issuer-' + item.id"
-                  class="block text-[13px] font-semibold text-gray-800 mb-2"
-                >
-                  Issuing Organization <span
-                    class="text-[#C54A22]"
-                    aria-hidden="true"
-                  >*</span>
-                  <span class="sr-only">(required)</span>
-                </label>
-                <input
-                  :id="'cert-issuer-' + item.id"
-                  v-model="item.issuer"
-                  type="text"
-                  placeholder="e.g. Nielsen Norman Group"
-                  :aria-required="true"
-                  :aria-invalid="Boolean(issuerError(item))"
-                  :aria-describedby="issuerError(item) ? 'cert-issuer-error-' + item.id : undefined"
-                  class="w-full h-11 px-4 rounded-xl border text-sm transition-all focus:outline-none"
-                  :class="[
-                    issuerError(item)
-                      ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
-                      : 'border-gray-200 focus:ring-2 focus:ring-[#C54A22]/20',
-                  ]"
-                >
-                <span
-                  v-if="issuerError(item)"
-                  :id="'cert-issuer-error-' + item.id"
-                  role="alert"
-                  class="text-xs font-semibold text-red-500 mt-1 block"
-                >
-                  {{ issuerError(item) }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Row 2: Issue Date & Expiration Date -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <EditorMonthYearPicker
-                  v-model="item.date"
-                  disable-future
-                  required
-                  label="Issue Date"
-                  :error="backendError(item.id, 'date') || (showErrors && !isValidDateString(item.date) ? 'Issue date is required' : '')"
-                />
-              </div>
-
-              <div>
-                <EditorMonthYearPicker
-                  v-model="item.expirationDate"
-                  :disabled="item.doesNotExpire !== false"
-                  :placeholder="item.doesNotExpire !== false ? 'Does not expire' : 'Select date'"
-                  label="Expiration Date"
-                  :error="backendError(item.id, 'expirationDate')"
-                />
-                <div class="mt-2.5 flex items-center gap-2">
-                  <input
-                    :id="'no-expire-' + item.id"
-                    v-model="item.doesNotExpire"
-                    type="checkbox"
-                    class="w-4 h-4 rounded border-gray-300 accent-[#C54A22] text-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 cursor-pointer"
-                  >
-                  <label
-                    :for="'no-expire-' + item.id"
-                    class="text-xs text-gray-600 font-medium cursor-pointer select-none"
-                  >
-                    This credential does not expire
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <!-- Row 3: Credential ID & URL -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label
-                  :for="'cert-id-' + item.id"
-                  class="block text-[13px] font-semibold text-gray-800 mb-2"
-                >
-                  Credential ID
-                </label>
-                <input
-                  :id="'cert-id-' + item.id"
-                  v-model="item.credentialId"
-                  type="text"
-                  placeholder="e.g. NNG-1049281"
-                  class="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20 transition-all"
-                >
-              </div>
-
-              <div>
-                <label
-                  :for="'cert-url-' + item.id"
-                  class="block text-[13px] font-semibold text-gray-800 mb-2"
-                >
-                  Credential URL
-                </label>
-                <div class="relative">
-                  <input
-                    :id="'cert-url-' + item.id"
-                    v-model="item.credentialUrl"
-                    type="url"
-                    aria-label="Credential verification URL"
-                    placeholder="https://www.nngroup.com/verify/1049281"
-                    :aria-invalid="Boolean(backendError(item.id, 'credentialUrl'))"
-                    :aria-describedby="backendError(item.id, 'credentialUrl') ? 'cert-url-error-' + item.id : undefined"
-                    class="w-full h-11 pl-4 pr-10 rounded-xl border bg-white text-sm text-gray-900 focus:outline-none focus:ring-2 transition-all"
-                    :class="[
-                      backendError(item.id, 'credentialUrl')
-                        ? 'border-red-400 focus:ring-red-400/20'
-                        : 'border-gray-200 focus:ring-[#C54A22]/20',
-                    ]"
-                  >
-                  <ExternalLink
-                    class="w-4 h-4 text-gray-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+              <!-- Card Header Bar -->
+              <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+                <div class="flex items-center gap-3 min-w-0 pr-4">
+                  <GripVertical
+                    class="w-4 h-4 text-gray-400 shrink-0 cursor-grab"
                     aria-hidden="true"
                   />
+                  <h2 class="text-base font-bold text-gray-900 truncate">
+                    {{ item.name.trim() || `New Certification #${index + 1}` }}
+                  </h2>
                 </div>
-                <!-- The backend validates this one as a URL, so it is the field
-                     here that can come back rejected. -->
-                <span
-                  v-if="backendError(item.id, 'credentialUrl')"
-                  :id="'cert-url-error-' + item.id"
-                  role="alert"
-                  class="text-xs font-semibold text-red-500 mt-1 block"
+                <button
+                  type="button"
+                  aria-label="Delete entry"
+                  :title="'Delete ' + (item.name.trim() || 'certification')"
+                  class="text-gray-400 hover:text-red-600 p-1.5 rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                  @click="promptDelete(item.id)"
                 >
-                  {{ backendError(item.id, 'credentialUrl') }}
-                </span>
+                  <Trash2
+                    class="w-4 h-4"
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
+
+              <!-- Form Fields Grid -->
+              <div class="space-y-5 pt-5">
+                <!-- Row 1: Name & Issuer -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      :for="'cert-name-' + item.id"
+                      class="block text-[13px] font-semibold text-gray-800 mb-2"
+                    >
+                      Certification Name <span
+                        class="text-[#C54A22]"
+                        aria-hidden="true"
+                      >*</span>
+                      <span class="sr-only">(required)</span>
+                    </label>
+                    <input
+                      :id="'cert-name-' + item.id"
+                      v-model="item.name"
+                      type="text"
+                      placeholder="e.g. UX Master Certified (UXMC)"
+                      :aria-required="true"
+                      :aria-invalid="Boolean(nameError(item))"
+                      :aria-describedby="nameError(item) ? 'cert-name-error-' + item.id : undefined"
+                      class="w-full h-11 px-4 rounded-xl border text-sm transition-all focus:outline-none"
+                      :class="[
+                        nameError(item)
+                          ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
+                          : 'border-gray-200 focus:ring-2 focus:ring-[#C54A22]/20',
+                      ]"
+                    >
+                    <span
+                      v-if="nameError(item)"
+                      :id="'cert-name-error-' + item.id"
+                      role="alert"
+                      class="text-xs font-semibold text-red-500 mt-1 block"
+                    >
+                      {{ nameError(item) }}
+                    </span>
+                  </div>
+
+                  <div>
+                    <label
+                      :for="'cert-issuer-' + item.id"
+                      class="block text-[13px] font-semibold text-gray-800 mb-2"
+                    >
+                      Issuing Organization <span
+                        class="text-[#C54A22]"
+                        aria-hidden="true"
+                      >*</span>
+                      <span class="sr-only">(required)</span>
+                    </label>
+                    <input
+                      :id="'cert-issuer-' + item.id"
+                      v-model="item.issuer"
+                      type="text"
+                      placeholder="e.g. Nielsen Norman Group"
+                      :aria-required="true"
+                      :aria-invalid="Boolean(issuerError(item))"
+                      :aria-describedby="issuerError(item) ? 'cert-issuer-error-' + item.id : undefined"
+                      class="w-full h-11 px-4 rounded-xl border text-sm transition-all focus:outline-none"
+                      :class="[
+                        issuerError(item)
+                          ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
+                          : 'border-gray-200 focus:ring-2 focus:ring-[#C54A22]/20',
+                      ]"
+                    >
+                    <span
+                      v-if="issuerError(item)"
+                      :id="'cert-issuer-error-' + item.id"
+                      role="alert"
+                      class="text-xs font-semibold text-red-500 mt-1 block"
+                    >
+                      {{ issuerError(item) }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Row 2: Issue Date & Expiration Date -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <EditorMonthYearPicker
+                      v-model="item.date"
+                      disable-future
+                      required
+                      label="Issue Date"
+                      :error="backendError(item.id, 'date') || (showErrors && !isValidDateString(item.date) ? 'Issue date is required' : '')"
+                    />
+                  </div>
+
+                  <div>
+                    <EditorMonthYearPicker
+                      v-model="item.expirationDate"
+                      :disabled="item.doesNotExpire !== false"
+                      :placeholder="item.doesNotExpire !== false ? 'Does not expire' : 'Select date'"
+                      label="Expiration Date"
+                      :error="backendError(item.id, 'expirationDate')"
+                    />
+                    <div class="mt-2.5 flex items-center gap-2">
+                      <input
+                        :id="'no-expire-' + item.id"
+                        v-model="item.doesNotExpire"
+                        type="checkbox"
+                        class="w-4 h-4 rounded border-gray-300 accent-[#C54A22] text-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 cursor-pointer"
+                      >
+                      <label
+                        :for="'no-expire-' + item.id"
+                        class="text-xs text-gray-600 font-medium cursor-pointer select-none"
+                      >
+                        This credential does not expire
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Row 3: Credential ID & URL -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      :for="'cert-id-' + item.id"
+                      class="block text-[13px] font-semibold text-gray-800 mb-2"
+                    >
+                      Credential ID
+                    </label>
+                    <input
+                      :id="'cert-id-' + item.id"
+                      v-model="item.credentialId"
+                      type="text"
+                      placeholder="e.g. NNG-1049281"
+                      class="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20 transition-all"
+                    >
+                  </div>
+
+                  <div>
+                    <label
+                      :for="'cert-url-' + item.id"
+                      class="block text-[13px] font-semibold text-gray-800 mb-2"
+                    >
+                      Credential URL
+                    </label>
+                    <div class="relative">
+                      <input
+                        :id="'cert-url-' + item.id"
+                        v-model="item.credentialUrl"
+                        type="url"
+                        aria-label="Credential verification URL"
+                        placeholder="https://www.nngroup.com/verify/1049281"
+                        :aria-invalid="Boolean(backendError(item.id, 'credentialUrl'))"
+                        :aria-describedby="backendError(item.id, 'credentialUrl') ? 'cert-url-error-' + item.id : undefined"
+                        class="w-full h-11 pl-4 pr-10 rounded-xl border bg-white text-sm text-gray-900 focus:outline-none focus:ring-2 transition-all"
+                        :class="[
+                          backendError(item.id, 'credentialUrl')
+                            ? 'border-red-400 focus:ring-red-400/20'
+                            : 'border-gray-200 focus:ring-[#C54A22]/20',
+                        ]"
+                      >
+                      <ExternalLink
+                        class="w-4 h-4 text-gray-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <!-- The backend validates this one as a URL, so it is the field
+                     here that can come back rejected. -->
+                    <span
+                      v-if="backendError(item.id, 'credentialUrl')"
+                      :id="'cert-url-error-' + item.id"
+                      role="alert"
+                      class="text-xs font-semibold text-red-500 mt-1 block"
+                    >
+                      {{ backendError(item.id, 'credentialUrl') }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Row 4: Description & Key Competencies -->
+                <div>
+                  <label
+                    :for="'cert-desc-' + item.id"
+                    class="block text-[13px] font-semibold text-gray-800 mb-2"
+                  >
+                    Description & Key Competencies
+                  </label>
+                  <textarea
+                    :id="'cert-desc-' + item.id"
+                    v-model="item.description"
+                    rows="4"
+                    aria-label="Description & Key Competencies"
+                    placeholder="• Key skills, domains, or competencies demonstrated by this credential..."
+                    class="w-full p-3.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20 transition resize-y min-h-27.5"
+                  />
+                </div>
+              </div>
+
+              <!-- Bottom Card Buttons -->
+              <div class="flex items-center justify-between pt-6 mt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  class="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:underline"
+                  @click="activeId = null"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  class="px-6 py-2.5 bg-[#C54A22] hover:bg-[#A83D1B] active:scale-95 text-white font-bold text-sm rounded-xl flex items-center gap-1.5 shadow-xs transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/40"
+                  @click="activeId = null"
+                >
+                  <Check
+                    class="w-4 h-4"
+                    aria-hidden="true"
+                  />
+                  Done
+                </button>
               </div>
             </div>
 
-            <!-- Row 4: Description & Key Competencies -->
-            <div>
-              <label
-                :for="'cert-desc-' + item.id"
-                class="block text-[13px] font-semibold text-gray-800 mb-2"
+            <!-- 2. Collapsed Card Row -->
+            <div
+              v-else
+              role="button"
+              tabindex="0"
+              :aria-expanded="false"
+              :aria-label="'Expand ' + (item.name.trim() || 'certification') + ' details'"
+              class="border border-gray-200 bg-white rounded-xl p-4 sm:px-5 flex items-center justify-between shadow-xs hover:border-gray-300 transition-all cursor-grab group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/30"
+              :class="[
+                showErrors && !validateCertification(item)
+                  ? 'border-red-300 bg-red-50/20'
+                  : 'border-gray-200 hover:border-gray-300',
+              ]"
+              @click="activeId = item.id"
+              @keydown.enter.prevent="activeId = item.id"
+              @keydown.space.prevent="activeId = item.id"
+            >
+              <!-- Left: Grip & Name -->
+              <div class="flex items-center gap-3.5 min-w-0 pr-3">
+                <GripVertical
+                  class="w-4 h-4 text-gray-300 group-hover:text-gray-400 shrink-0"
+                  aria-hidden="true"
+                />
+                <span class="text-sm font-bold text-gray-900 truncate">
+                  {{ item.name.trim() || `Certification ${index + 1}` }}
+                </span>
+                <span
+                  v-if="showErrors && !validateCertification(item)"
+                  class="text-xs font-semibold text-red-500 shrink-0"
+                >
+                  (Incomplete)
+                </span>
+              </div>
+
+              <!-- Right: Edit & Delete Icons -->
+              <div
+                class="flex items-center gap-1 shrink-0"
+                @click.stop
               >
-                Description & Key Competencies
-              </label>
-              <textarea
-                :id="'cert-desc-' + item.id"
-                v-model="item.description"
-                rows="4"
-                aria-label="Description & Key Competencies"
-                placeholder="• Key skills, domains, or competencies demonstrated by this credential..."
-                class="w-full p-3.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20 transition resize-y min-h-27.5"
-              />
+                <button
+                  type="button"
+                  aria-label="Edit entry"
+                  :title="'Edit ' + (item.name.trim() || 'certification')"
+                  class="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/30"
+                  @click="activeId = item.id"
+                >
+                  <Edit
+                    class="w-4 h-4"
+                    aria-hidden="true"
+                  />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Delete entry"
+                  :title="'Delete ' + (item.name.trim() || 'certification')"
+                  class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                  @click="promptDelete(item.id)"
+                >
+                  <Trash2
+                    class="w-4 h-4"
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
             </div>
           </div>
-
-          <!-- Bottom Card Buttons -->
-          <div class="flex items-center justify-between pt-6 mt-4 border-t border-gray-100">
-            <button
-              type="button"
-              class="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:underline"
-              @click="activeId = null"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              class="px-6 py-2.5 bg-[#C54A22] hover:bg-[#A83D1B] active:scale-95 text-white font-bold text-sm rounded-xl flex items-center gap-1.5 shadow-xs transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/40"
-              @click="activeId = null"
-            >
-              <Check
-                class="w-4 h-4"
-                aria-hidden="true"
-              />
-              Done
-            </button>
-          </div>
-        </div>
-
-        <!-- 2. Collapsed Card Row -->
-        <div
-          v-else
-          role="button"
-          tabindex="0"
-          :aria-expanded="false"
-          :aria-label="'Expand ' + (item.name.trim() || 'certification') + ' details'"
-          class="border border-gray-200 bg-white rounded-xl p-4 sm:px-5 flex items-center justify-between shadow-xs hover:border-gray-300 transition-all cursor-grab group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/30"
-          :class="[
-            showErrors && !validateCertification(item)
-              ? 'border-red-300 bg-red-50/20'
-              : 'border-gray-200 hover:border-gray-300',
-          ]"
-          @click="activeId = item.id"
-          @keydown.enter.prevent="activeId = item.id"
-          @keydown.space.prevent="activeId = item.id"
-        >
-          <!-- Left: Grip & Name -->
-          <div class="flex items-center gap-3.5 min-w-0 pr-3">
-            <GripVertical
-              class="w-4 h-4 text-gray-300 group-hover:text-gray-400 shrink-0"
-              aria-hidden="true"
-            />
-            <span class="text-sm font-bold text-gray-900 truncate">
-              {{ item.name.trim() || `Certification ${index + 1}` }}
-            </span>
-            <span
-              v-if="showErrors && !validateCertification(item)"
-              class="text-xs font-semibold text-red-500 shrink-0"
-            >
-              (Incomplete)
-            </span>
-          </div>
-
-          <!-- Right: Edit & Delete Icons -->
-          <div
-            class="flex items-center gap-1 shrink-0"
-            @click.stop
-          >
-            <button
-              type="button"
-              aria-label="Edit entry"
-              :title="'Edit ' + (item.name.trim() || 'certification')"
-              class="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/30"
-              @click="activeId = item.id"
-            >
-              <Edit
-                class="w-4 h-4"
-                aria-hidden="true"
-              />
-            </button>
-            <button
-              type="button"
-              aria-label="Delete entry"
-              :title="'Delete ' + (item.name.trim() || 'certification')"
-              class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-              @click="promptDelete(item.id)"
-            >
-              <Trash2
-                class="w-4 h-4"
-                aria-hidden="true"
-              />
-            </button>
-          </div>
-        </div>
-      </div>
         </template>
       </draggable>
 

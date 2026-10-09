@@ -396,7 +396,7 @@ async function handleSubmit() {
     const isAuthed = isAuthenticated.value
 
     isSuccess = true
-    targetRoute = isAuthed ? '/dashboard' : '/login'
+    targetRoute = isAuthed ? '/onboarding' : '/login'
     successMessage.value = isAuthed
       ? 'Account created successfully! Redirecting...'
       : 'Account created! Please sign in to continue.'

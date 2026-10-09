@@ -107,8 +107,6 @@ const getLevelBadgeClass = (level?: string) => {
   }
 }
 
-
-
 const handleNext = async () => {
   await navigateTo('/editor/certifications')
 }
@@ -262,79 +260,79 @@ const handleNext = async () => {
             <div class="flex items-center gap-3 min-w-0 pr-3">
               <GripVertical
                 class="w-4 h-4 text-gray-300 hover:text-gray-400 shrink-0"
-              aria-hidden="true"
-            />
-            <span class="text-sm font-semibold text-gray-900 truncate">
-              {{ item.name }}
-            </span>
-          </div>
-
-          <!-- Right: Move Buttons, Level Badge & Remove -->
-          <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            <!-- Move Up / Down Buttons for Keyboard Accessibility -->
-            <div class="flex items-center">
-              <button
-                type="button"
-                :disabled="index === 0"
-                aria-label="Move up"
-                :title="'Move up ' + item.name"
-                class="p-1 rounded-md text-gray-400 hover:text-gray-700 disabled:opacity-25 disabled:pointer-events-none hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/40 cursor-pointer"
-                @click="moveSkillUp(index)"
-              >
-                <ArrowUp
-                  class="w-4 h-4"
-                  aria-hidden="true"
-                />
-              </button>
-              <button
-                type="button"
-                :disabled="index === skills.length - 1"
-                aria-label="Move down"
-                :title="'Move down ' + item.name"
-                class="p-1 rounded-md text-gray-400 hover:text-gray-700 disabled:opacity-25 disabled:pointer-events-none hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/40 cursor-pointer"
-                @click="moveSkillDown(index)"
-              >
-                <ArrowDown
-                  class="w-4 h-4"
-                  aria-hidden="true"
-                />
-              </button>
+                aria-hidden="true"
+              />
+              <span class="text-sm font-semibold text-gray-900 truncate">
+                {{ item.name }}
+              </span>
             </div>
 
-            <div class="relative">
-              <select
-                v-model="item.level"
-                :aria-label="'Edit proficiency level for ' + item.name"
-                class="appearance-none pl-3 pr-7 py-1.5 rounded-lg border text-xs font-bold cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20"
-                :class="getLevelBadgeClass(item.level)"
-              >
-                <option
-                  v-for="lvl in skillLevels"
-                  :key="lvl"
-                  :value="lvl"
+            <!-- Right: Move Buttons, Level Badge & Remove -->
+            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <!-- Move Up / Down Buttons for Keyboard Accessibility -->
+              <div class="flex items-center">
+                <button
+                  type="button"
+                  :disabled="index === 0"
+                  aria-label="Move up"
+                  :title="'Move up ' + item.name"
+                  class="p-1 rounded-md text-gray-400 hover:text-gray-700 disabled:opacity-25 disabled:pointer-events-none hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/40 cursor-pointer"
+                  @click="moveSkillUp(index)"
                 >
-                  {{ lvl }}
-                </option>
-              </select>
-              <ChevronDown
-                class="w-3.5 h-3.5 opacity-60 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"
-                aria-hidden="true"
-              />
-            </div>
+                  <ArrowUp
+                    class="w-4 h-4"
+                    aria-hidden="true"
+                  />
+                </button>
+                <button
+                  type="button"
+                  :disabled="index === skills.length - 1"
+                  aria-label="Move down"
+                  :title="'Move down ' + item.name"
+                  class="p-1 rounded-md text-gray-400 hover:text-gray-700 disabled:opacity-25 disabled:pointer-events-none hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/40 cursor-pointer"
+                  @click="moveSkillDown(index)"
+                >
+                  <ArrowDown
+                    class="w-4 h-4"
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
 
-            <button
-              type="button"
-              aria-label="Remove skill"
-              :title="'Remove ' + item.name"
-              class="text-gray-300 hover:text-gray-600 p-1 rounded-md transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-              @click="removeSkill(item.id)"
-            >
-              <X
-                class="w-4 h-4"
-                aria-hidden="true"
-              />
-            </button>
-          </div>
+              <div class="relative">
+                <select
+                  v-model="item.level"
+                  :aria-label="'Edit proficiency level for ' + item.name"
+                  class="appearance-none pl-3 pr-7 py-1.5 rounded-lg border text-xs font-bold cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20"
+                  :class="getLevelBadgeClass(item.level)"
+                >
+                  <option
+                    v-for="lvl in skillLevels"
+                    :key="lvl"
+                    :value="lvl"
+                  >
+                    {{ lvl }}
+                  </option>
+                </select>
+                <ChevronDown
+                  class="w-3.5 h-3.5 opacity-60 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"
+                  aria-hidden="true"
+                />
+              </div>
+
+              <button
+                type="button"
+                aria-label="Remove skill"
+                :title="'Remove ' + item.name"
+                class="text-gray-300 hover:text-gray-600 p-1 rounded-md transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                @click="removeSkill(item.id)"
+              >
+                <X
+                  class="w-4 h-4"
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
           </li>
         </template>
       </draggable>

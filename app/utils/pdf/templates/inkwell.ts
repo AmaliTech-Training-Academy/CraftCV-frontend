@@ -1,7 +1,8 @@
-import type { Content, TDocumentDefinitions, StyleDictionary } from 'pdfmake/build/pdfmake'
+import type { Content, TDocumentDefinitions } from 'pdfmake/build/pdfmake'
 import type { CvExportData } from '../exportData'
 import type { PdfTemplateOptions } from './classic'
 import { formatDateRange, normalizeBullets } from '../formatters'
+import { TEMPLATE_ACCENT_DEFAULTS } from '../../templateAccents'
 
 function toUrl(value: string): string {
   return value.startsWith('http://') || value.startsWith('https://')
@@ -9,16 +10,14 @@ function toUrl(value: string): string {
     : `https://${value}`
 }
 
-const SECTION_COLOR = '#d97706' // orange-600
-
 const sectionHeader = (text: string, numberPrefix: string): Content => ({
   stack: [
     {
       text: [
         { text: numberPrefix + '  ', style: 'sectionNumber' },
-        { text: text.toUpperCase(), style: 'sectionTitle' }
-      ]
-    }
+        { text: text.toUpperCase(), style: 'sectionTitle' },
+      ],
+    },
   ],
   margin: [0, 16, 0, 8],
 })
@@ -28,6 +27,7 @@ export function buildInkwellPdf(
   options: PdfTemplateOptions,
 ): TDocumentDefinitions {
   const { personal } = data
+  const SECTION_COLOR = options.accentColor || TEMPLATE_ACCENT_DEFAULTS.inkwell
   const contentWidth = options.paperSize === 'a4' ? 515 : 532
 
   const rawContactParts = [
@@ -47,7 +47,7 @@ export function buildInkwellPdf(
     content.push({
       text: [
         personal.firstName ? personal.firstName + '\n' : '',
-        personal.lastName || ''
+        personal.lastName || '',
       ],
       style: 'name',
     })
@@ -69,7 +69,7 @@ export function buildInkwellPdf(
   // Title and Contact
   const contactLine: any[] = []
   const jobTitle = (personal.title || data.title || '').trim()
-  
+
   if (jobTitle) {
     contactLine.push({ text: jobTitle, style: 'contactTitle' })
   }
@@ -114,7 +114,7 @@ export function buildInkwellPdf(
         style: 'jobTitle',
       })
       content.push({
-        text: `${exp.company || ''} • ${formatDateRange(exp.startDate, exp.endDate, exp.isCurrent)}`,
+        text: `${exp.company || ''} • ${formatDateRange(exp.startDate, exp.endDate)}`,
         style: 'jobMeta',
       })
 
@@ -135,7 +135,7 @@ export function buildInkwellPdf(
   // Skills
   if (data.skills && data.skills.length > 0) {
     content.push(sectionHeader('Skills', getNum()))
-    
+
     const skillList = data.skills.map(s => s.name).filter(Boolean).join('   •   ')
     content.push({
       text: skillList,
@@ -149,13 +149,13 @@ export function buildInkwellPdf(
     data.educations.forEach((edu, idx) => {
       const isLast = idx === data.educations!.length - 1
       const degreeText = edu.degree + (edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : '')
-      
+
       content.push({
         text: degreeText,
         style: 'jobTitle',
       })
       content.push({
-        text: `${edu.institution || ''} • ${formatDateRange(edu.startDate, edu.endDate, edu.isCurrent)}`,
+        text: `${edu.institution || ''} • ${formatDateRange(edu.startDate, edu.endDate)}`,
         style: 'jobMeta',
       })
 
@@ -181,8 +181,8 @@ export function buildInkwellPdf(
       content.push({
         columns: [
           { text: cert.name || '', style: 'jobTitle' },
-          { text: cert.date || '', style: 'certDate', alignment: 'right' }
-        ]
+          { text: cert.date || '', style: 'certDate', alignment: 'right' },
+        ],
       })
       if (cert.issuer) {
         content.push({ text: cert.issuer, style: 'jobMeta' })
@@ -193,7 +193,7 @@ export function buildInkwellPdf(
     })
   }
 
-  const styles: StyleDictionary = {
+  const styles: any = {
     name: {
       fontSize: 32,
       bold: true,
@@ -270,10 +270,10 @@ export function buildInkwellPdf(
             y: 0,
             w: 595.28, // A4 width, pdfmake handles overflow naturally
             h: 841.89, // A4 height
-            color: '#fffdf8'
-          }
-        ]
-      }
+            color: '#fffdf8',
+          },
+        ],
+      },
     ],
     defaultStyle: {
       font: 'Helvetica',

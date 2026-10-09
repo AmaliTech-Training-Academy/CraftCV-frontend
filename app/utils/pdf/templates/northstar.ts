@@ -1,7 +1,8 @@
-import type { Content, TDocumentDefinitions, StyleDictionary } from 'pdfmake/build/pdfmake'
+import type { Content, TDocumentDefinitions } from 'pdfmake/build/pdfmake'
 import type { CvExportData } from '../exportData'
 import type { PdfTemplateOptions } from './classic'
 import { formatDateRange, normalizeBullets } from '../formatters'
+import { accentTint, TEMPLATE_ACCENT_DEFAULTS } from '../../templateAccents'
 
 function toUrl(value: string): string {
   return value.startsWith('http://') || value.startsWith('https://')
@@ -9,10 +10,11 @@ function toUrl(value: string): string {
     : `https://${value}`
 }
 
-const PRIMARY_COLOR = '#0f766e' // teal
-const BG_COLOR = '#eef5f4' // light tinted background
-const CHIP_BG = '#ccfbf1' // light teal chip background
 const TRACK_BG = '#cbd5e1' // gray progress bar track
+// How far the panel and chip tints sit from the page, as the same pale washes
+// the template was drawn with.
+const PANEL_TINT_WEIGHT = 0.07
+const CHIP_TINT_WEIGHT = 0.16
 
 const getMeterWidthNum = (level?: string): number => {
   if (!level) return 1.0
@@ -27,7 +29,7 @@ const sectionTitle = (title: string): Content => {
   return {
     text: title.toUpperCase(),
     style: 'sectionLabel',
-    margin: [0, 0, 0, 10]
+    margin: [0, 0, 0, 10],
   }
 }
 
@@ -36,6 +38,11 @@ export function buildNorthstarPdf(
   options: PdfTemplateOptions,
 ): TDocumentDefinitions {
   const { personal } = data
+  const PRIMARY_COLOR = options.accentColor || TEMPLATE_ACCENT_DEFAULTS.northstar
+  // Derived rather than fixed, so a recoloured CV does not keep teal panels
+  // behind orange headings.
+  const BG_COLOR = accentTint(PRIMARY_COLOR, PANEL_TINT_WEIGHT)
+  const CHIP_BG = accentTint(PRIMARY_COLOR, CHIP_TINT_WEIGHT)
   const PAGE_WIDTH = options.paperSize === 'a4' ? 595.28 : 612
   const PAGE_HEIGHT = options.paperSize === 'a4' ? 841.89 : 792
 
@@ -88,7 +95,7 @@ export function buildNorthstarPdf(
     data.experiences.forEach((exp, idx) => {
       const isLast = idx === data.experiences!.length - 1
       leftStack.push({ text: exp.role || '', style: 'itemTitle' })
-      leftStack.push({ text: `${exp.company || ''} • ${formatDateRange(exp.startDate, exp.endDate, exp.isCurrent)}`, style: 'itemMeta' })
+      leftStack.push({ text: `${exp.company || ''} • ${formatDateRange(exp.startDate, exp.endDate)}`, style: 'itemMeta' })
 
       const bullets = normalizeBullets(exp.description)
       if (bullets.length > 0) {
@@ -100,10 +107,10 @@ export function buildNorthstarPdf(
   }
 
   // Projects
-  if (data.additionalInfo && data.additionalInfo.length > 0) {
+  if (data.additional_information && data.additional_information.length > 0) {
     leftStack.push(sectionTitle('Selected Projects'))
-    data.additionalInfo.forEach((info, idx) => {
-      const isLast = idx === data.additionalInfo!.length - 1
+    data.additional_information.forEach((info, idx) => {
+      const isLast = idx === data.additional_information!.length - 1
       leftStack.push({ text: info.title || '', style: 'itemTitle' })
       if (info.description) {
         leftStack.push({ text: info.description, style: 'bodyText', margin: [0, 2, 0, 0] })
@@ -126,18 +133,18 @@ export function buildNorthstarPdf(
 
   // RIGHT COLUMN
   const rightStack: Content[] = []
-  
+
   // Padding at top to align loosely below header (or just start directly)
   rightStack.push({ text: '', margin: [0, 16, 0, 0] }) // 16pt top padding
 
   // Skills
   if (data.skills && data.skills.length > 0) {
     rightStack.push(sectionTitle('Skills'))
-    const skillChips: any[] = data.skills.map(s => {
+    const skillChips: any[] = data.skills.map((s) => {
       return {
         table: {
           widths: ['auto'],
-          body: [[{ text: s.name, style: 'chipText', border: [false, false, false, false], fillColor: CHIP_BG, margin: [6, 2, 6, 2] }]]
+          body: [[{ text: s.name, style: 'chipText', border: [false, false, false, false], fillColor: CHIP_BG, margin: [6, 2, 6, 2] }]],
         },
         layout: {
           hLineColor: () => CHIP_BG,
@@ -148,7 +155,7 @@ export function buildNorthstarPdf(
           paddingBottom: () => 0,
           defaultBorder: false,
         },
-        margin: [0, 0, 4, 4]
+        margin: [0, 0, 4, 4],
       }
     })
     rightStack.push({ columns: skillChips.map(c => ({ width: 'auto', ...c })), margin: [0, 0, 0, 16] })
@@ -160,10 +167,10 @@ export function buildNorthstarPdf(
     data.educations.forEach((edu, idx) => {
       const isLast = idx === data.educations!.length - 1
       const degreeText = edu.degree + (edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : '')
-      
+
       rightStack.push({ text: degreeText, style: 'itemTitle' })
       rightStack.push({ text: edu.institution || '', style: 'itemMetaRight' })
-      rightStack.push({ text: formatDateRange(edu.startDate, edu.endDate, edu.isCurrent), style: 'itemMetaRight' })
+      rightStack.push({ text: formatDateRange(edu.startDate, edu.endDate), style: 'itemMetaRight' })
 
       if (!isLast) rightStack.push({ text: '', margin: [0, 0, 0, 10] })
     })
@@ -173,16 +180,15 @@ export function buildNorthstarPdf(
   // Languages (Meters)
   if (data.languages && data.languages.length > 0) {
     rightStack.push(sectionTitle('Languages'))
-    
+
     // Sidebar usable width is SIDEBAR_W - padding(20L + 20R) roughly
     // The margin on right stack is set by column spacing.
     const meterTotalW = 100 // fixed width for meter in pdf
 
     data.languages.forEach((lang, idx) => {
-      const isLast = idx === data.languages!.length - 1
       rightStack.push({ text: lang.name || '', style: 'itemTitle' })
-      
-      const fillW = meterTotalW * getMeterWidthNum(lang.level)
+
+      const fillW = meterTotalW * getMeterWidthNum(lang.proficiency)
       rightStack.push({
         canvas: [
           // Track
@@ -193,7 +199,7 @@ export function buildNorthstarPdf(
             w: meterTotalW,
             h: 4,
             r: 2,
-            color: TRACK_BG
+            color: TRACK_BG,
           },
           // Fill
           {
@@ -203,10 +209,10 @@ export function buildNorthstarPdf(
             w: fillW,
             h: 4,
             r: 2,
-            color: PRIMARY_COLOR
-          }
+            color: PRIMARY_COLOR,
+          },
         ],
-        margin: [0, 4, 0, 10]
+        margin: [0, 4, 0, 10],
       })
     })
   }
@@ -217,78 +223,78 @@ export function buildNorthstarPdf(
         {
           width: '69%',
           stack: leftStack,
-          margin: [0, 0, 20, 0] // padding right
+          margin: [0, 0, 20, 0], // padding right
         },
         {
           width: '31%',
           stack: rightStack,
-          margin: [20, 0, 0, 0] // padding left
-        }
-      ]
-    }
+          margin: [20, 0, 0, 0], // padding left
+        },
+      ],
+    },
   ]
 
-  const styles: StyleDictionary = {
+  const styles: any = {
     headerName: {
       font: 'Roboto',
       fontSize: 32,
       bold: true,
-      color: '#111827'
+      color: '#111827',
     },
     contactText: {
       font: 'Roboto',
       fontSize: 10,
-      color: '#6B7280'
+      color: '#6B7280',
     },
     contactBullet: {
       font: 'Roboto',
       fontSize: 10,
-      color: '#9CA3AF'
+      color: '#9CA3AF',
     },
     sectionLabel: {
       font: 'Roboto',
       fontSize: 9,
       bold: true,
       color: PRIMARY_COLOR,
-      letterSpacing: 1.5
+      letterSpacing: 1.5,
     },
     itemTitle: {
       font: 'Roboto',
       fontSize: 11,
       bold: true,
-      color: '#111827'
+      color: '#111827',
     },
     itemMeta: {
       font: 'Roboto',
       fontSize: 10,
       color: '#6B7280',
-      margin: [0, 2, 0, 4]
+      margin: [0, 2, 0, 4],
     },
     itemMetaRight: {
       font: 'Roboto',
       fontSize: 9.5,
       color: '#4B5563',
-      margin: [0, 1, 0, 0]
+      margin: [0, 1, 0, 0],
     },
     bodyText: {
       font: 'Roboto',
       fontSize: 10,
       color: '#374151',
-      lineHeight: 1.4
+      lineHeight: 1.4,
     },
     list: {
       font: 'Roboto',
       fontSize: 10,
       color: '#374151',
       lineHeight: 1.4,
-      markerColor: PRIMARY_COLOR
+      markerColor: PRIMARY_COLOR,
     },
     chipText: {
       font: 'Roboto',
       fontSize: 9,
       bold: true,
-      color: PRIMARY_COLOR
-    }
+      color: PRIMARY_COLOR,
+    },
   }
 
   return {
@@ -301,15 +307,15 @@ export function buildNorthstarPdf(
             y: 0,
             w: SIDEBAR_W,
             h: PAGE_HEIGHT,
-            color: BG_COLOR
-          }
-        ]
+            color: BG_COLOR,
+          },
+        ],
       }
     },
     content,
     styles,
     defaultStyle: {
-      font: 'Roboto'
+      font: 'Roboto',
     },
     pageMargins: [40, 40, 40, 40],
     pageSize: options.paperSize.toUpperCase() as 'A4' | 'LETTER',

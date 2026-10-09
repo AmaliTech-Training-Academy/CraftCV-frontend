@@ -1,10 +1,18 @@
 import type { Content, TDocumentDefinitions } from 'pdfmake/build/pdfmake'
 import type { CvExportData } from '../exportData'
 import { formatDateRange, normalizeBullets } from '../formatters'
+import { TEMPLATE_ACCENT_DEFAULTS } from '../../templateAccents'
 
 export interface PdfTemplateOptions {
   paperSize: 'a4' | 'letter'
   includeLinks: boolean
+  /**
+   * The colour the CV is set in, as chosen in the editor. Absent means the CV
+   * has never had one chosen, and each renderer falls back to its template's
+   * own colour — so the exported file matches the live preview, which resolves
+   * the same default through `useCVState`.
+   */
+  accentColor?: string
 }
 
 const sectionTitle = (text: string, lineWidth: number): Content => ({
@@ -64,6 +72,7 @@ export function buildClassicPdf(
   options: PdfTemplateOptions,
 ): TDocumentDefinitions {
   const { personal } = data
+  const accent = options.accentColor || TEMPLATE_ACCENT_DEFAULTS.classic
   const contentWidth = options.paperSize === 'a4' ? 535 : 552
   const contactItems: ContactItem[] = []
 
@@ -288,7 +297,7 @@ export function buildClassicPdf(
       accent: {
         font: 'Roboto',
         fontSize: 9.75,
-        color: '#C54A22',
+        color: accent,
       },
       meta: {
         font: 'Roboto',

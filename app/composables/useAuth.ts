@@ -115,7 +115,7 @@ export const useAuth = () => {
       }
 
       if (options.autoNavigate !== false) {
-        await navigateTo(token.value ? '/dashboard' : '/login')
+        await navigateTo(token.value ? '/onboarding' : '/login')
       }
       return response
     }
