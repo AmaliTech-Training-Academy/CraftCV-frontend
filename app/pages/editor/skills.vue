@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import {
-  ArrowLeft,
   ArrowRight,
   ChevronRight,
   Plus,
@@ -13,6 +12,8 @@ import {
   Trash2,
 } from '@lucide/vue'
 import { useCVState } from '~/composables/useCVState'
+
+useHead({ title: 'Skills' })
 
 definePageMeta({
   layout: 'editor',
@@ -160,25 +161,12 @@ const handleNext = async () => {
 <template>
   <div class="px-4 sm:px-8 lg:px-20 py-10 max-w-4xl mx-auto w-full">
     <!-- Header -->
-    <div class="mb-8">
-      <NuxtLink
-        to="/editor/education"
-        class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#C54A22] hover:text-[#A83D1B] mb-6 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/30 rounded"
-      >
-        <ArrowLeft
-          class="w-3.5 h-3.5"
-          aria-hidden="true"
-        />
-        Back to Education
-      </NuxtLink>
-
-      <h1 class="text-[32px] font-bold text-gray-900 mb-2 tracking-tight">
-        Skills
-      </h1>
-      <p class="text-gray-500 text-[15px] leading-relaxed">
-        Highlight your technical proficiencies, frameworks, tools, and domain expertise. Employers scan this section first.
-      </p>
-    </div>
+    <EditorSectionHeader
+      title="Skills"
+      description="Highlight your technical proficiencies, frameworks, tools, and domain expertise. Employers scan this section first."
+      back-link="/editor/education"
+      back-text="Back to Education"
+    />
 
     <!-- 1. Add Skill Card -->
     <div class="bg-white border border-gray-200/90 rounded-2xl p-6 shadow-xs mb-6">

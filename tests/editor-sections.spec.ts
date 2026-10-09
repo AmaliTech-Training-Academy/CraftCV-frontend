@@ -395,6 +395,15 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
 
       expect(skills.value.map(s => s.name)).toEqual(['Skill 2', 'Skill 3', 'Skill 1'])
     })
+
+    it('displays the section navigation button and preview button on small screens', () => {
+      const wrapper = mount(SkillsPage, { global: { stubs: sharedStubs } })
+      const buttons = wrapper.findAll('button')
+      const sectionsBtn = buttons.find(b => b.text().includes('Sections'))
+      const previewBtn = buttons.find(b => b.text().includes('Preview'))
+      expect(sectionsBtn?.exists()).toBe(true)
+      expect(previewBtn?.exists()).toBe(true)
+    })
   })
 
   describe('Certifications Page', () => {
@@ -472,6 +481,15 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
 
       await descTextarea.setValue('• Scalability\n• Cloud Security')
       expect(certifications.value[0]!.description).toBe('• Scalability\n• Cloud Security')
+    })
+
+    it('displays the section navigation button and preview button on small screens', () => {
+      const wrapper = mount(CertificationsPage, { global: { stubs: sharedStubs } })
+      const buttons = wrapper.findAll('button')
+      const sectionsBtn = buttons.find(b => b.text().includes('Sections'))
+      const previewBtn = buttons.find(b => b.text().includes('Preview'))
+      expect(sectionsBtn?.exists()).toBe(true)
+      expect(previewBtn?.exists()).toBe(true)
     })
   })
 })

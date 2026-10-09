@@ -3,7 +3,6 @@ import {
   Edit,
   Trash2,
   Plus,
-  ArrowLeft,
   ArrowRight,
   ChevronRight,
   GripVertical,
@@ -12,6 +11,8 @@ import {
 } from '@lucide/vue'
 import { useCVState, type CertificationItem } from '~/composables/useCVState'
 import { isValidDateString, useCVSectionEditor } from '~/composables/useCVSectionEditor'
+
+useHead({ title: 'Certifications' })
 
 definePageMeta({
   layout: 'editor',
@@ -112,26 +113,12 @@ const handleFinish = async () => {
 <template>
   <div class="px-4 sm:px-8 lg:px-20 py-10 max-w-4xl mx-auto w-full">
     <!-- Header -->
-    <div class="mb-8">
-      <NuxtLink
-        to="/editor/skills"
-        class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#C54A22] hover:text-[#A83D1B] mb-6 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/30 rounded"
-      >
-        <ArrowLeft
-          class="w-3.5 h-3.5"
-          aria-hidden="true"
-        />
-        Back to Skills
-      </NuxtLink>
-
-      <h1 class="text-[32px] font-bold text-gray-900 mb-2 tracking-tight">
-        Certifications
-      </h1>
-      <p class="text-gray-500 text-[15px] leading-relaxed">
-        Add your relevant certifications, licenses, and verified credentials.<br class="hidden sm:inline">
-        Start with your most recent or prominent certification.
-      </p>
-    </div>
+    <EditorSectionHeader
+      title="Certifications"
+      description="Add your relevant certifications, licenses, and verified credentials. Start with your most recent or prominent certification."
+      back-link="/editor/skills"
+      back-text="Back to Skills"
+    />
 
     <!-- Certifications Stack -->
     <div class="space-y-5">
