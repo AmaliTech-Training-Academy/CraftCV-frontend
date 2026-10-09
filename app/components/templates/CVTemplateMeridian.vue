@@ -11,7 +11,10 @@ const { accentColor } = useCVState()
 </script>
 
 <template>
-  <div class="w-full min-h-full bg-white font-serif text-left break-words overflow-hidden border-[16px] border-[#d1d5db]">
+  <div
+    class="w-full min-h-[1123px] bg-white font-serif text-left break-words overflow-hidden border-[16px]"
+    :style="{ borderColor: accentColor }"
+  >
     <div class="px-12 py-14 flex flex-col gap-6">
       <!-- Header -->
       <header class="w-full flex flex-col items-center text-center">
@@ -129,22 +132,33 @@ const { accentColor } = useCVState()
             <div class="text-[13.5px] text-gray-500 mb-1">
               {{ exp.company }} &middot; {{ dateRangeLabel(exp.start_date, exp.end_date, exp.is_current) }}
             </div>
-            <ul
-              v-if="parseDescription(exp.description).length > 0"
-              class="text-[13.5px] text-gray-700 space-y-1.5 mt-1"
+            <template
+              v-for="(blk, idx) in parseDescription(exp.description)"
+              :key="idx"
             >
-              <li
-                v-for="(bullet, idx) in parseDescription(exp.description)"
-                :key="idx"
-                class="flex gap-2"
+              <p
+                v-if="blk.type === 'p'"
+                class="text-[13.5px] text-gray-700 leading-relaxed mt-1"
               >
-                <span
-                  class="text-[14px] mt-0.5 shrink-0"
-                  :style="{ color: accentColor }"
-                >&bull;</span>
-                <span>{{ bullet }}</span>
-              </li>
-            </ul>
+                {{ blk.text }}
+              </p>
+              <ul
+                v-else
+                class="text-[13.5px] text-gray-700 space-y-1.5 mt-1"
+              >
+                <li
+                  v-for="(bullet, bIdx) in blk.items"
+                  :key="bIdx"
+                  class="flex gap-2"
+                >
+                  <span
+                    class="text-[14px] mt-0.5 shrink-0"
+                    :style="{ color: accentColor }"
+                  >&bull;</span>
+                  <span>{{ bullet }}</span>
+                </li>
+              </ul>
+            </template>
           </div>
         </div>
       </section>
@@ -188,6 +202,70 @@ const { accentColor } = useCVState()
               {{ award.description }}
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- Certifications -->
+      <section
+        v-if="data.certifications?.length > 0"
+        class="flex flex-col gap-3"
+      >
+        <h2
+          class="font-bold text-[12px] tracking-[0.15em] uppercase border-b border-gray-200 pb-2"
+          :style="{ color: accentColor }"
+        >
+          Certifications
+        </h2>
+        <div class="flex flex-col gap-3 mt-1">
+          <div
+            v-for="cert in data.certifications"
+            :key="cert.id"
+            class="flex flex-col gap-1"
+          >
+            <div class="flex gap-2">
+              <span
+                class="text-[14px] mt-0.5 shrink-0"
+                :style="{ color: accentColor }"
+              >&bull;</span>
+              <span class="text-[13.5px] font-bold text-gray-900">{{ cert.name }}</span>
+              <span
+                v-if="cert.issuer"
+                class="text-[13.5px] text-gray-700"
+              >&middot; {{ cert.issuer }}</span>
+              <span
+                v-if="cert.issue_date"
+                class="text-[13.5px] text-gray-500"
+              >&middot; {{ cert.issue_date }}</span>
+            </div>
+            <div
+              v-if="cert.description"
+              class="pl-4 text-[13.5px] text-gray-700 mt-1"
+            >
+              {{ cert.description }}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Skills -->
+      <section
+        v-if="data.skills?.length > 0"
+        class="flex flex-col gap-3"
+      >
+        <h2
+          class="font-bold text-[12px] tracking-[0.15em] uppercase border-b border-gray-200 pb-2"
+          :style="{ color: accentColor }"
+        >
+          Skills
+        </h2>
+        <div class="flex flex-wrap gap-2 mt-1">
+          <span
+            v-for="skill in data.skills"
+            :key="skill.id"
+            class="px-2.5 py-1 text-[13.5px] bg-gray-100 text-gray-800 rounded-sm"
+          >
+            {{ skill.name }}
+          </span>
         </div>
       </section>
 

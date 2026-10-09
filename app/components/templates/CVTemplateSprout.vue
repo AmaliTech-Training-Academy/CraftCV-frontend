@@ -12,7 +12,7 @@ const { accentColor } = useCVState()
 </script>
 
 <template>
-  <div class="w-full h-full bg-white px-12 py-12 text-gray-900 font-sans shadow-sm flex flex-col text-left break-words">
+  <div class="w-full min-h-[1123px] bg-white px-12 py-12 text-gray-900 font-sans shadow-sm flex flex-col text-left break-words">
     <!-- Header -->
     <header class="w-full mb-8">
       <h1 class="text-[40px] font-bold text-gray-900 leading-none mb-2">
@@ -96,22 +96,33 @@ const { accentColor } = useCVState()
             <div class="text-[11.5px] text-gray-500 font-medium">
               {{ edu.institution }} &middot; {{ dateRangeLabel(edu.start_date, edu.end_date, edu.is_current) }}
             </div>
-            <ul
-              v-if="parseDescription(edu.description).length > 0"
-              class="mt-1.5 text-[12.5px] text-gray-700 space-y-1"
+            <template
+              v-for="(blk, idx) in parseDescription(edu.description)"
+              :key="idx"
             >
-              <li
-                v-for="(bullet, idx) in parseDescription(edu.description)"
-                :key="idx"
-                class="flex gap-2"
+              <p
+                v-if="blk.type === 'p'"
+                class="mt-1.5 text-[12.5px] text-gray-700 space-y-1"
               >
-                <span
-                  class="text-[12px] mt-0.5 shrink-0"
-                  :style="{ color: accentColor }"
-                >&bull;</span>
-                <span>{{ bullet }}</span>
-              </li>
-            </ul>
+                {{ blk.text }}
+              </p>
+              <ul
+                v-else
+                class="mt-1.5 text-[12.5px] text-gray-700 space-y-1"
+              >
+                <li
+                  v-for="(bullet, bIdx) in blk.items"
+                  :key="bIdx"
+                  class="flex gap-2"
+                >
+                  <span
+                    class="text-[12px] mt-0.5 shrink-0"
+                    :style="{ color: accentColor }"
+                  >&bull;</span>
+                  <span>{{ bullet }}</span>
+                </li>
+              </ul>
+            </template>
           </div>
         </div>
       </section>
@@ -189,22 +200,33 @@ const { accentColor } = useCVState()
             <div class="text-[11.5px] text-gray-500 font-medium">
               {{ exp.company }} &middot; {{ dateRangeLabel(exp.start_date, exp.end_date, exp.is_current) }}
             </div>
-            <ul
-              v-if="parseDescription(exp.description).length > 0"
-              class="mt-1.5 text-[12.5px] text-gray-700 space-y-1"
+            <template
+              v-for="(blk, idx) in parseDescription(exp.description)"
+              :key="idx"
             >
-              <li
-                v-for="(bullet, idx) in parseDescription(exp.description)"
-                :key="idx"
-                class="flex gap-2"
+              <p
+                v-if="blk.type === 'p'"
+                class="mt-1.5 text-[12.5px] text-gray-700 space-y-1"
               >
-                <span
-                  class="text-[12px] mt-0.5 shrink-0"
-                  :style="{ color: accentColor }"
-                >&bull;</span>
-                <span>{{ bullet }}</span>
-              </li>
-            </ul>
+                {{ blk.text }}
+              </p>
+              <ul
+                v-else
+                class="mt-1.5 text-[12.5px] text-gray-700 space-y-1"
+              >
+                <li
+                  v-for="(bullet, bIdx) in blk.items"
+                  :key="bIdx"
+                  class="flex gap-2"
+                >
+                  <span
+                    class="text-[12px] mt-0.5 shrink-0"
+                    :style="{ color: accentColor }"
+                  >&bull;</span>
+                  <span>{{ bullet }}</span>
+                </li>
+              </ul>
+            </template>
           </div>
         </div>
       </section>

@@ -11,7 +11,7 @@ const { accentColor } = useCVState()
 </script>
 
 <template>
-  <div class="w-full h-full bg-white px-10 py-12 text-gray-900 font-serif shadow-sm flex flex-col text-left break-words">
+  <div class="w-full min-h-[1123px] bg-white px-10 py-12 text-gray-900 font-serif shadow-sm flex flex-col text-left break-words">
     <!-- Header -->
     <div class="flex flex-col border-b border-gray-300 pb-6 mb-6">
       <h1 class="text-4xl font-bold uppercase tracking-widest mb-2 text-gray-900">

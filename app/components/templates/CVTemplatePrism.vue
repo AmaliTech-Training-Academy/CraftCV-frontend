@@ -20,7 +20,7 @@ const getMeterWidth = (level?: string) => {
 </script>
 
 <template>
-  <div class="w-full h-full bg-white text-gray-900 font-sans shadow-sm flex flex-col text-left break-words">
+  <div class="w-full min-h-[1123px] bg-white text-gray-900 font-sans shadow-sm flex flex-col text-left break-words">
     <!-- Header: Full-width Gradient -->
     <header
       class="w-full px-10 py-10 text-white flex flex-col justify-center"
@@ -85,13 +85,23 @@ const getMeterWidth = (level?: string) => {
               </div>
 
               <!-- Bullets -->
+              <template
+              v-for="(blk, idx) in parseDescription(exp.description)"
+              :key="idx"
+            >
+              <p
+                v-if="blk.type === 'p'"
+                class="text-sm text-gray-700 space-y-1"
+              >
+                {{ blk.text }}
+              </p>
               <ul
-                v-if="parseDescription(exp.description).length > 0"
+                v-else
                 class="text-sm text-gray-700 space-y-1"
               >
                 <li
-                  v-for="(bullet, idx) in parseDescription(exp.description)"
-                  :key="idx"
+                  v-for="(bullet, bIdx) in blk.items"
+                  :key="bIdx"
                   class="flex gap-2"
                 >
                   <span
@@ -101,6 +111,7 @@ const getMeterWidth = (level?: string) => {
                   <span>{{ bullet }}</span>
                 </li>
               </ul>
+            </template>
             </div>
           </div>
         </section>

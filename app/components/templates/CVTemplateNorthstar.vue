@@ -21,40 +21,40 @@ const getMeterWidthStr = (level?: string) => {
 </script>
 
 <template>
-  <div class="w-full h-full flex flex-row font-sans text-left break-words bg-white overflow-hidden">
+  <div class="w-full min-h-[1123px] flex flex-row font-sans text-left break-words bg-white overflow-hidden">
     <!-- LEFT COLUMN (Main, ~69%) -->
-    <div class="w-[69%] h-full px-10 py-12 flex flex-col gap-7">
+    <div class="w-[69%] h-full pl-[53px] pr-[27px] py-[53px] flex flex-col gap-[21px]">
       <!-- Header -->
       <header class="w-full">
-        <h1 class="text-[44px] font-bold text-gray-900 leading-none mb-3 tracking-tight">
+        <h1 class="text-[43px] font-bold text-gray-900 leading-none mb-3 tracking-tight">
           {{ data.personal_details.first_name }} {{ data.personal_details.last_name }}
         </h1>
 
-        <div class="text-[15px] text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
+        <div class="text-[13px] text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
           <span
             v-if="data.title"
             class="text-gray-500"
           >{{ data.title }}</span>
 
-          <span v-if="data.title && data.personal_details.location">&middot;</span>
+          <span v-if="data.title && data.personal_details.location" class="text-gray-400">&bull;</span>
           <span v-if="data.personal_details.location">{{ data.personal_details.location }}</span>
 
-          <span v-if="data.personal_details.location && data.personal_details.email">&middot;</span>
+          <span v-if="data.personal_details.location && data.personal_details.email" class="text-gray-400">&bull;</span>
           <span v-if="data.personal_details.email">{{ data.personal_details.email }}</span>
 
-          <span v-if="data.personal_details.email && data.personal_details.phone">&middot;</span>
+          <span v-if="data.personal_details.email && data.personal_details.phone" class="text-gray-400">&bull;</span>
           <span v-if="data.personal_details.phone">{{ data.personal_details.phone }}</span>
 
           <template v-if="data.personal_details.websiteUrl && data.personal_details.websiteUrl !== 'www.yourwebsite.com'">
-            <span>&middot;</span>
+            <span class="text-gray-400">&bull;</span>
             <span>{{ data.personal_details.websiteUrl.replace(/^https?:\/\//, '') }}</span>
           </template>
           <template v-if="data.personal_details.linkedinUrl">
-            <span>&middot;</span>
+            <span class="text-gray-400">&bull;</span>
             <span>{{ data.personal_details.linkedinUrl.replace(/^https?:\/\//, '') }}</span>
           </template>
           <template v-if="data.personal_details.githubUrl">
-            <span>&middot;</span>
+            <span class="text-gray-400">&bull;</span>
             <span>{{ data.personal_details.githubUrl.replace(/^https?:\/\//, '') }}</span>
           </template>
         </div>
@@ -66,7 +66,7 @@ const getMeterWidthStr = (level?: string) => {
         class="flex flex-col gap-2"
       >
         <h2
-          class="font-bold text-[11px] tracking-widest uppercase"
+          class="font-bold text-[12px] tracking-[2px] uppercase"
           :style="{ color: accentColor }"
         >
           Profile
@@ -82,39 +82,50 @@ const getMeterWidthStr = (level?: string) => {
         class="flex flex-col gap-4"
       >
         <h2
-          class="font-bold text-[11px] tracking-widest uppercase"
+          class="font-bold text-[12px] tracking-[2px] uppercase"
           :style="{ color: accentColor }"
         >
           Experience
         </h2>
-        <div class="flex flex-col gap-5">
+        <div class="flex flex-col gap-4">
           <div
             v-for="exp in data.experiences"
             :key="exp.id"
             class="flex flex-col gap-1"
           >
-            <h3 class="text-[14px] font-bold text-gray-900">
+            <h3 class="text-[15px] font-bold text-gray-900">
               {{ exp.role }}
             </h3>
-            <div class="text-[12px] text-gray-500">
+            <div class="text-[13px] text-gray-500 mb-1">
               {{ exp.company }} &middot; {{ dateRangeLabel(exp.start_date, exp.end_date, exp.is_current) }}
             </div>
-            <ul
-              v-if="parseDescription(exp.description).length > 0"
-              class="mt-2 text-[13px] text-gray-700 space-y-1.5"
+            <template
+              v-for="(blk, idx) in parseDescription(exp.description)"
+              :key="idx"
             >
-              <li
-                v-for="(bullet, idx) in parseDescription(exp.description)"
-                :key="idx"
-                class="flex gap-2"
+              <p
+                v-if="blk.type === 'p'"
+                class="mt-2 text-[13px] text-gray-700 leading-relaxed"
               >
-                <span
-                  class="text-[12px] mt-0.5 shrink-0"
-                  :style="{ color: accentColor }"
-                >&bull;</span>
-                <span>{{ bullet }}</span>
-              </li>
-            </ul>
+                {{ blk.text }}
+              </p>
+              <ul
+                v-else
+                class="mt-2 text-[13px] text-gray-700 space-y-1.5"
+              >
+                <li
+                  v-for="(bullet, bIdx) in blk.items"
+                  :key="bIdx"
+                  class="flex gap-2"
+                >
+                  <span
+                    class="text-[12px] mt-0.5 shrink-0"
+                    :style="{ color: accentColor }"
+                  >&bull;</span>
+                  <span>{{ bullet }}</span>
+                </li>
+              </ul>
+            </template>
           </div>
         </div>
       </section>
@@ -125,18 +136,18 @@ const getMeterWidthStr = (level?: string) => {
         class="flex flex-col gap-4"
       >
         <h2
-          class="font-bold text-[11px] tracking-widest uppercase"
+          class="font-bold text-[12px] tracking-[2px] uppercase"
           :style="{ color: accentColor }"
         >
           Selected Projects
         </h2>
-        <div class="flex flex-col gap-5">
+        <div class="flex flex-col gap-4">
           <div
             v-for="info in data.additional_information"
             :key="info.id"
             class="flex flex-col gap-1"
           >
-            <h3 class="text-[14px] font-bold text-gray-900">
+            <h3 class="text-[15px] font-bold text-gray-900">
               {{ info.title }}
             </h3>
             <div class="text-[13px] leading-relaxed text-gray-700 whitespace-pre-line mt-1">
@@ -152,7 +163,7 @@ const getMeterWidthStr = (level?: string) => {
         class="flex flex-col gap-4"
       >
         <h2
-          class="font-bold text-[11px] tracking-widest uppercase"
+          class="font-bold text-[12px] tracking-[2px] uppercase"
           :style="{ color: accentColor }"
         >
           Awards
@@ -163,10 +174,10 @@ const getMeterWidthStr = (level?: string) => {
             :key="cert.id"
             class="flex flex-col gap-1"
           >
-            <h3 class="text-[14px] font-bold text-gray-900">
+            <h3 class="text-[15px] font-bold text-gray-900">
               {{ cert.name }}
             </h3>
-            <div class="text-[12px] text-gray-500">
+            <div class="text-[13px] text-gray-500">
               {{ cert.issuer }} &middot; {{ cert.issue_date ? formatMonthYear(cert.issue_date) : '' }}
             </div>
           </div>
@@ -176,7 +187,7 @@ const getMeterWidthStr = (level?: string) => {
 
     <!-- RIGHT COLUMN (Sidebar, ~31%) -->
     <div
-      class="w-[31%] h-full px-7 py-12 flex flex-col gap-7"
+      class="w-[31%] h-full pl-[6px] pr-[53px] py-[53px] flex flex-col gap-[21px]"
       :style="{ backgroundColor: accentTint(accentColor, 0.07) }"
     >
       <!-- Skills -->
@@ -185,7 +196,7 @@ const getMeterWidthStr = (level?: string) => {
         class="flex flex-col gap-3"
       >
         <h2
-          class="font-bold text-[11px] tracking-widest uppercase mt-4"
+          class="font-bold text-[12px] tracking-[2px] uppercase mt-[21px]"
           :style="{ color: accentColor }"
         >
           Skills
@@ -194,7 +205,7 @@ const getMeterWidthStr = (level?: string) => {
           <span
             v-for="skill in data.skills"
             :key="skill.id"
-            class="px-2.5 py-1 text-[11px] font-bold rounded-full"
+            class="px-2.5 py-1 text-[12px] font-bold rounded-sm"
             :style="{ backgroundColor: accentTint(accentColor, 0.16), color: accentColor }"
           >
             {{ skill.name }}
@@ -209,7 +220,7 @@ const getMeterWidthStr = (level?: string) => {
         class="flex flex-col gap-4"
       >
         <h2
-          class="font-bold text-[11px] tracking-widest uppercase"
+          class="font-bold text-[12px] tracking-[2px] uppercase"
           :style="{ color: accentColor }"
         >
           Education
@@ -220,13 +231,13 @@ const getMeterWidthStr = (level?: string) => {
             :key="edu.id"
             class="flex flex-col gap-0.5"
           >
-            <h3 class="text-[13px] font-bold text-gray-900 leading-tight">
+            <h3 class="text-[15px] font-bold text-gray-900 leading-tight">
               {{ edu.degree }}{{ edu.field_of_study ? ` in ${edu.field_of_study}` : '' }}
             </h3>
-            <div class="text-[11.5px] text-gray-600 font-medium">
+            <div class="text-[12.5px] text-gray-600 font-medium">
               {{ edu.institution }}
             </div>
-            <div class="text-[11.5px] text-gray-500">
+            <div class="text-[12.5px] text-gray-500">
               {{ dateRangeLabel(edu.start_date, edu.end_date, edu.is_current) }}
             </div>
           </div>
@@ -239,7 +250,7 @@ const getMeterWidthStr = (level?: string) => {
         class="flex flex-col gap-4"
       >
         <h2
-          class="font-bold text-[11px] tracking-widest uppercase"
+          class="font-bold text-[12px] tracking-[2px] uppercase"
           :style="{ color: accentColor }"
         >
           Languages
@@ -250,7 +261,7 @@ const getMeterWidthStr = (level?: string) => {
             :key="lang.id"
             class="flex flex-col gap-1.5"
           >
-            <div class="text-[13px] font-bold text-gray-900 leading-none">
+            <div class="text-[15px] font-bold text-gray-900 leading-none">
               {{ lang.name }}
             </div>
             <!-- Progress Bar -->
