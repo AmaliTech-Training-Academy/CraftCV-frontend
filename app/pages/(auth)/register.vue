@@ -41,6 +41,8 @@
           type="email"
           autocomplete="email"
           placeholder="you@example.com"
+          :aria-invalid="Boolean(fieldError('email'))"
+          :aria-describedby="fieldError('email') ? 'email-error' : undefined"
           :class="[
             'h-11',
             fieldError('email')
@@ -51,6 +53,7 @@
         />
         <p
           v-if="fieldError('email')"
+          id="email-error"
           class="text-xs text-destructive"
         >
           {{ fieldError('email') }}
@@ -69,13 +72,17 @@
             :type="showPassword ? 'text' : 'password'"
             autocomplete="new-password"
             placeholder="Create a password"
+            :aria-invalid="Boolean(!isPasswordFocused && fieldError('password'))"
+            :aria-describedby="!isPasswordFocused && fieldError('password') ? 'password-error' : form.password.length > 0 ? 'password-guidance' : undefined"
             :class="[
               'h-11 pr-11',
-              fieldError('password')
+              !isPasswordFocused && fieldError('password')
                 ? 'border-destructive focus-visible:ring-destructive'
                 : 'focus-visible:ring-[#EA580C]',
             ]"
-            @blur="touch('password')"
+            @focus="isPasswordFocused = true"
+            @input="isPasswordFocused = true"
+            @blur="handlePasswordBlur"
           />
           <button
             type="button"
@@ -126,11 +133,22 @@
             </svg>
           </button>
         </div>
+        <!-- Either Error Message (when blurred/another field engaged) OR Dynamic Guidance (when focused/typing) -->
         <p
-          v-if="fieldError('password')"
+          v-if="!isPasswordFocused && fieldError('password')"
+          id="password-error"
           class="text-xs text-destructive"
         >
           {{ fieldError('password') }}
+        </p>
+
+        <!-- Inline Guidance (Standard text, zero layout expansion) -->
+        <p
+          v-else-if="form.password.length > 0"
+          id="password-guidance"
+          class="mt-1 text-xs text-stone-500 transition-colors"
+        >
+          {{ passwordGuidance }}
         </p>
       </div>
 
@@ -146,9 +164,11 @@
             :type="showConfirmPassword ? 'text' : 'password'"
             autocomplete="new-password"
             placeholder="Create a password"
+            :aria-invalid="Boolean(fieldError('confirmPassword') || confirmMismatch)"
+            :aria-describedby="fieldError('confirmPassword') || confirmMismatch ? 'confirm-password-error' : undefined"
             :class="[
               'h-11 pr-11',
-              fieldError('confirmPassword')
+              fieldError('confirmPassword') || confirmMismatch
                 ? 'border-destructive focus-visible:ring-destructive'
                 : 'focus-visible:ring-[#EA580C]',
             ]"
@@ -204,10 +224,11 @@
           </button>
         </div>
         <p
-          v-if="fieldError('confirmPassword')"
+          v-if="fieldError('confirmPassword') || confirmMismatch"
+          id="confirm-password-error"
           class="text-xs text-destructive"
         >
-          {{ fieldError('confirmPassword') }}
+          {{ fieldError('confirmPassword') || (confirmMismatch ? 'Passwords do not match.' : '') }}
         </p>
       </div>
 
@@ -241,10 +262,10 @@
       <div class="pt-1">
         <Button
           type="submit"
-          :disabled="loading || isRedirecting"
+          :disabled="!isFormValid || loading || isRedirecting"
           :class="[
             'w-full h-11 lg:h-12 bg-brand-600 text-white hover:bg-brand-700 font-medium transition-colors cursor-pointer',
-            !isFormValid && !loading && !isRedirecting ? 'opacity-50 hover:bg-brand-600' : '',
+            !isFormValid && !loading && !isRedirecting ? 'opacity-50 hover:bg-brand-600 cursor-not-allowed' : '',
           ]"
         >
           <svg
@@ -306,10 +327,12 @@ definePageMeta({
   layout: 'auth',
 })
 
+const route = useRoute()
+const queryEmail = typeof route.query.email === 'string' ? route.query.email : ''
 const savedEmail = useSessionStorage('craftcv-register-email', '')
 
 const form = reactive({
-  email: savedEmail.value,
+  email: queryEmail || savedEmail.value,
   password: '',
   confirmPassword: '',
   agreeTerms: false,
@@ -339,6 +362,68 @@ function touch(field: Field) {
   touched[field] = true
 }
 
+const isPasswordFocused = ref(false)
+
+function handlePasswordBlur() {
+  isPasswordFocused.value = false
+  touch('password')
+}
+
+const passwordCriteria = computed(() => {
+  const pw = form.password || ''
+  const commonPatterns = /(123|abc|qwerty|password|letmein|admin|iloveyou|welcome)/i
+
+  return [
+    { key: 'length', hint: 'at least 8 characters', passed: pw.length >= 8 },
+    { key: 'uppercase', hint: 'an uppercase letter', passed: /[A-Z]/.test(pw) },
+    { key: 'lowercase', hint: 'a lowercase letter', passed: /[a-z]/.test(pw) },
+    { key: 'number', hint: 'a number', passed: /[0-9]/.test(pw) },
+    { key: 'special', hint: 'a special symbol', passed: /[^A-Za-z0-9]/.test(pw) },
+    {
+      key: 'unpredictable',
+      hint: 'avoid common sequences',
+      passed: pw.length > 0 && !commonPatterns.test(pw) && !/^(.+?)\1+$/.test(pw),
+    },
+  ]
+})
+
+// Returns true only when all 6 rules pass
+const isPasswordValid = computed(() => {
+  return passwordCriteria.value.every(rule => rule.passed)
+})
+
+// Dynamic inline suggestion text
+const passwordGuidance = computed(() => {
+  if (!form.password) return ''
+
+  const missing = passwordCriteria.value.filter(c => !c.passed)
+
+  if (missing.length === 0) {
+    return 'Password is strong.'
+  }
+
+  // If password is just started (e.g. 1-2 characters), show general tip
+  if (form.password.length < 3) {
+    return 'Tip: A strong password includes 8+ characters, uppercase, lowercase, numbers, and symbols.'
+  }
+
+  // Specifically tell the user what to add to make it strong
+  const missingHints = missing.map(m => m.hint)
+  return `To make it stronger, add: ${missingHints.join(', ')}.`
+})
+
+const isEmailValid = computed(() => {
+  return Boolean(form.email.trim()) && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())
+})
+
+const isConfirmValid = computed(() => {
+  return Boolean(form.confirmPassword) && form.confirmPassword === form.password
+})
+
+const confirmMismatch = computed(() => {
+  return form.confirmPassword.length > 0 && form.password !== form.confirmPassword
+})
+
 function fieldError(field: Field) {
   if (!touched[field]) return ''
   if (field === 'email') {
@@ -350,6 +435,10 @@ function fieldError(field: Field) {
   if (field === 'password') {
     if (!form.password) return 'Password is required.'
     if (form.password.length < 8) return 'Password must be at least 8 characters.'
+    if (!isPasswordValid.value) {
+      const missing = passwordCriteria.value.filter(c => !c.passed)
+      return `To make it stronger, add: ${missing.map(m => m.hint).join(', ')}.`
+    }
   }
   if (field === 'confirmPassword') {
     if (!form.confirmPassword) return 'Please confirm your password.'
@@ -362,26 +451,35 @@ function fieldError(field: Field) {
 }
 
 const isFormValid = computed(() => {
-  const isEmailValid = Boolean(form.email.trim()) && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())
-  const isPasswordValid = Boolean(form.password) && form.password.length >= 8
-  const isConfirmValid = Boolean(form.confirmPassword) && form.confirmPassword === form.password
-  return Boolean(isEmailValid && isPasswordValid && isConfirmValid && form.agreeTerms)
+  return Boolean(isEmailValid.value && isPasswordValid.value && isConfirmValid.value && form.agreeTerms)
 })
 
 async function handleSubmit() {
   if (loading.value || isRedirecting.value) return
 
+  isPasswordFocused.value = false
   touch('email')
   touch('password')
   touch('confirmPassword')
   touch('agreeTerms')
+
+  if (!form.password) return
+
+  if (!isPasswordValid.value) {
+    serverError.value = 'Password must meet all 6 security requirements.'
+    return
+  }
+
+  if (form.password !== form.confirmPassword) {
+    serverError.value = 'Passwords do not match.'
+    return
+  }
 
   if (!isFormValid.value) return
 
   serverError.value = ''
   successMessage.value = ''
   let isSuccess = false
-  let targetRoute = '/login'
 
   try {
     await register(
@@ -396,10 +494,9 @@ async function handleSubmit() {
     const isAuthed = isAuthenticated.value
 
     isSuccess = true
-    targetRoute = isAuthed ? '/onboarding' : '/login'
     successMessage.value = isAuthed
       ? 'Account created successfully! Redirecting...'
-      : 'Account created! Please sign in to continue.'
+      : 'Account created! Please verify your email to continue.'
     isRedirecting.value = true
   }
   catch {
@@ -409,7 +506,10 @@ async function handleSubmit() {
 
   if (isSuccess) {
     await new Promise(resolve => setTimeout(resolve, 600))
-    await navigateTo(targetRoute)
+    await navigateTo({
+      path: '/verify-email',
+      query: { email: form.email.trim() },
+    })
   }
 }
 </script>
