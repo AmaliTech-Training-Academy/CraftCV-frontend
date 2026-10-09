@@ -154,42 +154,26 @@
 
       <div
         v-if="serverError"
-        class="mb-4 flex items-start gap-2.5 rounded-lg border border-error/20 bg-error/5 p-3"
         role="alert"
+        class="mb-4 rounded-xl p-3 text-xs sm:text-sm font-medium"
+        :class="isUnverifiedError
+          ? 'bg-amber-50 text-amber-900 border border-amber-200'
+          : 'bg-rose-50 text-rose-700 border border-rose-200'"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          viewBox="0 0 24 24"
-          class="shrink-0 mt-0.5 text-error"
+        <p>{{ serverError }}</p>
+
+        <div
+          v-if="isUnverifiedError"
+          class="mt-2"
         >
-          <circle
-            cx="12"
-            cy="12"
-            r="10"
-          />
-          <line
-            x1="12"
-            y1="8"
-            x2="12"
-            y2="12"
-          />
-          <line
-            x1="12"
-            y1="16"
-            x2="12.01"
-            y2="16"
-          />
-        </svg>
-        <p class="text-sm text-error">
-          {{ serverError }}
-        </p>
+          <NuxtLink
+            :to="{ path: '/verify-email', query: { email: form.email } }"
+            class="inline-flex items-center gap-1 font-semibold text-amber-800 hover:text-amber-950 underline underline-offset-2 transition"
+          >
+            <span>Verify your email now</span>
+            <span aria-hidden="true">&rarr;</span>
+          </NuxtLink>
+        </div>
       </div>
 
       <Button
@@ -253,6 +237,15 @@ useHead({
 definePageMeta({ layout: 'auth' })
 
 const { login, loading, error: serverError } = useAuth()
+
+const isUnverifiedError = computed(() => {
+  const msg = (serverError.value || '').toLowerCase()
+  return (
+    msg.includes('not verified')
+    || msg.includes('unverified')
+    || msg.includes('verify your email')
+  )
+})
 
 const savedEmail = useSessionStorage('craftcv-login-email', '')
 

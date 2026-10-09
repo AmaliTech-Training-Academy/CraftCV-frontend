@@ -10,17 +10,13 @@
  * Steps 2 and 3 return 400 for invalid/expired codes.
  */
 
-interface ApiError {
-  detail?: string
-  [key: string]: unknown
-}
+import { $api } from '~/utils/api'
 
 async function post<T = void>(path: string, body: Record<string, unknown>): Promise<T> {
-  const { public: { apiBase } } = useRuntimeConfig()
-  const base = (apiBase || '/api').replace(/\/$/, '')
-  return $fetch<T>(`${base}/auth${path}`, {
+  return $api<T>(`/auth${path}`, {
     method: 'POST',
     body,
+    unauthenticated: true,
   })
 }
 
@@ -47,17 +43,4 @@ export const usePasswordReset = () => {
     post('/reset-password/', { email, code, newPassword })
 
   return { requestReset, verifyCode, resetPassword }
-}
-
-/** Typed error helper — extracts a human-readable message from $fetch errors */
-export function getApiErrorMessage(error: unknown, fallback = 'Something went wrong. Please try again.'): string {
-  if (!error || typeof error !== 'object') return fallback
-  const data = (error as { data?: ApiError }).data
-  if (data?.detail) return data.detail
-  // Collect all field-level error messages
-  if (data) {
-    const messages = Object.values(data).flat().filter(v => typeof v === 'string')
-    if (messages.length) return messages.join(' ')
-  }
-  return fallback
 }

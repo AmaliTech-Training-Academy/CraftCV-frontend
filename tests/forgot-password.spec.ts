@@ -11,14 +11,15 @@ const { mockRequestReset, mockVerifyCode, mockResetPassword } = vi.hoisted(() =>
   mockResetPassword: vi.fn(),
 }))
 
-vi.mock('~/composables/usePasswordReset', () => {
+vi.mock('~/composables/usePasswordReset', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../app/composables/usePasswordReset')>()
   return {
+    ...actual,
     usePasswordReset: () => ({
       requestReset: mockRequestReset,
       verifyCode: mockVerifyCode,
       resetPassword: mockResetPassword,
     }),
-    getApiErrorMessage: (err: unknown, fallback = 'Error') => fallback,
   }
 })
 
@@ -92,6 +93,32 @@ describe('forgot-password.vue', () => {
       expect(mockRequestReset).toHaveBeenCalledWith('test@example.com')
       expect(wrapper.text()).toContain('Check your email')
     })
+
+    it('blocks non-numeric keys and discards non-numeric inputs in OTP fields', async () => {
+      const wrapper = await mountPage()
+
+      await wrapper.find('#email').setValue('test@example.com')
+      mockRequestReset.mockResolvedValueOnce(undefined)
+      await wrapper.find('form').trigger('submit.prevent')
+      await nextTick()
+      await flushPromises()
+
+      const otpInputs = wrapper.findAll('input[inputmode="numeric"]')
+      const firstInput = otpInputs[0]!
+
+      const preventDefaultLetter = vi.fn()
+      await firstInput.trigger('keydown', { key: 'b', preventDefault: preventDefaultLetter })
+      expect(preventDefaultLetter).toHaveBeenCalled()
+
+      const preventDefaultDigit = vi.fn()
+      await firstInput.trigger('keydown', { key: '3', preventDefault: preventDefaultDigit })
+      expect(preventDefaultDigit).not.toHaveBeenCalled()
+
+      // Entering letter directly discards it
+      await firstInput.setValue('z')
+      await nextTick()
+      expect((firstInput.element as HTMLInputElement).value).toBe('')
+    })
   })
 
   describe('Step 3: Password Guards', () => {
@@ -127,13 +154,77 @@ describe('forgot-password.vue', () => {
       expect(wrapper.text()).toContain('Set a new password')
 
       // Step 3 Validation
-      await wrapper.find('#new-password').setValue('Short1!')
-      await wrapper.find('#new-password').trigger('blur')
+      const submitBtn = wrapper.find('button[type="submit"]')
+      expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
 
-      await wrapper.find('#new-password').setValue('StrongPass123!')
+      // Short input shows general tip
+      await wrapper.find('#new-password').setValue('A')
+      expect(wrapper.find('#password-guidance').text()).toBe(
+        'Tip: A strong password includes 8+ characters, uppercase, lowercase, numbers, and symbols.',
+      )
+
+      // Weak password should show suggestion and keep submit button disabled
+      await wrapper.find('#new-password').setValue('Short1!')
+      expect(wrapper.find('#password-guidance').text()).toBe(
+        'To make it stronger, add: at least 8 characters.',
+      )
+      await wrapper.find('#confirm-password').setValue('Short1!')
+      expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
+
+      // Submitting weak password shows 6 rules requirement error
+      await wrapper.find('form').trigger('submit.prevent')
+      await nextTick()
+      expect(wrapper.text()).toContain('Password must meet all 6 security requirements.')
+
+      // Mismatch
+      await wrapper.find('#new-password').setValue('P@ssw0rd2026!')
+      expect(wrapper.find('#password-guidance').text()).toBe('Password is strong.')
       await wrapper.find('#confirm-password').setValue('Mismatch123!')
       await wrapper.find('#confirm-password').trigger('blur')
       expect(wrapper.text()).toContain('Passwords do not match')
+      expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
+
+      // Valid matching password enables submit button
+      await wrapper.find('#confirm-password').setValue('P@ssw0rd2026!')
+      expect((submitBtn.element as HTMLButtonElement).disabled).toBe(false)
+    })
+
+    it('surfaces backend error message when user attempts to reuse a previous password', async () => {
+      const wrapper = await mountPage()
+
+      // Setup to be on step 3
+      await wrapper.find('#email').setValue('test@example.com')
+      mockRequestReset.mockResolvedValueOnce(undefined)
+      await wrapper.find('form').trigger('submit.prevent')
+      await nextTick()
+      await flushPromises()
+
+      const otpInputs = wrapper.findAll('input[inputmode="numeric"]')
+      for (let i = 0; i < 6; i++) {
+        const input = otpInputs[i]
+        if (input) await input.setValue('1')
+      }
+      mockVerifyCode.mockResolvedValueOnce(undefined)
+      await wrapper.find('form').trigger('submit.prevent')
+      await nextTick()
+      await flushPromises()
+
+      // Enter valid password that backend rejects as previously used
+      await wrapper.find('#new-password').setValue('P@ssw0rd2026!')
+      await wrapper.find('#confirm-password').setValue('P@ssw0rd2026!')
+
+      mockResetPassword.mockRejectedValueOnce({
+        data: {
+          password: ['You cannot use a password you have already used for registration before.'],
+        },
+      })
+
+      await wrapper.find('form').trigger('submit.prevent')
+      await nextTick()
+      await flushPromises()
+
+      expect(wrapper.text()).toContain('You cannot use a password you have already used for registration before.')
+      expect(document.body.innerHTML).not.toContain('Your password has been successfully reset.')
     })
   })
 
@@ -158,9 +249,9 @@ describe('forgot-password.vue', () => {
       await nextTick()
       await flushPromises()
 
-      // Submit new password
-      await wrapper.find('#new-password').setValue('StrongPass123!')
-      await wrapper.find('#confirm-password').setValue('StrongPass123!')
+      // Submit new password with all 6 rules passing
+      await wrapper.find('#new-password').setValue('P@ssw0rd2026!')
+      await wrapper.find('#confirm-password').setValue('P@ssw0rd2026!')
 
       mockResetPassword.mockResolvedValueOnce(undefined)
 
@@ -170,7 +261,7 @@ describe('forgot-password.vue', () => {
       await nextTick()
       await flushPromises()
 
-      expect(mockResetPassword).toHaveBeenCalledWith('test@example.com', '111111', 'StrongPass123!')
+      expect(mockResetPassword).toHaveBeenCalledWith('test@example.com', '111111', 'P@ssw0rd2026!')
       expect(document.body.innerHTML).toContain('Your password has been successfully reset.')
 
       // Verify countdown starts and redirects after 5 seconds
