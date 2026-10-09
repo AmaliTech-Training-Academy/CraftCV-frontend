@@ -175,19 +175,19 @@ const getMeterWidth = (level?: string) => {
             {{ data.personal_details.location }}
           </div>
           <div
-            v-if="data.personal_details.website && data.personal_details.website !== 'www.yourwebsite.com'"
+            v-if="data.personal_details.websiteUrl && data.personal_details.websiteUrl !== 'www.yourwebsite.com'"
             class="break-all"
           >
-            {{ data.personal_details.website.replace(/^https?:\/\//, '') }}
+            {{ data.personal_details.websiteUrl.replace(/^https?:\/\//, '') }}
           </div>
           <div
-            v-if="data.personal_details.linkedin"
+            v-if="data.personal_details.linkedinUrl"
             class="break-all"
           >
-            {{ data.personal_details.linkedin.replace(/^https?:\/\//, '') }}
+            {{ data.personal_details.linkedinUrl.replace(/^https?:\/\//, '') }}
           </div>
           <div
-            v-if="data.personal_details.github"
+            v-if="data.personal_details.githubUrl"
             class="break-all"
           >
             {{ data.personal_details.github.replace(/^https?:\/\//, '') }}
