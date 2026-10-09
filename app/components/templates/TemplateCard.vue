@@ -3,8 +3,11 @@ import type { useTemplates } from '~/composables/useTemplates'
 
 type Template = ReturnType<typeof useTemplates>['templates']['value'][number]
 
+import { Star } from '@lucide/vue'
+
 const props = defineProps<{
   template: Template
+  recommended?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -14,11 +17,10 @@ const emit = defineEmits<{
 
 <template>
   <article
-    class="group relative flex flex-col cursor-pointer rounded-xl bg-white border border-gray-200 shadow-sm
-           hover:shadow-lg hover:border-[#F26438]/40
-           focus-within:ring-2 focus-within:ring-[#F26438] focus-within:ring-offset-2
-           transition-all duration-200 ease-out hover:-translate-y-1
-           motion-reduce:hover:translate-y-0 motion-reduce:transition-none"
+    :class="[
+      'group relative flex flex-col cursor-pointer rounded-xl bg-white border shadow-sm transition-all duration-200 ease-out hover:-translate-y-1 motion-reduce:hover:translate-y-0 motion-reduce:transition-none focus-within:ring-2 focus-within:ring-offset-2',
+      props.recommended ? 'border-[#F26438] ring-2 ring-[#F26438]/20 shadow-md hover:shadow-lg' : 'border-gray-200 hover:shadow-lg hover:border-[#F26438]/40 focus-within:ring-[#F26438]'
+    ]"
     @click="emit('open-preview', props.template)"
   >
     <!-- Keyboard accessible button overlay -->
@@ -30,6 +32,14 @@ const emit = defineEmits<{
 
     <!-- Thumbnail Image -->
     <div class="aspect-[3/4] w-full overflow-hidden rounded-t-xl bg-[#F0EDE8] relative">
+      <!-- Recommended Badge -->
+      <div
+        v-if="props.recommended"
+        class="absolute top-2 left-2 bg-[#F26438] text-white text-[10px] uppercase tracking-wide font-bold px-2.5 py-1 rounded-full shadow-md z-20 flex items-center gap-1.5"
+      >
+        <Star class="w-3 h-3 fill-white" />
+        Recommended
+      </div>
       <img
         v-if="props.template.image"
         :src="props.template.image"

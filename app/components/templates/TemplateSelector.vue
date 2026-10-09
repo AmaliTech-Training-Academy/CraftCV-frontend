@@ -1,11 +1,29 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { LayoutTemplate } from '@lucide/vue'
 import { useTemplates } from '~/composables/useTemplates'
+import { useOnboarding } from '~/composables/useOnboarding'
 
 type Template = ReturnType<typeof useTemplates>['templates']['value'][number]
 
 const { templates, loading, error, fetchTemplates } = useTemplates()
+const { getRecommendedTemplateId } = useOnboarding()
+
+const recommendedTemplateSlug = computed(() => getRecommendedTemplateId())
+
+const sortedTemplates = computed(() => {
+  if (!recommendedTemplateSlug.value || !templates.value.length) return templates.value
+  
+  const recSlug = recommendedTemplateSlug.value
+  const result = [...templates.value]
+  
+  const recIndex = result.findIndex(t => t.slug === recSlug)
+  if (recIndex > -1) {
+    const [rec] = result.splice(recIndex, 1)
+    result.unshift(rec!)
+  }
+  return result
+})
 
 const emit = defineEmits<{
   'open-preview': [template: Template]
@@ -54,12 +72,13 @@ onMounted(() => {
       role="list"
     >
       <div
-        v-for="template in templates"
+        v-for="template in sortedTemplates"
         :key="template.templateId"
         role="listitem"
       >
         <TemplatesTemplateCard
           :template="template"
+          :recommended="template.slug === recommendedTemplateSlug"
           @open-preview="handleOpenPreview"
         />
       </div>

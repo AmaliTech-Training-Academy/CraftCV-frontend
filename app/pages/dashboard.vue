@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { AlertCircle, Edit, Loader2, MoreVertical, Plus, Trash2 } from '@lucide/vue'
+import { AlertCircle, Edit, Loader2, MoreVertical, Plus, Trash2, Copy } from '@lucide/vue'
 import { useCVs, type CVSummary } from '~/composables/useCVs'
 
 useHead({ title: 'Dashboard' })
@@ -10,7 +10,7 @@ definePageMeta({
   middleware: ['auth'],
 })
 
-const { cvs, loading, loaded, error, fetchCVs, deleteCV, selectCV } = useCVs()
+const { cvs, loading, loaded, error, fetchCVs, deleteCV, duplicateCV, selectCV } = useCVs()
 
 onMounted(fetchCVs)
 
@@ -18,6 +18,10 @@ const showMenuFor = ref<string | null>(null)
 const pendingDelete = ref<CVSummary | null>(null)
 const deleting = ref(false)
 const deleteError = ref<string | null>(null)
+
+const pendingDuplicate = ref<CVSummary | null>(null)
+const duplicating = ref(false)
+const duplicateError = ref<string | null>(null)
 
 const isEmpty = computed(() => loaded.value && !error.value && cvs.value.length === 0)
 
@@ -47,6 +51,28 @@ const confirmDelete = async () => {
   }
   finally {
     deleting.value = false
+  }
+}
+
+const requestDuplicate = (cv: CVSummary) => {
+  showMenuFor.value = null
+  duplicateError.value = null
+  pendingDuplicate.value = cv
+}
+
+const confirmDuplicate = async () => {
+  if (!pendingDuplicate.value) return
+  duplicating.value = true
+  duplicateError.value = null
+  try {
+    await duplicateCV(pendingDuplicate.value.cvId)
+    pendingDuplicate.value = null
+  }
+  catch {
+    duplicateError.value = 'Couldn\'t duplicate this resume. Please try again.'
+  }
+  finally {
+    duplicating.value = false
   }
 }
 
@@ -193,6 +219,15 @@ const openCV = async (cv: CVSummary) => {
               <button
                 type="button"
                 role="menuitem"
+                class="w-full text-left px-3 py-2 text-xs font-normal text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                @click.stop="requestDuplicate(cv)"
+              >
+                <Copy class="w-3.5 h-3.5 text-gray-500" />
+                Duplicate
+              </button>
+              <button
+                type="button"
+                role="menuitem"
                 class="w-full text-left px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2"
                 @click.stop="requestDelete(cv)"
               >
@@ -289,6 +324,61 @@ const openCV = async (cv: CVSummary) => {
               class="w-4 h-4 animate-spin"
             />
             Delete
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Duplicate Confirmation -->
+    <Dialog
+      :open="pendingDuplicate !== null"
+      @update:open="(val: boolean) => { if (!val) pendingDuplicate = null }"
+    >
+      <DialogContent
+        :show-close-button="false"
+        class="sm:max-w-95 p-6 sm:p-7 rounded-2xl flex flex-col items-center text-center gap-0 border-0 shadow-2xl"
+      >
+        <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-4">
+          <Copy class="w-5 h-5 text-blue-500" />
+        </div>
+        <DialogHeader class="gap-0 flex flex-col items-center text-center">
+          <DialogTitle class="text-xl font-bold text-gray-900 mb-2">
+            Duplicate resume?
+          </DialogTitle>
+          <DialogDescription class="text-sm text-gray-500 text-center max-w-65 leading-relaxed mb-6">
+            This will create a copy of "{{ pendingDuplicate?.title }}".
+          </DialogDescription>
+        </DialogHeader>
+
+        <p
+          v-if="duplicateError"
+          role="alert"
+          class="text-xs font-semibold text-red-500 mb-3"
+        >
+          {{ duplicateError }}
+        </p>
+
+        <div class="grid grid-cols-2 gap-3 w-full">
+          <Button
+            type="button"
+            variant="outline"
+            :disabled="duplicating"
+            class="w-full py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium text-sm h-auto cursor-pointer"
+            @click="pendingDuplicate = null"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            :disabled="duplicating"
+            class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow-xs h-auto cursor-pointer inline-flex items-center justify-center gap-2"
+            @click="confirmDuplicate"
+          >
+            <Loader2
+              v-if="duplicating"
+              class="w-4 h-4 animate-spin"
+            />
+            Duplicate
           </Button>
         </div>
       </DialogContent>

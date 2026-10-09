@@ -107,6 +107,11 @@ export const useCVs = () => {
     if (state.cvId.value === id) state.resetCV()
   }
 
+  const duplicateCV = async (id: string) => {
+    await $api<unknown>(`/cvs/${id}/duplicate/`, { method: 'POST' })
+    await fetchCVs()
+  }
+
   /**
    * Points the editor at a saved CV and opens it.
    *
@@ -133,6 +138,7 @@ export const useCVs = () => {
     fetchCVs,
     createCV,
     deleteCV,
+    duplicateCV,
     selectCV,
   }
 }
