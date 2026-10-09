@@ -10,6 +10,7 @@ export interface APITemplate {
   // Optional frontend-only fields for UI
   image?: string
   vibe?: string
+  category?: string
   bestFor?: string[]
 }
 
@@ -38,6 +39,7 @@ export const useTemplates = () => {
       templates.value = normalizedData.map((t: any) => {
         let image = undefined
         let vibe = undefined
+        let category = undefined
         let bestFor: string[] = []
 
         const rawSlug = t.slug || t.name || ''
@@ -46,12 +48,51 @@ export const useTemplates = () => {
         if (normalizedSlug === 'professional') {
           image = '/templates/Double-col.png'
           vibe = 'STRUCTURED'
+          category = 'Classic'
           bestFor = ['Product Managers', 'Engineers', 'Tech Leads']
         }
         else if (normalizedSlug === 'modern') {
           image = '/templates/Single-col.png'
           vibe = 'MINIMAL'
+          category = 'Modern'
           bestFor = ['Finance', 'Law', 'Consulting', 'Academia']
+        }
+        else if (normalizedSlug === 'inkwell') {
+          // Fallback image since it's new
+          image = '/templates/Single-col.png'
+          vibe = 'BOLD'
+          category = 'Creative'
+          bestFor = ['Designers', 'Writers', 'Marketers', 'Creatives']
+        }
+        else if (normalizedSlug === 'prism') {
+          image = '/templates/Double-col.png'
+          vibe = 'CREATIVE'
+          category = 'Creative'
+          bestFor = ['Designers', 'Frontend Devs', 'Marketers']
+        }
+        else if (normalizedSlug === 'campus') {
+          image = '/templates/Double-col.png' // Fallback image
+          vibe = 'CLASSIC'
+          category = 'Classic'
+          bestFor = ['Graduates', 'Academics', 'Traditional Corporate']
+        }
+        else if (normalizedSlug === 'sprout') {
+          image = '/templates/Single-col.png' // Fallback image
+          vibe = 'MODERN'
+          category = 'Beginner'
+          bestFor = ['Juniors', 'Students', 'Tech Interns']
+        }
+        else if (normalizedSlug === 'northstar') {
+          image = '/templates/Double-col.png' // Fallback image
+          vibe = 'MODERN'
+          category = 'Modern'
+          bestFor = ['Senior Professionals', 'Product Managers', 'Tech Leads']
+        }
+        else if (normalizedSlug === 'meridian') {
+          image = '/templates/Single-col.png' // Fallback image
+          vibe = 'CLASSIC'
+          category = 'Classic'
+          bestFor = ['Executives', 'Senior Leaders', 'Directors']
         }
 
         return {
@@ -61,6 +102,7 @@ export const useTemplates = () => {
           slug: normalizedSlug,
           image,
           vibe,
+          category,
           bestFor,
         }
       })

@@ -33,6 +33,12 @@ import type { ResolvedCvData } from '~/types/cv'
 import CVTemplateClassic from '~/components/templates/CVTemplateClassic.vue'
 import SingleColumnTemplate from '~/components/templates/SingleColumnTemplate.vue'
 import TwoColumnTemplate from '~/components/templates/TwoColumnTemplate.vue'
+import CVTemplateInkwell from '~/components/templates/CVTemplateInkwell.vue'
+import CVTemplatePrism from '~/components/templates/CVTemplatePrism.vue'
+import CVTemplateCampus from '~/components/templates/CVTemplateCampus.vue'
+import CVTemplateSprout from '~/components/templates/CVTemplateSprout.vue'
+import CVTemplateNorthstar from '~/components/templates/CVTemplateNorthstar.vue'
+import CVTemplateMeridian from '~/components/templates/CVTemplateMeridian.vue'
 import ExportModal from '~/components/export/ExportModal.vue'
 import type { ExportPayload } from '~/types/export'
 import { generatePDF, generatePlainText, printDocument } from '~/utils/pdfExport'
@@ -99,6 +105,12 @@ const layoutBySlug: Record<string, unknown> = {
   classic: CVTemplateClassic,
   modern: SingleColumnTemplate,
   professional: TwoColumnTemplate,
+  inkwell: CVTemplateInkwell,
+  prism: CVTemplatePrism,
+  campus: CVTemplateCampus,
+  sprout: CVTemplateSprout,
+  northstar: CVTemplateNorthstar,
+  meridian: CVTemplateMeridian,
 }
 
 const activeTemplateComponent = computed(() => {
