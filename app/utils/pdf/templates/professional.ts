@@ -140,7 +140,7 @@ export function buildProfessionalPdf(
       margin: [0, 0, 0, 3],
     })
   }
-        
+
   if (contactLines.length > 0) {
     sidebarStack.push(sidebarSectionHeader('Contact'))
     sidebarStack.push(...contactLines)

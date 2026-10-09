@@ -285,7 +285,7 @@ describe('useAutosave', () => {
       email: 'ada@example.com',
       phone: '0123456789',
       location: 'London',
-      website: 'https://ada.dev',
+      websiteUrl: 'https://ada.dev',
       nationality: 'British',
       passport: 'X123',
     }
@@ -311,6 +311,9 @@ describe('useAutosave', () => {
       phone: '0123456789',
       location: 'London',
       websiteUrl: 'https://ada.dev',
+      linkedinUrl: '',
+      githubUrl: '',
+      twitterUrl: '',
     })
   })
 
@@ -332,8 +335,8 @@ describe('useAutosave', () => {
 
     const state = useCVState()
 
-    // The record says `websiteUrl`; the Website control is bound to `website`.
-    expect(state.personal.value.website).toBe('https://ada.dev')
+    // The record says `websiteUrl`; the Website control is bound to `websiteUrl` now.
+    expect(state.personal.value.websiteUrl).toBe('https://ada.dev')
 
     mockApi.mockReset()
     mockApi.mockResolvedValue({})

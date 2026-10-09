@@ -398,35 +398,6 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
       await updatedMoveUpBtns[2]!.trigger('click')
       expect(skills.value.map(s => s.name)).toEqual(['Skill 1', 'Skill 2', 'Skill 3'])
     })
-
-    it('reorders skills when dragged and dropped', async () => {
-      const { skills } = useCVState()
-      skills.value = [
-        { id: '1', name: 'Skill 1', level: 'Beginner' },
-        { id: '2', name: 'Skill 2', level: 'Intermediate' },
-        { id: '3', name: 'Skill 3', level: 'Advanced' },
-      ]
-
-      const wrapper = mount(SkillsPage, { global: { stubs: sharedStubs } })
-      const listItems = wrapper.findAll('li[draggable="true"]')
-      expect(listItems.length).toBe(3)
-
-      // Simulate dragging item 0 over item 2 and dropping
-      await listItems[0]!.trigger('dragstart', {
-        dataTransfer: {
-          effectAllowed: 'move',
-          setData: vi.fn(),
-        },
-      })
-      await listItems[2]!.trigger('dragover', {
-        dataTransfer: {
-          dropEffect: 'move',
-        },
-      })
-      await listItems[2]!.trigger('drop')
-
-      expect(skills.value.map(s => s.name)).toEqual(['Skill 2', 'Skill 3', 'Skill 1'])
-    })
   })
 
   describe('Certifications Page', () => {

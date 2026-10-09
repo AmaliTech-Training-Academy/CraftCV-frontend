@@ -41,10 +41,6 @@ const { accentColor } = useCVState()
             <span class="truncate">{{ data.personal_details.websiteUrl }}</span>
           </div>
         </template>
-        
-        
-        
-        
       </div>
     </div>
 

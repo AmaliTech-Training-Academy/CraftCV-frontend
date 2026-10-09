@@ -23,7 +23,7 @@ const PLACEHOLDER_STRINGS = new Set([
   '0x0000000',
   'start date',
   'end date',
-          'level',
+  'level',
 ])
 
 export function isRealText(val?: string | null): boolean {

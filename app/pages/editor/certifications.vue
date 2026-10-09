@@ -185,19 +185,11 @@ const handleFinish = async () => {
                       :aria-required="true"
                       :aria-invalid="Boolean(nameError(item))"
                       :aria-describedby="nameError(item) ? 'cert-name-error-' + item.id : undefined"
-<<<<<<< HEAD
                       class="w-full h-12 px-4 rounded-xl border text-[16px] transition-all focus:outline-none"
                       :class="[
                         nameError(item)
                           ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-400/20'
                           : 'border-gray-300 focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20',
-=======
-                      class="w-full h-11 px-4 rounded-xl border text-sm transition-all focus:outline-none"
-                      :class="[
-                        nameError(item)
-                          ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
-                          : 'border-gray-200 focus:ring-2 focus:ring-[#C54A22]/20',
->>>>>>> a38a834 (feat: add accent color to templates)
                       ]"
                     >
                     <span
@@ -229,19 +221,11 @@ const handleFinish = async () => {
                       :aria-required="true"
                       :aria-invalid="Boolean(issuerError(item))"
                       :aria-describedby="issuerError(item) ? 'cert-issuer-error-' + item.id : undefined"
-<<<<<<< HEAD
                       class="w-full h-12 px-4 rounded-xl border text-[16px] transition-all focus:outline-none"
                       :class="[
                         issuerError(item)
                           ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-400/20'
                           : 'border-gray-300 focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20',
-=======
-                      class="w-full h-11 px-4 rounded-xl border text-sm transition-all focus:outline-none"
-                      :class="[
-                        issuerError(item)
-                          ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
-                          : 'border-gray-200 focus:ring-2 focus:ring-[#C54A22]/20',
->>>>>>> a38a834 (feat: add accent color to templates)
                       ]"
                     >
                     <span
@@ -306,11 +290,7 @@ const handleFinish = async () => {
                       v-model="item.credentialId"
                       type="text"
                       placeholder="e.g. NNG-1049281"
-<<<<<<< HEAD
                       class="w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-[16px] text-gray-900 focus:outline-none focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 transition-all"
-=======
-                      class="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20 transition-all"
->>>>>>> a38a834 (feat: add accent color to templates)
                     >
                   </div>
 
@@ -330,19 +310,11 @@ const handleFinish = async () => {
                         placeholder="https://www.nngroup.com/verify/1049281"
                         :aria-invalid="Boolean(backendError(item.id, 'credentialUrl'))"
                         :aria-describedby="backendError(item.id, 'credentialUrl') ? 'cert-url-error-' + item.id : undefined"
-<<<<<<< HEAD
                         class="w-full h-12 pl-4 pr-10 rounded-xl border bg-white text-[16px] text-gray-900 focus:outline-none focus:ring-2 transition-all"
                         :class="[
                           backendError(item.id, 'credentialUrl')
                             ? 'border-red-400 focus:border-red-500 focus:ring-red-400/20'
                             : 'border-gray-300 focus:border-[#C54A22] focus:ring-[#C54A22]/20',
-=======
-                        class="w-full h-11 pl-4 pr-10 rounded-xl border bg-white text-sm text-gray-900 focus:outline-none focus:ring-2 transition-all"
-                        :class="[
-                          backendError(item.id, 'credentialUrl')
-                            ? 'border-red-400 focus:ring-red-400/20'
-                            : 'border-gray-200 focus:ring-[#C54A22]/20',
->>>>>>> a38a834 (feat: add accent color to templates)
                         ]"
                       >
                       <ExternalLink
@@ -377,11 +349,7 @@ const handleFinish = async () => {
                     rows="4"
                     aria-label="Description & Key Competencies"
                     placeholder="• Key skills, domains, or competencies demonstrated by this credential..."
-<<<<<<< HEAD
                     class="w-full p-4 text-[16px] text-gray-900 border border-gray-300 rounded-xl bg-white focus:outline-none focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 transition resize-y min-h-[110px]"
-=======
-                    class="w-full p-3.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20 transition resize-y min-h-27.5"
->>>>>>> a38a834 (feat: add accent color to templates)
                   />
                 </div>
               </div>

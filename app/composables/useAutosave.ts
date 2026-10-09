@@ -182,9 +182,9 @@ export function useAutosave() {
         updateTimestamp(data.lastSavedAt)
       }
 
-      // Load related sections
-      education.value = data.educations || []
-      experience.value = data.experiences || []
+      // Load related sections, mapping backend fields back to frontend fields
+      education.value = (data.educations || []).map((e: any) => ({ ...e, school: e.school || e.institution }))
+      experience.value = (data.experiences || []).map((e: any) => ({ ...e, title: e.title || e.role }))
       skills.value = data.skills || []
       certifications.value = data.certifications || []
 

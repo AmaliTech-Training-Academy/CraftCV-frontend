@@ -86,7 +86,7 @@ export function buildClassicPdf(
   if (personal.website) contactItems.push(contactLink(personal.website, toUrl(personal.website), options.includeLinks))
   if (personal.linkedin) contactItems.push(contactLink(personal.linkedin, toUrl(personal.linkedin), options.includeLinks))
   if (personal.github) contactItems.push(contactLink(personal.github, toUrl(personal.github), options.includeLinks))
-        
+
   const fullName = `${personal.firstName} ${personal.lastName}`.trim()
   const content: Content[] = []
 

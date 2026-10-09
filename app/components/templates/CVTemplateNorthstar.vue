@@ -45,11 +45,7 @@ const getMeterWidthStr = (level?: string) => {
           <span v-if="data.personal_details.email && data.personal_details.phone">&middot;</span>
           <span v-if="data.personal_details.phone">{{ data.personal_details.phone }}</span>
 
-<<<<<<< HEAD
           <template v-if="data.personal_details.websiteUrl && data.personal_details.websiteUrl !== 'www.yourwebsite.com'">
-=======
-          <template v-if="data.personal_details.website && data.personal_details.website !== 'www.yourwebsite.com'">
->>>>>>> a38a834 (feat: add accent color to templates)
             <span>&middot;</span>
             <span>{{ data.personal_details.websiteUrl.replace(/^https?:\/\//, '') }}</span>
           </template>

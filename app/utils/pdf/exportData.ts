@@ -13,7 +13,7 @@ export interface CvExportPersonal {
   twitter: string
   first_name: string
   last_name: string
-        }
+}
 
 export interface CvExportExperience {
   id: string
@@ -116,7 +116,7 @@ const emptyPersonal: CvExportPersonal = {
   twitter: '',
   first_name: '',
   last_name: '',
-        }
+}
 
 const asRecord = (value: unknown): Record<string, unknown> => (
   value && typeof value === 'object' && !Array.isArray(value)
@@ -152,7 +152,7 @@ export function toExportData(source: unknown): CvExportData {
   const rawLinkedin = firstString(personalRecord, 'linkedin')
   const rawGithub = firstString(personalRecord, 'github')
   const rawTwitter = firstString(personalRecord, 'twitter')
-        
+
   const firstName = isRealText(rawFirstName) ? rawFirstName : ''
   const lastName = isRealText(rawLastName) ? rawLastName : ''
   const personalTitle = isRealText(rawPersonalTitle) ? rawPersonalTitle : ''
@@ -163,7 +163,7 @@ export function toExportData(source: unknown): CvExportData {
   const linkedin = isRealText(rawLinkedin) ? rawLinkedin : ''
   const github = isRealText(rawGithub) ? rawGithub : ''
   const twitter = isRealText(rawTwitter) ? rawTwitter : ''
-        
+
   const personal: CvExportPersonal = {
     ...emptyPersonal,
     firstName,
@@ -178,7 +178,7 @@ export function toExportData(source: unknown): CvExportData {
     linkedin,
     github,
     twitter,
-                  }
+  }
 
   const rawSummary = firstString(data, 'summary', 'professional_summary')
   const summary = isRealText(rawSummary) ? rawSummary : ''

@@ -46,50 +46,49 @@ export const useTemplates = () => {
         const normalizedSlug = rawSlug.toLowerCase()
 
         if (normalizedSlug === 'professional') {
-          image = '/templates/Double-col.png'
+          image = '/templates/professional.png'
           vibe = 'STRUCTURED'
           category = 'Classic'
           bestFor = ['Product Managers', 'Engineers', 'Tech Leads']
         }
         else if (normalizedSlug === 'modern') {
-          image = '/templates/Single-col.png'
+          image = '/templates/modern.png'
           vibe = 'MINIMAL'
           category = 'Modern'
           bestFor = ['Finance', 'Law', 'Consulting', 'Academia']
         }
         else if (normalizedSlug === 'inkwell') {
-          // Fallback image since it's new
-          image = '/templates/Single-col.png'
+          image = '/templates/inkwell.png'
           vibe = 'BOLD'
           category = 'Creative'
           bestFor = ['Designers', 'Writers', 'Marketers', 'Creatives']
         }
         else if (normalizedSlug === 'prism') {
-          image = '/templates/Double-col.png'
+          image = '/templates/prism.png'
           vibe = 'CREATIVE'
           category = 'Creative'
           bestFor = ['Designers', 'Frontend Devs', 'Marketers']
         }
         else if (normalizedSlug === 'campus') {
-          image = '/templates/Double-col.png' // Fallback image
+          image = '/templates/campus.png'
           vibe = 'CLASSIC'
           category = 'Classic'
           bestFor = ['Graduates', 'Academics', 'Traditional Corporate']
         }
         else if (normalizedSlug === 'sprout') {
-          image = '/templates/Single-col.png' // Fallback image
+          image = '/templates/sprout.png'
           vibe = 'MODERN'
           category = 'Beginner'
           bestFor = ['Juniors', 'Students', 'Tech Interns']
         }
         else if (normalizedSlug === 'northstar') {
-          image = '/templates/Double-col.png' // Fallback image
+          image = '/templates/northstar.png'
           vibe = 'MODERN'
           category = 'Modern'
           bestFor = ['Senior Professionals', 'Product Managers', 'Tech Leads']
         }
         else if (normalizedSlug === 'meridian') {
-          image = '/templates/Single-col.png' // Fallback image
+          image = '/templates/meridian.png'
           vibe = 'CLASSIC'
           category = 'Classic'
           bestFor = ['Executives', 'Senior Leaders', 'Directors']

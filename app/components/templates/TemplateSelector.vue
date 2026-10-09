@@ -13,10 +13,10 @@ const recommendedTemplateSlug = computed(() => getRecommendedTemplateId())
 
 const sortedTemplates = computed(() => {
   if (!recommendedTemplateSlug.value || !templates.value.length) return templates.value
-  
+
   const recSlug = recommendedTemplateSlug.value
   const result = [...templates.value]
-  
+
   const recIndex = result.findIndex(t => t.slug === recSlug)
   if (recIndex > -1) {
     const [rec] = result.splice(recIndex, 1)

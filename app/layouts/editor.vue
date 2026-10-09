@@ -347,7 +347,7 @@ useResizeObserver(previewPage, (entries) => {
   if (entry && entry.target instanceof HTMLElement) {
     const pageH = entry.target.offsetHeight
     if (pageH > 0) {
-      previewPageH.value = pageH
+      previewPageH.value = Math.max(1123, pageH)
     }
   }
 })

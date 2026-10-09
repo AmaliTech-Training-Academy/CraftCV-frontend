@@ -18,7 +18,7 @@ const emit = defineEmits<{
   <article
     :class="[
       'group relative flex flex-col cursor-pointer rounded-xl bg-white border shadow-sm transition-all duration-200 ease-out hover:-translate-y-1 motion-reduce:hover:translate-y-0 motion-reduce:transition-none focus-within:ring-2 focus-within:ring-offset-2',
-      props.recommended ? 'border-[#F26438] ring-2 ring-[#F26438]/20 shadow-md hover:shadow-lg' : 'border-gray-200 hover:shadow-lg hover:border-[#F26438]/40 focus-within:ring-[#F26438]'
+      props.recommended ? 'border-[#F26438] ring-2 ring-[#F26438]/20 shadow-md hover:shadow-lg' : 'border-gray-200 hover:shadow-lg hover:border-[#F26438]/40 focus-within:ring-[#F26438]',
     ]"
     @click="emit('open-preview', props.template)"
   >

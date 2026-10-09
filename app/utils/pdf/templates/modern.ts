@@ -53,7 +53,7 @@ export function buildModernPdf(
     personal.website ? { text: personal.website.replace(/^https?:\/\//, ''), link: options.includeLinks ? toUrl(personal.website) : undefined } : null,
     personal.linkedin ? { text: personal.linkedin.replace(/^https?:\/\//, ''), link: options.includeLinks ? toUrl(personal.linkedin) : undefined } : null,
     personal.github ? { text: personal.github.replace(/^https?:\/\//, ''), link: options.includeLinks ? toUrl(personal.github) : undefined } : null,
-                  ].filter((p): p is { text: string, link?: string } => p !== null && Boolean(p.text))
+  ].filter((p): p is { text: string, link?: string } => p !== null && Boolean(p.text))
 
   const fullName = `${personal.firstName} ${personal.lastName}`.trim()
   const content: Content[] = []
