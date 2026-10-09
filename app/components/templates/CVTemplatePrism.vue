@@ -141,6 +141,7 @@ const getMeterWidth = (level?: string) => {
             class="break-all"
           >
             {{ data.personal_details.email }}
+<<<<<<< HEAD
           </div>
           <div v-if="data.personal_details.phone">
             {{ data.personal_details.phone }}
@@ -165,6 +166,32 @@ const getMeterWidth = (level?: string) => {
             class="break-all"
           >
             {{ data.personal_details.githubUrl.replace(/^https?:\/\//, '') }}
+=======
+          </div>
+          <div v-if="data.personal_details.phone">
+            {{ data.personal_details.phone }}
+          </div>
+          <div v-if="data.personal_details.location">
+            {{ data.personal_details.location }}
+          </div>
+          <div
+            v-if="data.personal_details.website && data.personal_details.website !== 'www.yourwebsite.com'"
+            class="break-all"
+          >
+            {{ data.personal_details.website.replace(/^https?:\/\//, '') }}
+          </div>
+          <div
+            v-if="data.personal_details.linkedin"
+            class="break-all"
+          >
+            {{ data.personal_details.linkedin.replace(/^https?:\/\//, '') }}
+          </div>
+          <div
+            v-if="data.personal_details.github"
+            class="break-all"
+          >
+            {{ data.personal_details.github.replace(/^https?:\/\//, '') }}
+>>>>>>> a38a834 (feat: add accent color to templates)
           </div>
         </section>
 
