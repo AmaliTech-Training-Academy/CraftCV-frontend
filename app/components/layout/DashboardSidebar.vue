@@ -1,14 +1,43 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { PanelLeftClose, PanelLeftOpen, LayoutGrid } from '@lucide/vue'
+import { ref, watch } from 'vue'
+import { PanelLeftClose, PanelLeftOpen, LayoutGrid, Sparkles, Compass, Briefcase, GraduationCap } from '@lucide/vue'
 import { useTemplates } from '~/composables/useTemplates'
 
 const isCollapsed = ref(false)
-const { templates } = useTemplates()
+const { templates, categories, activeCategory } = useTemplates()
 
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value
 }
+
+const getCategoryCount = (cat: string) => {
+  if (cat === 'All') return templates.value.length
+  return templates.value.filter(t => t.category === cat).length
+}
+
+const tooltipState = ref({ visible: false, text: '', top: 0, left: 0 })
+
+const onHover = (name: string, event: Event) => {
+  if (!isCollapsed.value) return
+  const el = event.currentTarget as HTMLElement
+  if (!el) return
+
+  const rect = el.getBoundingClientRect()
+  tooltipState.value = {
+    visible: true,
+    text: name,
+    top: rect.top + (rect.height / 2) - 14,
+    left: rect.right + 12,
+  }
+}
+
+const onLeave = () => {
+  tooltipState.value.visible = false
+}
+
+watch(isCollapsed, (collapsed) => {
+  if (!collapsed) tooltipState.value.visible = false
+})
 </script>
 
 <template>
@@ -53,37 +82,81 @@ const toggleSidebar = () => {
       class="flex-1 overflow-y-auto py-3"
       aria-label="Template categories"
     >
-      <ul class="space-y-0.5 px-2">
-        <li>
+      <ul class="space-y-2.5 px-2">
+        <li
+          v-for="cat in categories"
+          :key="cat"
+          :class="{ 'mb-3 pb-1 border-b border-white/10': cat === 'All' }"
+        >
           <button
             class="w-full flex items-center transition-colors duration-150"
             :class="[
-              isCollapsed
-                ? 'justify-center rounded-xl bg-white shadow-sm px-0 py-2.5'
-                : 'justify-between rounded-xl bg-white shadow-sm px-4 py-2.5',
+              activeCategory === cat
+                ? (isCollapsed ? 'justify-center rounded-xl bg-white text-[#B64A22] shadow-sm px-0 py-2.5' : 'justify-between rounded-xl bg-white text-[#B64A22] shadow-sm px-4 py-2.5')
+                : (isCollapsed ? 'justify-center rounded-xl text-white/80 hover:bg-white/10 hover:text-white px-0 py-2.5' : 'justify-between rounded-xl text-white/80 hover:bg-white/10 hover:text-white px-4 py-2.5'),
             ]"
-            aria-current="true"
-            aria-label="All templates"
+            :aria-label="cat"
+            @click="activeCategory = cat"
+            @mouseenter="onHover(cat, $event)"
+            @mouseleave="onLeave"
           >
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2.5 min-w-0">
               <LayoutGrid
-                class="text-[#B64A22]"
-                :class="isCollapsed ? 'w-5 h-5' : 'w-4 h-4'"
+                v-if="cat === 'All'"
+                :class="[activeCategory === cat ? 'text-[#B64A22]' : 'text-white/80', isCollapsed ? 'w-5 h-5' : 'w-4 h-4']"
               />
+              <Sparkles
+                v-else-if="cat === 'Creative'"
+                :class="[activeCategory === cat ? 'text-[#B64A22]' : 'text-white/80', isCollapsed ? 'w-5 h-5' : 'w-4 h-4']"
+              />
+              <Compass
+                v-else-if="cat === 'Modern'"
+                :class="[activeCategory === cat ? 'text-[#B64A22]' : 'text-white/80', isCollapsed ? 'w-5 h-5' : 'w-4 h-4']"
+              />
+              <Briefcase
+                v-else-if="cat === 'Classic'"
+                :class="[activeCategory === cat ? 'text-[#B64A22]' : 'text-white/80', isCollapsed ? 'w-5 h-5' : 'w-4 h-4']"
+              />
+              <GraduationCap
+                v-else-if="cat === 'Beginner'"
+                :class="[activeCategory === cat ? 'text-[#B64A22]' : 'text-white/80', isCollapsed ? 'w-5 h-5' : 'w-4 h-4']"
+              />
+              <LayoutGrid
+                v-else
+                :class="[activeCategory === cat ? 'text-[#B64A22]' : 'text-white/80', isCollapsed ? 'w-5 h-5' : 'w-4 h-4']"
+              />
+
               <span
                 v-if="!isCollapsed"
-                class="text-sm font-semibold text-[#B64A22]"
-              >All</span>
+                class="text-sm font-semibold truncate"
+                :class="activeCategory === cat ? 'text-[#B64A22]' : 'text-white'"
+              >{{ cat }}</span>
             </div>
             <span
               v-if="!isCollapsed"
-              class="text-[11px] font-bold rounded-full leading-none bg-[#B64A22]/10 text-[#B64A22] px-2.5 py-1"
+              class="text-[11px] font-bold rounded-full leading-none px-2 py-1 shrink-0"
+              :class="activeCategory === cat ? 'bg-[#B64A22]/10 text-[#B64A22]' : 'bg-white/10 text-white/90'"
             >
-              {{ templates.length }}
+              {{ getCategoryCount(cat) }}
             </span>
           </button>
         </li>
       </ul>
     </nav>
   </aside>
+
+  <!-- Tooltip for collapsed sidebar -->
+  <Teleport to="body">
+    <div
+      v-if="tooltipState.visible && isCollapsed"
+      class="fixed z-50 px-3 py-1.5 bg-gray-900 text-white text-xs font-semibold tracking-wide rounded shadow-xl pointer-events-none transition-all duration-150 ease-out"
+      :class="tooltipState.visible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'"
+      :style="{
+        top: tooltipState.top + 'px',
+        left: tooltipState.left + 'px',
+      }"
+    >
+      {{ tooltipState.text }}
+    </div>
+  </Teleport>
 </template>

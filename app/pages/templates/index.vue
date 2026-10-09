@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { AlertCircle, Loader2 } from '@lucide/vue'
-import type { useTemplates } from '~/composables/useTemplates'
+import { useTemplates } from '~/composables/useTemplates'
 import { useCVState } from '~/composables/useCVState'
 import { useCVs } from '~/composables/useCVs'
 import { extractErrorMessage } from '~/utils/api'
@@ -18,9 +18,7 @@ type Template = ReturnType<typeof useTemplates>['templates']['value'][number]
 const isModalOpen = ref(false)
 const selectedTemplate = ref<Template | null>(null)
 
-// Categories for mobile pill strip
-const categories = ref(['All'])
-const activeCategory = ref('All')
+const { templates, activeCategory, categories } = useTemplates()
 
 const openPreview = (template: Template) => {
   selectedTemplate.value = template
@@ -98,7 +96,7 @@ const handleUseTemplate = async (template: Template) => {
         </p>
       </div>
 
-      <!-- Mobile Categories Pill Strip (Hidden on md+, only shows if > 1 category) -->
+      <!-- Mobile Categories Pill Strip (Hidden on md+) -->
       <div
         v-if="categories.length > 1"
         class="md:hidden flex overflow-x-auto gap-2 pb-6 -mt-2 scrollbar-hide"
@@ -119,7 +117,10 @@ const handleUseTemplate = async (template: Template) => {
       </div>
 
       <!-- Template Grid -->
-      <TemplatesTemplateSelector @open-preview="openPreview" />
+      <TemplatesTemplateSelector 
+        :active-category="activeCategory"
+        @open-preview="openPreview" 
+      />
     </div>
 
     <!-- Preview Modal -->

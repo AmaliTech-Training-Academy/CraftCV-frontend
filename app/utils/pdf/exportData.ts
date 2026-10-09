@@ -264,6 +264,18 @@ export function toExportData(source: unknown): CvExportData {
       const issuer = firstString(item, 'issuer')
       const date = firstString(item, 'date', 'issueDate', 'issue_date')
       const credentialUrl = firstString(item, 'credentialUrl', 'credential_url')
+      const credentialId = firstString(item, 'credentialId', 'credential_id')
+
+      const expirationDate = firstString(item, 'expirationDate', 'expiration_date')
+      const doesNotExpire = item.doesNotExpire ?? item.does_not_expire
+      const rawDescription = firstString(item, 'description')
+      
+      const parts = []
+      if (credentialId) parts.push(`Credential ID: ${credentialId}`)
+      if (credentialUrl) parts.push(`URL: ${credentialUrl}`)
+      if (expirationDate && !doesNotExpire) parts.push(`Expires: ${expirationDate}`)
+      const extraDesc = parts.length > 0 ? parts.join(' | ') : ''
+      const finalDesc = [extraDesc, rawDescription].filter(Boolean).join('\n\n')
 
       return {
         id: firstString(item, 'id') || `certification-${index}`,
@@ -273,6 +285,7 @@ export function toExportData(source: unknown): CvExportData {
         issue_date: isRealText(date) ? date : '',
         credentialUrl: isRealText(credentialUrl) ? credentialUrl : '',
         credential_url: isRealText(credentialUrl) ? credentialUrl : '',
+        description: finalDesc || undefined,
         display_order: typeof item.display_order === 'number' ? item.display_order : index,
       }
     })

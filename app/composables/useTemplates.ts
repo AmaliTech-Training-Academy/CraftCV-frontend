@@ -18,6 +18,15 @@ export const useTemplates = () => {
   const templates = useState<APITemplate[]>('cv-templates', () => [])
   const loading = useState<boolean>('cv-templates-loading', () => true)
   const error = useState<string | null>('cv-templates-error', () => null)
+  const activeCategory = useState<string>('cv-templates-active-category', () => 'All')
+
+  const categories = computed(() => {
+    const cats = new Set<string>()
+    templates.value.forEach((t) => {
+      if (t.category) cats.add(t.category)
+    })
+    return ['All', ...Array.from(cats).sort()]
+  })
 
   const fetchTemplates = async () => {
     loading.value = true
@@ -119,6 +128,8 @@ export const useTemplates = () => {
     templates,
     loading,
     error,
+    activeCategory,
+    categories,
     fetchTemplates,
   }
 }

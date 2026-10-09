@@ -11,17 +11,26 @@ const { getRecommendedTemplateId } = useOnboarding()
 
 const recommendedTemplateSlug = computed(() => getRecommendedTemplateId())
 
+const props = defineProps<{
+  activeCategory?: string
+}>()
+
 const sortedTemplates = computed(() => {
-  if (!recommendedTemplateSlug.value || !templates.value.length) return templates.value
+  let result = [...templates.value]
 
-  const recSlug = recommendedTemplateSlug.value
-  const result = [...templates.value]
-
-  const recIndex = result.findIndex(t => t.slug === recSlug)
-  if (recIndex > -1) {
-    const [rec] = result.splice(recIndex, 1)
-    result.unshift(rec!)
+  if (props.activeCategory && props.activeCategory !== 'All') {
+    result = result.filter(t => t.category === props.activeCategory)
   }
+
+  if (recommendedTemplateSlug.value) {
+    const recSlug = recommendedTemplateSlug.value
+    const recIndex = result.findIndex(t => t.slug === recSlug)
+    if (recIndex > -1) {
+      const [rec] = result.splice(recIndex, 1)
+      result.unshift(rec!)
+    }
+  }
+
   return result
 })
 
