@@ -46,14 +46,14 @@ export function buildModernPdf(
     personal.email ? { text: personal.email, link: options.includeLinks ? `mailto:${personal.email}` : undefined } : null,
     personal.phone ? { text: personal.phone } : null,
     personal.location ? { text: personal.location } : null,
+
+    personal.linkedinUrl ? { text: personal.linkedinUrl.replace(/^https?:\/\//, ''), link: personal.linkedinUrl } : null,
+    personal.githubUrl ? { text: personal.githubUrl.replace(/^https?:\/\//, ''), link: personal.githubUrl } : null,
+    personal.twitterUrl ? { text: personal.twitterUrl.replace(/^https?:\/\//, ''), link: personal.twitterUrl } : null,
     personal.website ? { text: personal.website.replace(/^https?:\/\//, ''), link: options.includeLinks ? toUrl(personal.website) : undefined } : null,
     personal.linkedin ? { text: personal.linkedin.replace(/^https?:\/\//, ''), link: options.includeLinks ? toUrl(personal.linkedin) : undefined } : null,
     personal.github ? { text: personal.github.replace(/^https?:\/\//, ''), link: options.includeLinks ? toUrl(personal.github) : undefined } : null,
-    personal.nationality ? { text: personal.nationality } : null,
-    personal.dateOfBirth ? { text: `DOB: ${personal.dateOfBirth}` } : null,
-    personal.passport ? { text: `ID: ${personal.passport}` } : null,
-    personal.availability ? { text: personal.availability } : null,
-  ].filter((p): p is { text: string, link?: string } => p !== null && Boolean(p.text))
+                  ].filter((p): p is { text: string, link?: string } => p !== null && Boolean(p.text))
 
   const fullName = `${personal.firstName} ${personal.lastName}`.trim()
   const content: Content[] = []

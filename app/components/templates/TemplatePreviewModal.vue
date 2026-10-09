@@ -84,35 +84,18 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         <!-- ═══════════ PREVIEW PANE ═══════════ -->
         <!-- Mobile: top section, fixed height; Desktop: left pane 58% -->
         <div
-          class="relative bg-[#F0EDE8] flex items-center justify-center
+          class="relative bg-[#F0EDE8] flex items-center justify-center overflow-hidden group
                     h-[45vh] shrink-0
                     sm:h-auto sm:flex-[58]"
         >
-          <!-- Template Preview Image -->
-          <div class="h-[90%] aspect-[3/4] bg-white rounded-xl shadow-md overflow-hidden relative group">
-            <!-- Enlarge Icon — desktop hover only -->
-            <button
-              class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm border border-gray-200
-                     hidden sm:flex items-center justify-center text-gray-500 shadow-sm opacity-0 group-hover:opacity-100
-                     hover:bg-white hover:text-gray-900 hover:scale-105 transition-all duration-200 cursor-pointer z-10"
-              title="Enlarge preview"
-              aria-label="Enlarge preview"
-            >
-              <Maximize2 class="w-4 h-4" />
-            </button>
-
+          <!-- Image container => forces a nice aspect ratio if needed, or fits to bounds -->
+          <div class="relative w-full h-full flex items-center justify-center p-4 sm:p-8">
             <img
-              v-if="template.image"
               :src="template.image"
-              :alt="`${template.name} preview`"
-              class="w-full h-full object-contain"
+              :alt="`Large preview of ${template.name}`"
+              class="max-w-full max-h-full object-contain rounded shadow-md border border-gray-200"
+              decoding="async"
             >
-            <div
-              v-else
-              class="w-full h-full flex items-center justify-center text-gray-400 text-sm"
-            >
-              No preview available
-            </div>
           </div>
 
           <!-- Prev / Next arrows -->

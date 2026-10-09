@@ -79,14 +79,14 @@ export function buildClassicPdf(
   if (personal.email) contactItems.push(contactLink(personal.email, `mailto:${personal.email}`, options.includeLinks))
   if (personal.phone) contactItems.push({ text: personal.phone, color: '#4B5563' })
   if (personal.location) contactItems.push({ text: personal.location, color: '#4B5563' })
+
+  if (personal.linkedinUrl) contactItems.push({ text: personal.linkedinUrl.replace(/^https?:\/\//, ''), color: '#4B5563', link: personal.linkedinUrl })
+  if (personal.githubUrl) contactItems.push({ text: personal.githubUrl.replace(/^https?:\/\//, ''), color: '#4B5563', link: personal.githubUrl })
+  if (personal.twitterUrl) contactItems.push({ text: personal.twitterUrl.replace(/^https?:\/\//, ''), color: '#4B5563', link: personal.twitterUrl })
   if (personal.website) contactItems.push(contactLink(personal.website, toUrl(personal.website), options.includeLinks))
   if (personal.linkedin) contactItems.push(contactLink(personal.linkedin, toUrl(personal.linkedin), options.includeLinks))
   if (personal.github) contactItems.push(contactLink(personal.github, toUrl(personal.github), options.includeLinks))
-  if (personal.nationality) contactItems.push({ text: personal.nationality, color: '#4B5563' })
-  if (personal.dateOfBirth) contactItems.push({ text: `DOB: ${personal.dateOfBirth}`, color: '#4B5563' })
-  if (personal.passport) contactItems.push({ text: `ID: ${personal.passport}`, color: '#4B5563' })
-  if (personal.availability) contactItems.push({ text: personal.availability, color: '#4B5563' })
-
+        
   const fullName = `${personal.firstName} ${personal.lastName}`.trim()
   const content: Content[] = []
 

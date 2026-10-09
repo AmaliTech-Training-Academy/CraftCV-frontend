@@ -10,10 +10,10 @@ export interface PersonalDetails {
   phone: string
   location: string
   website: string
-  nationality: string
-  dateOfBirth: string
-  passport: string
-  availability: string
+  linkedinUrl: string
+  githubUrl: string
+  twitterUrl: string
+  websiteUrl: string
 }
 
 export interface ExperienceItem {
@@ -157,10 +157,10 @@ export const useCVState = () => {
     phone: '',
     location: '',
     website: '',
-    nationality: '',
-    dateOfBirth: '',
-    passport: '',
-    availability: '',
+    linkedinUrl: '',
+    githubUrl: '',
+    twitterUrl: '',
+    websiteUrl: '',
   }))
 
   const summary = useState<string>('cv-summary', () => '')
@@ -236,10 +236,10 @@ export const useCVState = () => {
       phone: '',
       location: '',
       website: '',
-      nationality: '',
-      dateOfBirth: '',
-      passport: '',
-      availability: '',
+      linkedinUrl: '',
+      githubUrl: '',
+      twitterUrl: '',
+      websiteUrl: '',
     }
     return {
       personal: {
@@ -250,10 +250,10 @@ export const useCVState = () => {
         phone: p.phone.trim() || '0x0000000',
         location: p.location.trim() || 'City, Country',
         website: p.website.trim() || 'www.yourwebsite.com',
-        nationality: p.nationality.trim() || 'Nationality',
-        dateOfBirth: p.dateOfBirth.trim() || 'DD/MM/YYYY',
-        passport: p.passport.trim() || 'Passport Number',
-        availability: p.availability.trim() || 'Availability Status',
+        linkedinUrl: p.linkedinUrl?.trim() || '',
+        githubUrl: p.githubUrl?.trim() || '',
+        twitterUrl: p.twitterUrl?.trim() || '',
+        websiteUrl: p.websiteUrl?.trim() || p.website?.trim() || 'www.yourwebsite.com',
       },
       summary: summary.value.trim() || 'Your professional summary will appear here. Write a short, impactful paragraph highlighting your key achievements, skills, and career goals.',
       experience: experience.value.length > 0
@@ -342,10 +342,10 @@ export const useCVState = () => {
       phone: '',
       location: '',
       website: '',
-      nationality: '',
-      dateOfBirth: '',
-      passport: '',
-      availability: '',
+      linkedinUrl: '',
+      githubUrl: '',
+      twitterUrl: '',
+      websiteUrl: '',
     }
     summary.value = ''
     experience.value = []

@@ -55,12 +55,10 @@ const contactItems = computed(() => {
   if (p.value.email) items.push({ icon: 'email', value: p.value.email })
   if (p.value.phone) items.push({ icon: 'phone', value: p.value.phone })
   if (p.value.location) items.push({ icon: 'location', value: p.value.location })
-  if (p.value.website) items.push({ icon: 'web', value: p.value.website.replace(/^https?:\/\//, ''), link: p.value.website })
-  if (p.value.linkedin) items.push({ icon: 'linkedin', value: p.value.linkedin.replace(/^https?:\/\//, ''), link: p.value.linkedin })
-  if (p.value.nationality) items.push({ icon: 'none', value: p.value.nationality })
-  if (p.value.date_of_birth) items.push({ icon: 'none', value: `DOB: ${p.value.date_of_birth}` })
-  if (p.value.passport) items.push({ icon: 'none', value: `ID: ${p.value.passport}` })
-  if (p.value.availability) items.push({ icon: 'none', value: p.value.availability })
+  if (p.value.websiteUrl) items.push({ icon: 'web', value: p.value.websiteUrl.replace(/^https?:\/\//, ''), link: p.value.websiteUrl })
+  if (p.value.linkedinUrl) items.push({ icon: 'linkedin', value: p.value.linkedinUrl.replace(/^https?:\/\//, ''), link: p.value.linkedinUrl })
+  if (p.value.githubUrl) items.push({ icon: 'github', value: p.value.githubUrl.replace(/^https?:\/\//, ''), link: p.value.githubUrl })
+  if (p.value.twitterUrl) items.push({ icon: 'twitter', value: p.value.twitterUrl.replace(/^https?:\/\//, ''), link: p.value.twitterUrl })
   return items
 })
 </script>
@@ -163,6 +161,14 @@ const contactItems = computed(() => {
               cy="4"
               r="2"
             /></svg>
+          </template>
+          <!-- github -->
+          <template v-else-if="item.icon === 'github'">
+            <svg class="w-3 h-3 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+          </template>
+          <!-- twitter -->
+          <template v-else-if="item.icon === 'twitter'">
+            <svg class="w-3 h-3 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
           </template>
           <template v-else>
             <div class="w-1 h-1 rounded-full bg-gray-400 shrink-0" />

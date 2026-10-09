@@ -103,6 +103,16 @@ export function buildProfessionalPdf(
   if (personal.location) {
     contactLines.push({ text: personal.location, color: '#CBD5E1', fontSize: 8.5, margin: [0, 0, 0, 3] })
   }
+
+  if (personal.linkedinUrl) {
+    contactLines.push({ text: personal.linkedinUrl.replace(/^https?:\/\//, ''), color: '#E2E8F0', fontSize: 8.5, margin: [0, 0, 0, 3], link: personal.linkedinUrl })
+  }
+  if (personal.githubUrl) {
+    contactLines.push({ text: personal.githubUrl.replace(/^https?:\/\//, ''), color: '#E2E8F0', fontSize: 8.5, margin: [0, 0, 0, 3], link: personal.githubUrl })
+  }
+  if (personal.twitterUrl) {
+    contactLines.push({ text: personal.twitterUrl.replace(/^https?:\/\//, ''), color: '#E2E8F0', fontSize: 8.5, margin: [0, 0, 0, 3], link: personal.twitterUrl })
+  }
   if (personal.website) {
     contactLines.push({
       text: personal.website.replace(/^https?:\/\//, ''),
@@ -130,19 +140,7 @@ export function buildProfessionalPdf(
       margin: [0, 0, 0, 3],
     })
   }
-  if (personal.nationality) {
-    contactLines.push({ text: personal.nationality, color: '#E2E8F0', fontSize: 8.5, margin: [0, 0, 0, 3] })
-  }
-  if (personal.dateOfBirth) {
-    contactLines.push({ text: `DOB: ${personal.dateOfBirth}`, color: '#E2E8F0', fontSize: 8.5, margin: [0, 0, 0, 3] })
-  }
-  if (personal.passport) {
-    contactLines.push({ text: `ID: ${personal.passport}`, color: '#E2E8F0', fontSize: 8.5, margin: [0, 0, 0, 3] })
-  }
-  if (personal.availability) {
-    contactLines.push({ text: personal.availability, color: '#E2E8F0', fontSize: 8.5, margin: [0, 0, 0, 3] })
-  }
-
+        
   if (contactLines.length > 0) {
     sidebarStack.push(sidebarSectionHeader('Contact'))
     sidebarStack.push(...contactLines)

@@ -35,36 +35,16 @@ const { accentColor } = useCVState()
           <span class="truncate">{{ data.personal_details.location }}</span>
         </div>
 
-        <template v-if="data.personal_details.website && data.personal_details.website !== 'www.yourwebsite.com'">
+        <template v-if="data.personal_details.websiteUrl && data.personal_details.websiteUrl !== 'www.yourwebsite.com'">
           <span class="text-gray-300">|</span>
           <div class="flex items-center gap-1 min-w-0">
-            <span class="truncate">{{ data.personal_details.website }}</span>
+            <span class="truncate">{{ data.personal_details.websiteUrl }}</span>
           </div>
         </template>
-        <template v-if="data.personal_details.nationality">
-          <span class="text-gray-300">|</span>
-          <div class="flex items-center gap-1 min-w-0">
-            <span class="truncate">{{ data.personal_details.nationality }}</span>
-          </div>
-        </template>
-        <template v-if="data.personal_details.date_of_birth">
-          <span class="text-gray-300">|</span>
-          <div class="flex items-center gap-1 min-w-0">
-            <span class="truncate">DOB: {{ data.personal_details.date_of_birth }}</span>
-          </div>
-        </template>
-        <template v-if="data.personal_details.passport">
-          <span class="text-gray-300">|</span>
-          <div class="flex items-center gap-1 min-w-0">
-            <span class="truncate">ID: {{ data.personal_details.passport }}</span>
-          </div>
-        </template>
-        <template v-if="data.personal_details.availability">
-          <span class="text-gray-300">|</span>
-          <div class="flex items-center gap-1 min-w-0">
-            <span class="truncate">{{ data.personal_details.availability }}</span>
-          </div>
-        </template>
+        
+        
+        
+        
       </div>
     </div>
 

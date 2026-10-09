@@ -52,28 +52,25 @@ const toggleAdditionalField = (fieldId: string) => {
 }
 
 const additionalFields = reactive<Record<string, boolean>>({
-  website: false,
-  nationality: false,
-  dateOfBirth: false,
-  passport: false,
-  availability: false,
+  websiteUrl: false,
+  linkedinUrl: false,
+  githubUrl: false,
+  twitterUrl: false,
 })
 
 // Initialize toggles if data was loaded from backend
 watchEffect(() => {
-  if (personal.value.website) additionalFields.website = true
-  if (personal.value.nationality) additionalFields.nationality = true
-  if (personal.value.dateOfBirth) additionalFields.dateOfBirth = true
-  if (personal.value.passport) additionalFields.passport = true
-  if (personal.value.availability) additionalFields.availability = true
+  if (personal.value.websiteUrl || personal.value.website) additionalFields.websiteUrl = true
+  if (personal.value.linkedinUrl) additionalFields.linkedinUrl = true
+  if (personal.value.githubUrl) additionalFields.githubUrl = true
+  if (personal.value.twitterUrl) additionalFields.twitterUrl = true
 })
 
 const additionalFieldConfigs = [
-  { id: 'website', label: 'Website', placeholder: 'e.g. www.portfolio.com', kind: 'text' },
-  { id: 'nationality', label: 'Nationality', placeholder: 'e.g. American', kind: 'text' },
-  { id: 'dateOfBirth', label: 'Date of Birth', placeholder: 'DD/MM/YYYY', kind: 'date' },
-  { id: 'passport', label: 'Passport / ID', placeholder: 'e.g. AB1234567', kind: 'text' },
-  { id: 'availability', label: 'Availability', placeholder: 'e.g. Available immediately', kind: 'text' },
+  { id: 'websiteUrl', label: 'Website', placeholder: 'e.g. www.portfolio.com', kind: 'text' },
+  { id: 'linkedinUrl', label: 'LinkedIn', placeholder: 'e.g. linkedin.com/in/username', kind: 'text' },
+  { id: 'githubUrl', label: 'GitHub', placeholder: 'e.g. github.com/username', kind: 'text' },
+  { id: 'twitterUrl', label: 'Twitter / X', placeholder: 'e.g. twitter.com/username', kind: 'text' },
 ] as const
 </script>
 

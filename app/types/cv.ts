@@ -5,13 +5,12 @@ export interface PersonalDetails {
   phone?: string
   location?: string
   linkedin?: string
-  website?: string
   github?: string
   twitter?: string
-  nationality?: string
-  date_of_birth?: string
-  passport?: string
-  availability?: string
+  linkedinUrl?: string
+  githubUrl?: string
+  twitterUrl?: string
+  websiteUrl?: string
 }
 
 export interface Education {

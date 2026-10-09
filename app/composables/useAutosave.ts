@@ -40,9 +40,7 @@ export function useAutosave() {
    * The personal-details fields the backend models, keyed by what the editor
    * calls them. The backend says `websiteUrl` where the editor says `website`.
    *
-   * Everything else the editor collects — title, nationality, dateOfBirth,
-   * passport, availability — has no backend field and stays local, and the
-   * backend's linkedinUrl / githubUrl / twitterUrl have no editor control yet, so
+   * Everything else the editor collects — title — has no backend field and stays local.
    * they are never sent and a PATCH leaves whatever is there untouched.
    */
   const personalDetailKeys: Record<string, string> = {
@@ -51,7 +49,10 @@ export function useAutosave() {
     email: 'email',
     phone: 'phone',
     location: 'location',
-    website: 'websiteUrl',
+    websiteUrl: 'websiteUrl',
+    linkedinUrl: 'linkedinUrl',
+    githubUrl: 'githubUrl',
+    twitterUrl: 'twitterUrl',
   }
 
   /**
@@ -60,7 +61,7 @@ export function useAutosave() {
    * on a re-read of the CV already open — and cleared when a different one is
    * opened, because otherwise the CV being left would keep supplying them.
    */
-  const localOnlyPersonalKeys = ['title', 'nationality', 'dateOfBirth', 'passport', 'availability'] as const
+  const localOnlyPersonalKeys = ['title'] as const
 
   /**
    * Whether the backend already holds a personal-details record for the open CV.

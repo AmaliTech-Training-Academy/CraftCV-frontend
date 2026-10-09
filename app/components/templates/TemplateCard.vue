@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { useTemplates } from '~/composables/useTemplates'
+import { Star } from '@lucide/vue'
 
 type Template = ReturnType<typeof useTemplates>['templates']['value'][number]
-
-import { Star } from '@lucide/vue'
 
 const props = defineProps<{
   template: Template
@@ -31,7 +30,9 @@ const emit = defineEmits<{
     />
 
     <!-- Thumbnail Image -->
-    <div class="aspect-[3/4] w-full overflow-hidden rounded-t-xl bg-[#F0EDE8] relative">
+    <div
+      class="aspect-[3/4] w-full overflow-hidden rounded-t-xl bg-[#F0EDE8] relative flex items-center justify-center"
+    >
       <!-- Recommended Badge -->
       <div
         v-if="props.recommended"
@@ -40,18 +41,14 @@ const emit = defineEmits<{
         <Star class="w-3 h-3 fill-white" />
         Recommended
       </div>
+
       <img
-        v-if="props.template.image"
         :src="props.template.image"
-        :alt="`${props.template.name} preview`"
-        class="w-full h-full object-contain"
+        :alt="`Preview of ${props.template.name} template`"
+        class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-105 group-hover:-translate-y-2 group-focus-within:scale-105"
+        loading="lazy"
+        decoding="async"
       >
-      <div
-        v-else
-        class="w-full h-full flex items-center justify-center text-gray-400 text-sm"
-      >
-        No preview
-      </div>
 
       <!-- Hover overlay: subtle "Preview" label -->
       <div

@@ -148,10 +148,10 @@ const resolvedPreviewData = computed<ResolvedCvData>(() => {
       phone: p.phone || '',
       location: p.location || '',
       website: p.website || '',
-      nationality: p.nationality || '',
-      date_of_birth: p.dateOfBirth || '',
-      passport: p.passport || '',
-      availability: p.availability || '',
+      websiteUrl: p.websiteUrl || p.website || '',
+      linkedinUrl: p.linkedinUrl || '',
+      githubUrl: p.githubUrl || '',
+      twitterUrl: p.twitterUrl || '',
     },
     experiences: (previewData.value.experience ?? []).map((e, i) => ({
       id: e.id,
@@ -387,9 +387,10 @@ useResizeObserver(previewPage, (entries) => {
           <div class="flex items-center gap-1.5 text-gray-900 group min-w-0 max-w-56 flex-1">
             <input
               v-model="cvTitle"
-              class="text-[13px] font-semibold bg-gray-50 border border-gray-200 hover:border-gray-300 focus:ring-2 focus:ring-[#C54A22]/20 focus:outline-none rounded-md px-2.5 py-1 w-full min-w-0 transition-all truncate"
+              class="text-[13px] font-semibold bg-white border border-gray-300 shadow-sm hover:border-gray-400 hover:shadow focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 focus:outline-none rounded-md px-3 py-1.5 w-full min-w-0 transition-all truncate placeholder-gray-400"
+              placeholder="Resume Name"
+              title="Resume Name"
             >
-            <Pencil class="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600 transition-colors pointer-events-none shrink-0" />
           </div>
 
           <!-- Save Status -->
