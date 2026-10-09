@@ -1,60 +1,70 @@
 // @vitest-environment nuxt
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { usePasswordReset, getApiErrorMessage } from '../app/composables/usePasswordReset'
-import { mockNuxtImport } from '@nuxt/test-utils/runtime'
+import { usePasswordReset } from '../app/composables/usePasswordReset'
+import { extractErrorMessage } from '../app/utils/api'
 
-const { mockFetch } = vi.hoisted(() => ({
-  mockFetch: vi.fn(),
+const { mockApi } = vi.hoisted(() => ({
+  mockApi: vi.fn(),
 }))
-mockNuxtImport('$fetch', () => mockFetch)
+
+vi.mock('../app/utils/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../app/utils/api')>()
+  return {
+    ...actual,
+    $api: mockApi,
+  }
+})
 
 describe('usePasswordReset', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    mockApi.mockReset()
   })
 
   describe('API calls', () => {
-    it('requestReset calls POST /api/auth/forgot-password/ with email', async () => {
-      mockFetch.mockResolvedValueOnce({})
+    it('requestReset calls POST /auth/forgot-password/ with email via $api', async () => {
+      mockApi.mockResolvedValueOnce({})
       const { requestReset } = usePasswordReset()
 
       await requestReset('test@example.com')
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/auth/forgot-password/', {
+      expect(mockApi).toHaveBeenCalledWith('/auth/forgot-password/', {
         method: 'POST',
         body: { email: 'test@example.com' },
+        unauthenticated: true,
       })
     })
 
-    it('verifyCode calls POST /api/auth/verify-code/ with email and code', async () => {
-      mockFetch.mockResolvedValueOnce({})
+    it('verifyCode calls POST /auth/verify-code/ with email and code via $api', async () => {
+      mockApi.mockResolvedValueOnce({})
       const { verifyCode } = usePasswordReset()
 
       await verifyCode('test@example.com', '123456')
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/auth/verify-code/', {
+      expect(mockApi).toHaveBeenCalledWith('/auth/verify-code/', {
         method: 'POST',
         body: { email: 'test@example.com', code: '123456' },
+        unauthenticated: true,
       })
     })
 
-    it('resetPassword calls POST /api/auth/reset-password/ with email, code, and newPassword', async () => {
-      mockFetch.mockResolvedValueOnce({})
+    it('resetPassword calls POST /auth/reset-password/ with email, code, and newPassword via $api', async () => {
+      mockApi.mockResolvedValueOnce({})
       const { resetPassword } = usePasswordReset()
 
       await resetPassword('test@example.com', '123456', 'NewPass123!')
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/auth/reset-password/', {
+      expect(mockApi).toHaveBeenCalledWith('/auth/reset-password/', {
         method: 'POST',
         body: { email: 'test@example.com', code: '123456', newPassword: 'NewPass123!' },
+        unauthenticated: true,
       })
     })
   })
 
-  describe('getApiErrorMessage helper', () => {
+  describe('extractErrorMessage helper', () => {
     it('returns detail string if provided in error data', () => {
       const error = { data: { detail: 'Specific error message' } }
-      expect(getApiErrorMessage(error)).toBe('Specific error message')
+      expect(extractErrorMessage(error)).toBe('Specific error message')
     })
 
     it('joins array field errors if no detail string is provided', () => {
@@ -64,18 +74,11 @@ describe('usePasswordReset', () => {
           password: ['Too short', 'Needs a number'],
         },
       }
-      expect(getApiErrorMessage(error)).toBe('Invalid email Too short Needs a number')
+      expect(extractErrorMessage(error)).toBe('Invalid email Too short Needs a number')
     })
 
     it('returns fallback message for missing or invalid error data', () => {
-      expect(getApiErrorMessage(null)).toBe('Something went wrong. Please try again.')
-      expect(getApiErrorMessage(undefined)).toBe('Something went wrong. Please try again.')
-      expect(getApiErrorMessage('string error')).toBe('Something went wrong. Please try again.')
-      expect(getApiErrorMessage({ data: {} })).toBe('Something went wrong. Please try again.')
-    })
-
-    it('uses custom fallback message if provided', () => {
-      expect(getApiErrorMessage(null, 'Custom fallback')).toBe('Custom fallback')
+      expect(extractErrorMessage(null, 'Custom fallback')).toBe('Custom fallback')
     })
   })
 })

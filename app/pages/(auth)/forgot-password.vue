@@ -274,6 +274,7 @@
                 v-model="otp[index]"
                 type="text"
                 inputmode="numeric"
+                pattern="[0-9]*"
                 autocomplete="one-time-code"
                 :aria-label="`Digit ${index + 1} of 6`"
                 class="w-[48px] h-[56px] rounded-[10px] border-[1.5px] border-[#E5DDD1] bg-white text-[24px] font-bold text-center text-[#2B2622] focus:outline-none focus:ring-[3px] focus:ring-[#FBE4D9] focus:border-[#E2673D] transition-shadow shadow-sm"
@@ -299,7 +300,7 @@
           <div class="pt-1.5">
             <Button
               type="submit"
-              :disabled="isLoading"
+              :disabled="!isOtpComplete || isLoading"
               class="w-full h-[46px] bg-[#E2673D] hover:bg-[#C9552F] active:scale-[0.98] text-white font-semibold text-sm rounded-[10px] shadow-sm transition-all duration-150 flex items-center justify-center tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Verify code
@@ -404,9 +405,9 @@
           <div class="flex flex-col gap-1.5 text-left">
             <label
               for="new-password"
-              style="font-size:12px; font-weight:500; color:#57504A;"
+              class="text-[12px] font-medium text-[#57504A]"
             >New password</label>
-            <div style="position:relative;">
+            <div class="relative">
               <input
                 id="new-password"
                 v-model="newPassword"
@@ -414,104 +415,56 @@
                 placeholder="Create a new password"
                 autocomplete="new-password"
                 required
-                :aria-describedby="newPassword ? 'strength-hint' : undefined"
+                :aria-describedby="!isPasswordFocused && passwordError ? 'password-error' : isPasswordFocused && newPassword.length > 0 ? 'password-guidance' : undefined"
+                :aria-invalid="Boolean(!isPasswordFocused && passwordError) ? 'true' : 'false'"
                 aria-required="true"
-                style="display:block; width:100%; height:44px; border-radius:10px; border:1.5px solid #E5DDD1; background:#fff; font-size:14px; color:#2B2622; padding:0 44px 0 14px; box-sizing:border-box; outline:none; transition:border-color 0.15s, box-shadow 0.15s;"
-                @focus="(e) => { (e.target as HTMLInputElement).style.borderColor='#E2673D'; (e.target as HTMLInputElement).style.boxShadow='0 0 0 3px #FBE4D9'; }"
-                @blur="(e) => { (e.target as HTMLInputElement).style.borderColor='#E5DDD1'; (e.target as HTMLInputElement).style.boxShadow='none'; }"
+                class="block w-full h-[44px] rounded-[10px] bg-white text-[14px] text-[#2B2622] px-3.5 pr-11 border outline-none transition-all"
+                :class="[!isPasswordFocused && passwordError ? 'border-[#E2673D] ring-4 ring-[#FBE4D9]' : 'border-[#E5DDD1] focus:border-[#E2673D] focus:ring-4 focus:ring-[#FBE4D9]']"
+                @focus="isPasswordFocused = true"
+                @input="isPasswordFocused = true"
+                @blur="isPasswordFocused = false"
               >
               <button
                 type="button"
                 :aria-label="showPassword ? 'Hide password' : 'Show password'"
-                style="position:absolute; top:0; bottom:0; right:0; width:40px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; cursor:pointer; color:#B5A695;"
+                class="absolute top-0 bottom-0 right-0 w-10 flex items-center justify-center bg-transparent border-none cursor-pointer text-[#B5A695]"
                 @click="showPassword = !showPassword"
               >
                 <EyeOff
                   v-if="!showPassword"
-                  style="width:16px; height:16px;"
+                  class="w-4 h-4"
                 />
                 <Eye
                   v-else
-                  style="width:16px; height:16px;"
+                  class="w-4 h-4"
                 />
               </button>
             </div>
-            <!-- Live Password Rule Checklist -->
-            <div
-              v-if="newPassword.length > 0"
-              id="strength-hint"
-              aria-live="polite"
-              style="margin-top:10px; padding:12px 14px; background:transparent; border:1.5px solid #D9CFC5; border-radius:10px; display:flex; flex-direction:column; gap:7px;"
+            <!-- Inline Error / Guidance -->
+            <p
+              v-if="isPasswordFocused && newPassword.length > 0"
+              id="password-guidance"
+              class="mt-1 text-xs text-stone-500 transition-colors"
             >
-              <!-- Strength label row -->
-              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:2px;">
-                <span style="font-size:11px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:#948573;">Password strength</span>
-                <span
-                  style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:9999px; transition:background 0.25s, color 0.25s;"
-                  :style="{
-                    backgroundColor: strengthHex + '22',
-                    color: strengthHex,
-                  }"
-                >{{ passwordStrengthText }}</span>
-              </div>
-
-              <!-- Rule rows -->
-              <div
-                v-for="rule in passwordRules"
-                :key="rule.key"
-                style="display:flex; align-items:center; gap:8px; transition:opacity 0.2s;"
-              >
-                <!-- Icon circle -->
-                <span
-                  style="width:18px; height:18px; border-radius:9999px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background-color 0.25s;"
-                  :style="{ backgroundColor: rule.passed ? '#17B26A22' : '#E5DDD1' }"
-                >
-                  <!-- Checkmark SVG -->
-                  <svg
-                    v-if="rule.passed"
-                    viewBox="0 0 12 12"
-                    width="10"
-                    height="10"
-                    fill="none"
-                    stroke="#17B26A"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M2 6.5l2.5 2.5 5.5-5.5" />
-                  </svg>
-                  <!-- Dot SVG -->
-                  <svg
-                    v-else
-                    viewBox="0 0 12 12"
-                    width="6"
-                    height="6"
-                    fill="#B5A695"
-                  >
-                    <circle
-                      cx="6"
-                      cy="6"
-                      r="3"
-                    />
-                  </svg>
-                </span>
-
-                <!-- Label -->
-                <span
-                  style="font-size:12px; transition:color 0.25s; line-height:1.4;"
-                  :style="{ color: rule.passed ? '#2B2622' : '#948573', fontWeight: rule.passed ? '500' : '400' }"
-                >{{ rule.label }}</span>
-              </div>
-            </div>
+              {{ passwordGuidance }}
+            </p>
+            <p
+              v-else-if="!isPasswordFocused && passwordError"
+              id="password-error"
+              class="text-[12px] text-[#E2673D] flex items-start gap-1 mt-1 leading-snug"
+            >
+              <AlertCircle class="w-3.5 h-3.5 shrink-0 mt-0.5" />
+              <span>{{ passwordError }}</span>
+            </p>
           </div>
 
           <!-- Confirm Password -->
           <div class="flex flex-col gap-1.5 text-left">
             <label
               for="confirm-password"
-              style="font-size:12px; font-weight:500; color:#57504A;"
+              class="text-[12px] font-medium text-[#57504A]"
             >Confirm new password</label>
-            <div style="position:relative;">
+            <div class="relative">
               <input
                 id="confirm-password"
                 v-model="confirmPassword"
@@ -522,25 +475,22 @@
                 :aria-invalid="confirmMismatch ? 'true' : 'false'"
                 aria-describedby="confirm-error"
                 aria-required="true"
-                style="display:block; width:100%; height:44px; border-radius:10px; background:#fff; font-size:14px; color:#2B2622; padding:0 44px 0 14px; box-sizing:border-box; outline:none; transition:border-color 0.15s, box-shadow 0.15s;"
-                :style="{
-                  border: confirmMismatch ? '1.5px solid #E2673D' : '1.5px solid #E5DDD1',
-                  boxShadow: confirmMismatch ? '0 0 0 3px #FBE4D9' : 'none',
-                }"
+                class="block w-full h-[44px] rounded-[10px] bg-white text-[14px] text-[#2B2622] px-3.5 pr-11 border outline-none transition-all"
+                :class="[confirmMismatch ? 'border-[#E2673D] ring-4 ring-[#FBE4D9]' : 'border-[#E5DDD1] focus:border-[#E2673D] focus:ring-4 focus:ring-[#FBE4D9]']"
               >
               <button
                 type="button"
                 :aria-label="showConfirmPassword ? 'Hide password' : 'Show password'"
-                style="position:absolute; top:0; bottom:0; right:0; width:40px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; cursor:pointer; color:#B5A695;"
+                class="absolute top-0 bottom-0 right-0 w-10 flex items-center justify-center bg-transparent border-none cursor-pointer text-[#B5A695]"
                 @click="showConfirmPassword = !showConfirmPassword"
               >
                 <EyeOff
                   v-if="!showConfirmPassword"
-                  style="width:16px; height:16px;"
+                  class="w-4 h-4"
                 />
                 <Eye
                   v-else
-                  style="width:16px; height:16px;"
+                  class="w-4 h-4"
                 />
               </button>
             </div>
@@ -549,22 +499,22 @@
               id="confirm-error"
               role="alert"
               aria-live="polite"
-              style="min-height:20px; margin-top:2px;"
+              class="min-h-[20px] mt-0.5"
             >
               <p
                 v-if="confirmMismatch"
-                style="font-size:12px; color:#E2673D; display:flex; align-items:center; gap:4px; margin:0;"
+                class="text-[12px] text-[#E2673D] flex items-start gap-1 m-0 leading-snug"
               >
-                <AlertCircle style="width:13px; height:13px; flex-shrink:0;" />
-                Passwords do not match
+                <AlertCircle class="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                <span>Passwords do not match</span>
               </p>
             </div>
           </div>
 
-          <div style="padding-top:8px;">
+          <div class="pt-2">
             <Button
               type="submit"
-              :disabled="confirmMismatch || isLoading"
+              :disabled="!isResetFormValid || isLoading"
               class="w-full h-[46px] bg-[#E2673D] hover:bg-[#C9552F] active:scale-[0.98] text-white font-semibold text-sm rounded-[10px] shadow-sm transition-all duration-150 flex items-center justify-center tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Reset password
@@ -657,8 +607,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { Mail, KeyRound, Eye, EyeOff, AlertCircle, Check, CheckCircle, Clock, ShieldCheck } from '@lucide/vue'
-import { usePasswordReset, getApiErrorMessage } from '~/composables/usePasswordReset'
+import { usePasswordReset } from '~/composables/usePasswordReset'
+import { extractErrorMessage } from '~/utils/api'
 
 useHead({ title: 'Forgot Password' })
 
@@ -754,6 +704,12 @@ watch(
       resendStatus.value = 'idle'
       startCooldown()
     }
+    else {
+      if (cooldownInterval) {
+        clearInterval(cooldownInterval)
+        cooldownInterval = null
+      }
+    }
   },
 )
 
@@ -765,12 +721,14 @@ onUnmounted(() => {
 
 const otp = ref(['', '', '', '', '', ''])
 const otpInputs = ref<HTMLInputElement[]>([])
+const isOtpComplete = computed(() => otp.value.every(digit => digit.trim().length > 0))
 
 // Step 3 state
 const newPassword = ref('')
 const confirmPassword = ref('')
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
+const isPasswordFocused = ref(false)
 
 // Live check: are the two passwords mismatched (only show after confirm has content)
 const confirmMismatch = computed(() =>
@@ -778,104 +736,136 @@ const confirmMismatch = computed(() =>
 )
 
 // Individual password rule definitions with live pass/fail state
-const passwordRules = computed(() => {
-  const pw = newPassword.value
+const passwordCriteria = computed(() => {
+  const pw = newPassword.value || ''
   const commonPatterns = /(123|abc|qwerty|password|letmein|admin|iloveyou|welcome)/i
+
   return [
-    {
-      key: 'length',
-      label: 'At least 8 characters (16+ is best)',
-      passed: pw.length >= 8,
-    },
-    {
-      key: 'uppercase',
-      label: 'Contains an uppercase letter (A–Z)',
-      passed: /[A-Z]/.test(pw),
-    },
-    {
-      key: 'lowercase',
-      label: 'Contains a lowercase letter (a–z)',
-      passed: /[a-z]/.test(pw),
-    },
-    {
-      key: 'number',
-      label: 'Contains a number (0–9)',
-      passed: /[0-9]/.test(pw),
-    },
-    {
-      key: 'special',
-      label: 'Contains a special character (!@#$%…)',
-      passed: /[^A-Za-z0-9]/.test(pw),
-    },
+    { key: 'length', hint: 'at least 8 characters', passed: pw.length >= 8 },
+    { key: 'uppercase', hint: 'an uppercase letter', passed: /[A-Z]/.test(pw) },
+    { key: 'lowercase', hint: 'a lowercase letter', passed: /[a-z]/.test(pw) },
+    { key: 'number', hint: 'a number', passed: /[0-9]/.test(pw) },
+    { key: 'special', hint: 'a special symbol', passed: /[^A-Za-z0-9]/.test(pw) },
     {
       key: 'unpredictable',
-      label: 'No common words or sequences',
-      passed: pw.length > 0 && !commonPatterns.test(pw) && !/^(.+)\1+$/.test(pw),
+      hint: 'avoid common sequences',
+      passed: pw.length > 0 && !commonPatterns.test(pw) && !/^(.+?)\1+$/.test(pw),
     },
   ]
 })
 
-const passwordStrength = computed(() => {
-  if (!newPassword.value) return 0
-  return passwordRules.value.filter(r => r.passed).length // max 6
+// Returns true only when all 6 rules pass
+const isPasswordValid = computed(() => {
+  return passwordCriteria.value.every(rule => rule.passed)
 })
 
-const passwordStrengthText = computed(() => {
-  const s = passwordStrength.value
-  if (s === 0) return ''
-  if (s <= 2) return 'Weak'
-  if (s <= 4) return 'Fair'
-  if (s === 5) return 'Good'
-  if (s === 6) return 'Strong'
-  return ''
+// Dynamic inline suggestion text
+const passwordGuidance = computed(() => {
+  if (!newPassword.value) return ''
+
+  const missing = passwordCriteria.value.filter(c => !c.passed)
+
+  if (missing.length === 0) {
+    return 'Password is strong.'
+  }
+
+  // If password is just started (e.g. 1-2 characters), show general tip
+  if (newPassword.value.length < 3) {
+    return 'Tip: A strong password includes 8+ characters, uppercase, lowercase, numbers, and symbols.'
+  }
+
+  // Specifically tell the user what to add to make it strong
+  const missingHints = missing.map(m => m.hint)
+  return `To make it stronger, add: ${missingHints.join(', ')}.`
 })
 
-const strengthHex = computed(() => {
-  const s = passwordStrength.value
-  if (s <= 2) return '#E2673D' // Red/Orange — Weak
-  if (s <= 4) return '#F5B056' // Amber — Fair
-  return '#17B26A' // Green — Good/Strong
+const isResetFormValid = computed(() => {
+  return Boolean(isPasswordValid.value && confirmPassword.value && newPassword.value === confirmPassword.value)
 })
 
-// Handle single character typing and moving focus forward
+// Handle single character typing and moving focus forward (digits only)
 function handleOtpInput(event: Event, index: number) {
   const target = event.target as HTMLInputElement
-  const value = target.value
+  const rawValue = target.value
+  const cleanDigits = rawValue.replace(/\D/g, '')
 
-  if (value) {
-    // only keep the last typed character
-    otp.value[index] = value.substring(value.length - 1)
+  if (!cleanDigits) {
+    otp.value[index] = ''
+    target.value = ''
+    return
+  }
+
+  // Handle multi-digit autofill (e.g. SMS verification codes)
+  if (cleanDigits.length >= 4) {
+    const digits = cleanDigits.substring(0, 6).split('')
+    for (let i = 0; i < digits.length; i++) {
+      otp.value[i] = digits[i] ?? ''
+    }
+    const nextFocusIndex = Math.min(digits.length, 5)
+    otpInputs.value[nextFocusIndex]?.focus()
+  }
+  else {
+    const digit = cleanDigits.slice(-1)
+    otp.value[index] = digit
+    target.value = digit
 
     // move focus to next input if we're not at the end
     if (index < 5) {
       otpInputs.value[index + 1]?.focus()
     }
   }
-}
 
-// Handle backspace moving focus backward
-function handleOtpKeydown(event: KeyboardEvent, index: number) {
-  if (event.key === 'Backspace' && !otp.value[index] && index > 0) {
-    // If the box is empty and backspace is pressed, go back one and clear it
-    otp.value[index - 1] = ''
-    otpInputs.value[index - 1]?.focus()
+  if (isOtpComplete.value && !isLoading.value) {
+    onVerifyCode()
   }
 }
 
-// Handle pasting a full 6-digit code
+// Handle backspace moving focus backward and prevent non-digit keys
+function handleOtpKeydown(event: KeyboardEvent, index: number) {
+  if (event.key === 'Backspace') {
+    if (!otp.value[index] && index > 0) {
+      // If the box is empty and backspace is pressed, go back one and clear it
+      otp.value[index - 1] = ''
+      otpInputs.value[index - 1]?.focus()
+    }
+    return
+  }
+
+  const allowedNavKeys = ['Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', 'Home', 'End']
+  if (allowedNavKeys.includes(event.key)) {
+    return
+  }
+
+  if (event.ctrlKey || event.metaKey) {
+    return
+  }
+
+  // Prevent any non-digit character from being typed
+  if (!/^[0-9]$/.test(event.key)) {
+    event.preventDefault()
+  }
+}
+
+// Handle pasting a full 6-digit code (numbers only)
 function handleOtpPaste(event: ClipboardEvent) {
   event.preventDefault()
   const pastedData = event.clipboardData?.getData('text')
   if (!pastedData) return
 
   const numbers = pastedData.replace(/\D/g, '').substring(0, 6).split('')
-  for (let i = 0; i < numbers.length; i++) {
+  if (numbers.length === 0) return
+
+  for (let i = 0; i < 6; i++) {
     otp.value[i] = numbers[i] ?? ''
   }
 
   // Focus the next empty box, or the last box
   const nextFocusIndex = Math.min(numbers.length, 5)
   otpInputs.value[nextFocusIndex]?.focus()
+
+  if (numbers.length === 6 && !isLoading.value) {
+    onVerifyCode()
+  }
 }
 
 async function onSendCode() {
@@ -888,7 +878,7 @@ async function onSendCode() {
     step.value = 2
   }
   catch (err) {
-    emailError.value = getApiErrorMessage(err)
+    emailError.value = extractErrorMessage(err)
   }
   finally { isLoading.value = false }
 }
@@ -906,12 +896,17 @@ async function onVerifyCode() {
     step.value = 3
   }
   catch (err) {
-    otpError.value = getApiErrorMessage(err, 'Invalid or expired code. Please try again.')
+    otpError.value = extractErrorMessage(err, 'Invalid or expired code. Please try again.')
   }
   finally { isLoading.value = false }
 }
 
 function goToStep1() {
+  if (cooldownInterval) {
+    clearInterval(cooldownInterval)
+    cooldownInterval = null
+  }
+  resendCooldown.value = 0
   step.value = 1
   otp.value = ['', '', '', '', '', '']
   otpError.value = ''
@@ -934,10 +929,8 @@ async function onResendCode() {
       resendStatus.value = 'idle'
     }, 3000)
   }
-  catch {
-    // API intentionally returns 200 always; swallow any network error silently
-    resendStatus.value = 'sent'
-    startCooldown()
+  catch (err) {
+    otpError.value = extractErrorMessage(err, 'Failed to resend code. Please try again.')
   }
   finally { isLoading.value = false }
 }
@@ -953,7 +946,21 @@ let redirectInterval: ReturnType<typeof setInterval> | null = null
 
 const router = useRouter()
 
+watch([newPassword, confirmPassword], () => {
+  if (passwordError.value) {
+    passwordError.value = ''
+  }
+})
+
 async function onResetPassword() {
+  isPasswordFocused.value = false
+  if (!newPassword.value) return
+
+  if (!isPasswordValid.value) {
+    passwordError.value = 'Password must meet all 6 security requirements.'
+    return
+  }
+
   if (newPassword.value !== confirmPassword.value) {
     passwordError.value = 'Passwords do not match.'
     return
@@ -974,7 +981,7 @@ async function onResetPassword() {
     }, 1000)
   }
   catch (err) {
-    passwordError.value = getApiErrorMessage(err, 'Reset failed. Your code may have expired — please start again.')
+    passwordError.value = extractErrorMessage(err, 'Reset failed. Your code may have expired — please start again.')
   }
   finally { isLoading.value = false }
 }

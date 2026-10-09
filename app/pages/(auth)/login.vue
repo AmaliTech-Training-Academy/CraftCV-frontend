@@ -153,43 +153,39 @@
       </div>
 
       <div
-        v-if="serverError"
-        class="mb-4 flex items-start gap-2.5 rounded-lg border border-error/20 bg-error/5 p-3"
-        role="alert"
+        v-if="isVerifiedNotice"
+        role="status"
+        class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs sm:text-sm font-medium text-emerald-800 flex items-center gap-2"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          viewBox="0 0 24 24"
-          class="shrink-0 mt-0.5 text-error"
+        <CheckCircle
+          aria-hidden="true"
+          class="w-4 h-4 shrink-0 text-emerald-600"
+        />
+        <span>Email verified, please sign in.</span>
+      </div>
+
+      <div
+        v-if="serverError"
+        role="alert"
+        class="mb-4 rounded-xl p-3 text-xs sm:text-sm font-medium"
+        :class="isUnverifiedError
+          ? 'bg-amber-50 text-amber-900 border border-amber-200'
+          : 'bg-rose-50 text-rose-700 border border-rose-200'"
+      >
+        <p>{{ serverError }}</p>
+
+        <div
+          v-if="isUnverifiedError"
+          class="mt-2"
         >
-          <circle
-            cx="12"
-            cy="12"
-            r="10"
-          />
-          <line
-            x1="12"
-            y1="8"
-            x2="12"
-            y2="12"
-          />
-          <line
-            x1="12"
-            y1="16"
-            x2="12.01"
-            y2="16"
-          />
-        </svg>
-        <p class="text-sm text-error">
-          {{ serverError }}
-        </p>
+          <NuxtLink
+            :to="{ path: '/verify-email', query: { email: form.email } }"
+            class="inline-flex items-center gap-1 font-semibold text-amber-800 hover:text-amber-950 underline underline-offset-2 transition"
+          >
+            <span>Verify your email now</span>
+            <span aria-hidden="true">&rarr;</span>
+          </NuxtLink>
+        </div>
       </div>
 
       <Button
@@ -238,6 +234,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
+import { CheckCircle } from '@lucide/vue'
 import { useSessionStorage } from '@vueuse/core'
 
 useHead({
@@ -252,7 +249,19 @@ useHead({
 
 definePageMeta({ layout: 'auth' })
 
+const route = useRoute()
 const { login, loading, error: serverError } = useAuth()
+
+const isVerifiedNotice = computed(() => route.query.verified === 'true')
+
+const isUnverifiedError = computed(() => {
+  const msg = (serverError.value || '').toLowerCase()
+  return (
+    msg.includes('not verified')
+    || msg.includes('unverified')
+    || msg.includes('verify your email')
+  )
+})
 
 const savedEmail = useSessionStorage('craftcv-login-email', '')
 
@@ -260,6 +269,12 @@ const form = reactive({
   email: savedEmail.value,
   password: '',
   rememberMe: false,
+})
+
+onMounted(() => {
+  if (route.query.email && typeof route.query.email === 'string' && !form.email) {
+    form.email = route.query.email
+  }
 })
 
 watch(() => form.email, (newVal) => {
