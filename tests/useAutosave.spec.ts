@@ -286,8 +286,7 @@ describe('useAutosave', () => {
       phone: '0123456789',
       location: 'London',
       website: 'https://ada.dev',
-      nationality: 'British',
-      passport: 'X123',
+      github: 'adalovelace',
     }
 
     triggerAutosave()
@@ -305,12 +304,16 @@ describe('useAutosave', () => {
     // `websiteUrl`; nationality and passport have no backend field at all and
     // stay in the editor.
     expect(options.body).toEqual({
+      title: 'My CV',
       firstName: 'Ada',
       lastName: 'Lovelace',
       email: 'ada@example.com',
       phone: '0123456789',
       location: 'London',
       websiteUrl: 'https://ada.dev',
+      linkedinUrl: '',
+      githubUrl: 'adalovelace',
+      twitterUrl: '',
     })
   })
 

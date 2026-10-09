@@ -120,10 +120,9 @@ const resolvedPreviewData = computed<ResolvedCvData>(() => {
       phone: p.phone || '',
       location: p.location || '',
       website: p.website || '',
-      nationality: p.nationality || '',
-      date_of_birth: p.dateOfBirth || '',
-      passport: p.passport || '',
-      availability: p.availability || '',
+      linkedin: p.linkedin || '',
+      github: p.github || '',
+      twitter: p.twitter || '',
     },
     experiences: (previewData.value.experience ?? []).map((e, i) => ({
       id: e.id,

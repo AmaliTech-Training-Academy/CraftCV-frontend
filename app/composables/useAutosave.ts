@@ -46,21 +46,17 @@ export function useAutosave() {
    * they are never sent and a PATCH leaves whatever is there untouched.
    */
   const personalDetailKeys: Record<string, string> = {
+    title: 'title',
     firstName: 'firstName',
     lastName: 'lastName',
     email: 'email',
     phone: 'phone',
     location: 'location',
     website: 'websiteUrl',
+    linkedin: 'linkedinUrl',
+    github: 'githubUrl',
+    twitter: 'twitterUrl',
   }
-
-  /**
-   * The personal-details fields the editor collects that the backend does not
-   * model. Nothing can bring them back from a fetch, so they are merged forward
-   * on a re-read of the CV already open — and cleared when a different one is
-   * opened, because otherwise the CV being left would keep supplying them.
-   */
-  const localOnlyPersonalKeys = ['title', 'nationality', 'dateOfBirth', 'passport', 'availability'] as const
 
   /**
    * Whether the backend already holds a personal-details record for the open CV.
@@ -141,19 +137,19 @@ export function useAutosave() {
       const data = await $api<any>(`/cvs/${id}/`)
       const incomingId = data.cvId || data.id || data.uuid || id
 
-      // Opening a CV other than the one already open replaces the editor's
-      // fields wholesale. The sections below are assigned outright, but the
-      // personal record is merged, and its local-only fields have no backend
-      // field to come back from — left alone they would carry the CV being
-      // left into the one being opened, professional title included, which is
-      // what the CV's own name is derived from.
+      // fields wholesale.
       if (cvId.value && cvId.value !== incomingId) {
-        for (const key of localOnlyPersonalKeys) personal.value[key] = ''
+        personal.value = {
+          firstName: '', lastName: '', email: '', phone: '', location: '',
+          website: '', linkedin: '', github: '', twitter: '', title: '',
+        }
       }
 
       // Populate local state
       cvId.value = incomingId
       cvTitle.value = data.title || 'Untitled'
+      autoTitle.value = cvTitle.value
+      personal.value.title = data.personalDetail?.title ?? (data.title === 'Untitled' ? '' : (data.title || ''))
       summary.value = data.professionalSummary || ''
       selectedTemplateId.value = data.template || ''
       hasActiveCV.value = true
@@ -181,11 +177,31 @@ export function useAutosave() {
         updateTimestamp(data.lastSavedAt)
       }
 
-      // Load related sections
-      education.value = data.educations || []
-      experience.value = data.experiences || []
+      // Load related sections with reverse field mappings
+      education.value = (data.educations || []).map((e: any) => ({
+        ...e,
+        school: e.institution || e.school || '',
+        fieldOfStudy: e.fieldOfStudy || e.field_of_study || '',
+      }))
+      experience.value = (data.experiences || []).map((e: any) => ({
+        ...e,
+        title: e.role || e.title || '',
+      }))
       skills.value = data.skills || []
-      certifications.value = data.certifications || []
+
+      certifications.value = (data.certifications || []).map((c: any) => {
+        let displayDate = c.date || ''
+        if (c.issueDate) {
+          const [year, month] = c.issueDate.split('-')
+          if (year && month) {
+            const d = new Date(Number(year), Number(month) - 1, 1)
+            if (!isNaN(d.getTime())) {
+              displayDate = d.toLocaleString('en-US', { month: 'long', year: 'numeric' })
+            }
+          }
+        }
+        return { ...c, date: displayDate }
+      })
 
       // Store clone of data for diffing directly from loaded state
       lastSavedData.value = clone({
@@ -251,14 +267,13 @@ export function useAutosave() {
    * `institution`; sent under the editor's names, DRF silently drops both and
    * the record saves without them.
    *
-   * Certifications is deliberately absent. The editor's `date` is the backend's
-   * `issueDate`, but that field is a DRF date and the editor holds "January
-   * 2024" — renaming it would take a save that currently succeeds (the value is
-   * ignored under the wrong name) and turn it into a 400.
+   * Certifications is mapped here and the date format is converted in the save loop
+   * to ensure 'May 2024' becomes '2024-05-01' for the backend's DateField.
    */
   const sectionFieldNames: Record<string, Record<string, string>> = {
     experiences: { title: 'role' },
     educations: { school: 'institution' },
+    certifications: { date: 'issueDate' },
   }
 
   // The main save function
@@ -446,6 +461,8 @@ export function useAutosave() {
             continue
           }
 
+          const lastIndex = lastItems.findIndex((li: any) => li.id === item.id)
+
           // Always omit the frontend displayOrder, use array index, and remove local id for POST
           const { id, displayOrder, ...fields } = item
           fields.displayOrder = i
@@ -457,7 +474,26 @@ export function useAutosave() {
           const rename = sectionFieldNames[endpoint]
           const payload: Record<string, any> = {}
           for (const [key, value] of Object.entries(fields)) {
-            payload[rename?.[key] ?? key] = value
+            let parsedValue = value
+            if (endpoint === 'certifications' && key === 'date') {
+              if (typeof value === 'string' && value.trim()) {
+                const parts = value.trim().split(/\s+/)
+                const monthName = parts[0]
+                const yearPart = parts[1]
+                const monthIndex = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].indexOf(monthName || '')
+                if (monthIndex !== -1 && yearPart) {
+                  const monthString = String(monthIndex + 1).padStart(2, '0')
+                  parsedValue = `${yearPart}-${monthString}-01`
+                }
+                else {
+                  parsedValue = null
+                }
+              }
+              else {
+                parsedValue = null
+              }
+            }
+            payload[rename?.[key] ?? key] = parsedValue
           }
 
           try {
@@ -483,12 +519,13 @@ export function useAutosave() {
               finalIds.push(res?.id || res?.uuid || id)
               sectionsChanged = true
             }
-            else if (JSON.stringify(item) !== JSON.stringify(lastItem)) {
+            else if (JSON.stringify(item) !== JSON.stringify(lastItem) || lastIndex !== i) {
               await $api<any>(`/cvs/${endpoint}/${id}/`, {
                 method: 'PATCH',
                 body: payload,
               })
               finalIds.push(id)
+              if (lastIndex !== i) sectionsChanged = true
             }
             else {
               finalIds.push(id)

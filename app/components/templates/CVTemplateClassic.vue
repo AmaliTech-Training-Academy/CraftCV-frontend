@@ -38,28 +38,22 @@ defineProps<{
             <span class="truncate">{{ data.personal_details.website }}</span>
           </div>
         </template>
-        <template v-if="data.personal_details.nationality">
+        <template v-if="data.personal_details.linkedin">
           <span class="text-gray-300">|</span>
           <div class="flex items-center gap-1 min-w-0">
-            <span class="truncate">{{ data.personal_details.nationality }}</span>
+            <span class="truncate">{{ data.personal_details.linkedin }}</span>
           </div>
         </template>
-        <template v-if="data.personal_details.date_of_birth">
+        <template v-if="data.personal_details.github">
           <span class="text-gray-300">|</span>
           <div class="flex items-center gap-1 min-w-0">
-            <span class="truncate">DOB: {{ data.personal_details.date_of_birth }}</span>
+            <span class="truncate">{{ data.personal_details.github }}</span>
           </div>
         </template>
-        <template v-if="data.personal_details.passport">
+        <template v-if="data.personal_details.twitter">
           <span class="text-gray-300">|</span>
           <div class="flex items-center gap-1 min-w-0">
-            <span class="truncate">ID: {{ data.personal_details.passport }}</span>
-          </div>
-        </template>
-        <template v-if="data.personal_details.availability">
-          <span class="text-gray-300">|</span>
-          <div class="flex items-center gap-1 min-w-0">
-            <span class="truncate">{{ data.personal_details.availability }}</span>
+            <span class="truncate">{{ data.personal_details.twitter }}</span>
           </div>
         </template>
       </div>

@@ -117,32 +117,18 @@ const p = computed(() => props.data.personal_details ?? {})
             <span class="break-all">{{ p.website?.replace(/^https?:\/\//, '') }}</span>
           </li>
           <li
-            v-if="p.nationality"
+            v-if="p.github"
             class="flex items-start gap-2 min-w-0"
           >
             <div class="w-1.5 h-1.5 rounded-full bg-white/50 mt-1.5 shrink-0" />
-            <span class="break-words">{{ p.nationality }}</span>
+            <span class="break-words">{{ p.github?.replace(/^https?:\/\//, '') }}</span>
           </li>
           <li
-            v-if="p.date_of_birth"
+            v-if="p.twitter"
             class="flex items-start gap-2 min-w-0"
           >
             <div class="w-1.5 h-1.5 rounded-full bg-white/50 mt-1.5 shrink-0" />
-            <span class="break-words">DOB: {{ p.date_of_birth }}</span>
-          </li>
-          <li
-            v-if="p.passport"
-            class="flex items-start gap-2 min-w-0"
-          >
-            <div class="w-1.5 h-1.5 rounded-full bg-white/50 mt-1.5 shrink-0" />
-            <span class="break-words">ID: {{ p.passport }}</span>
-          </li>
-          <li
-            v-if="p.availability"
-            class="flex items-start gap-2 min-w-0"
-          >
-            <div class="w-1.5 h-1.5 rounded-full bg-white/50 mt-1.5 shrink-0" />
-            <span class="break-words">{{ p.availability }}</span>
+            <span class="break-words">{{ p.twitter?.replace(/^https?:\/\//, '') }}</span>
           </li>
           <li
             v-if="p.linkedin"

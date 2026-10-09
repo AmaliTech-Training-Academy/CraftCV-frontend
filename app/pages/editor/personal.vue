@@ -53,27 +53,24 @@ const toggleAdditionalField = (fieldId: string) => {
 
 const additionalFields = reactive<Record<string, boolean>>({
   website: false,
-  nationality: false,
-  dateOfBirth: false,
-  passport: false,
-  availability: false,
+  linkedin: false,
+  github: false,
+  twitter: false,
 })
 
 // Initialize toggles if data was loaded from backend
 watchEffect(() => {
   if (personal.value.website) additionalFields.website = true
-  if (personal.value.nationality) additionalFields.nationality = true
-  if (personal.value.dateOfBirth) additionalFields.dateOfBirth = true
-  if (personal.value.passport) additionalFields.passport = true
-  if (personal.value.availability) additionalFields.availability = true
+  if (personal.value.linkedin) additionalFields.linkedin = true
+  if (personal.value.github) additionalFields.github = true
+  if (personal.value.twitter) additionalFields.twitter = true
 })
 
 const additionalFieldConfigs = [
   { id: 'website', label: 'Website', placeholder: 'e.g. www.portfolio.com', kind: 'text' },
-  { id: 'nationality', label: 'Nationality', placeholder: 'e.g. American', kind: 'text' },
-  { id: 'dateOfBirth', label: 'Date of Birth', placeholder: 'DD/MM/YYYY', kind: 'date' },
-  { id: 'passport', label: 'Passport / ID', placeholder: 'e.g. AB1234567', kind: 'text' },
-  { id: 'availability', label: 'Availability', placeholder: 'e.g. Available immediately', kind: 'text' },
+  { id: 'linkedin', label: 'LinkedIn', placeholder: 'e.g. linkedin.com/in/username', kind: 'text' },
+  { id: 'github', label: 'GitHub', placeholder: 'e.g. github.com/username', kind: 'text' },
+  { id: 'twitter', label: 'Twitter / X', placeholder: 'e.g. twitter.com/username', kind: 'text' },
 ] as const
 </script>
 
@@ -167,17 +164,7 @@ const additionalFieldConfigs = [
             v-if="additionalFields[field.id]"
             class="animate-in fade-in slide-in-from-top-2 duration-200"
           >
-            <EditorMonthYearPicker
-              v-if="field.kind === 'date'"
-              v-model="personal[field.id]"
-              mode="day"
-              removable
-              :label="field.label"
-              :placeholder="field.placeholder"
-              @remove="toggleAdditionalField(field.id)"
-            />
             <EditorFormField
-              v-else
               v-model="personal[field.id]"
 
               :label="field.label"

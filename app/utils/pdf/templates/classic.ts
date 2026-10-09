@@ -73,10 +73,7 @@ export function buildClassicPdf(
   if (personal.website) contactItems.push(contactLink(personal.website, toUrl(personal.website), options.includeLinks))
   if (personal.linkedin) contactItems.push(contactLink(personal.linkedin, toUrl(personal.linkedin), options.includeLinks))
   if (personal.github) contactItems.push(contactLink(personal.github, toUrl(personal.github), options.includeLinks))
-  if (personal.nationality) contactItems.push({ text: personal.nationality, color: '#4B5563' })
-  if (personal.dateOfBirth) contactItems.push({ text: `DOB: ${personal.dateOfBirth}`, color: '#4B5563' })
-  if (personal.passport) contactItems.push({ text: `ID: ${personal.passport}`, color: '#4B5563' })
-  if (personal.availability) contactItems.push({ text: personal.availability, color: '#4B5563' })
+  if (personal.twitter) contactItems.push(contactLink(personal.twitter, toUrl(personal.twitter), options.includeLinks))
 
   const fullName = `${personal.firstName} ${personal.lastName}`.trim()
   const content: Content[] = []

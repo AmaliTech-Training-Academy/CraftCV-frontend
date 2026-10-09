@@ -19,7 +19,8 @@ describe('CVTemplateClassic.vue', () => {
       {
         id: 'edu1',
         institution: 'Columbia University',
-        degree: 'BS in Computer Science',
+        degree: 'BSc',
+        field_of_study: 'Computer Science',
         start_date: '2014-09-01',
         end_date: '2018-05-01',
         description: 'Graduated magna cum laude.',

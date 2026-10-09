@@ -9,10 +9,9 @@ export interface PersonalDetails {
   phone: string
   location: string
   website: string
-  nationality: string
-  dateOfBirth: string
-  passport: string
-  availability: string
+  linkedin: string
+  github: string
+  twitter: string
 }
 
 export interface ExperienceItem {
@@ -30,7 +29,7 @@ export interface EducationItem {
   id: string
   degree: string
   school: string
-  fieldOfStudy?: string
+  fieldOfStudy: string
   location: string
   startDate: string
   endDate: string | null
@@ -121,10 +120,9 @@ export const useCVState = () => {
     phone: '',
     location: '',
     website: '',
-    nationality: '',
-    dateOfBirth: '',
-    passport: '',
-    availability: '',
+    linkedin: '',
+    github: '',
+    twitter: '',
   }))
 
   const summary = useState<string>('cv-summary', () => '')
@@ -172,7 +170,7 @@ export const useCVState = () => {
 
   const getEducationStatus = (): StepStatus => {
     const filled = education.value.filter(
-      e => e.degree.trim() && e.school.trim() && e.startDate.trim(),
+      e => e.degree?.trim() && e.school?.trim() && e.startDate?.trim(),
     )
     if (filled.length === 0) return 'empty'
     if (filled.length === education.value.length) return 'complete'
@@ -200,10 +198,9 @@ export const useCVState = () => {
       phone: '',
       location: '',
       website: '',
-      nationality: '',
-      dateOfBirth: '',
-      passport: '',
-      availability: '',
+      linkedin: '',
+      github: '',
+      twitter: '',
     }
     return {
       personal: {
@@ -214,10 +211,9 @@ export const useCVState = () => {
         phone: p.phone.trim() || '0x0000000',
         location: p.location.trim() || 'City, Country',
         website: p.website.trim() || 'www.yourwebsite.com',
-        nationality: p.nationality.trim() || 'Nationality',
-        dateOfBirth: p.dateOfBirth.trim() || 'DD/MM/YYYY',
-        passport: p.passport.trim() || 'Passport Number',
-        availability: p.availability.trim() || 'Availability Status',
+        linkedin: p.linkedin.trim() || 'LinkedIn',
+        github: p.github.trim() || 'GitHub',
+        twitter: p.twitter.trim() || 'Twitter',
       },
       summary: summary.value.trim() || 'Your professional summary will appear here. Write a short, impactful paragraph highlighting your key achievements, skills, and career goals.',
       experience: experience.value.length > 0
@@ -249,6 +245,7 @@ export const useCVState = () => {
               id: 'mock-edu-1',
               degree: 'Your Degree or Certification',
               school: 'School or University Name',
+              fieldOfStudy: '',
               location: 'City, Country',
               startDate: 'Start Date',
               endDate: 'End Date',
@@ -297,10 +294,9 @@ export const useCVState = () => {
       phone: '',
       location: '',
       website: '',
-      nationality: '',
-      dateOfBirth: '',
-      passport: '',
-      availability: '',
+      linkedin: '',
+      github: '',
+      twitter: '',
     }
     summary.value = ''
     experience.value = []

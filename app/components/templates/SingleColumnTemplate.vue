@@ -32,10 +32,8 @@ const contactItems = computed(() => {
   if (p.value.location) items.push({ icon: 'location', value: p.value.location })
   if (p.value.website) items.push({ icon: 'web', value: p.value.website.replace(/^https?:\/\//, ''), link: p.value.website })
   if (p.value.linkedin) items.push({ icon: 'linkedin', value: p.value.linkedin.replace(/^https?:\/\//, ''), link: p.value.linkedin })
-  if (p.value.nationality) items.push({ icon: 'none', value: p.value.nationality })
-  if (p.value.date_of_birth) items.push({ icon: 'none', value: `DOB: ${p.value.date_of_birth}` })
-  if (p.value.passport) items.push({ icon: 'none', value: `ID: ${p.value.passport}` })
-  if (p.value.availability) items.push({ icon: 'none', value: p.value.availability })
+  if (p.value.github) items.push({ icon: 'github', value: p.value.github.replace(/^https?:\/\//, ''), link: p.value.github })
+  if (p.value.twitter) items.push({ icon: 'twitter', value: p.value.twitter.replace(/^https?:\/\//, ''), link: p.value.twitter })
   return items
 })
 </script>
