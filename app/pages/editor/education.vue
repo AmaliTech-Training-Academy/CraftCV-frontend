@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Edit, Trash2, Plus, ArrowRight, ChevronRight } from '@lucide/vue'
+import { Edit, Trash2, Plus, ArrowRight, ChevronRight, GripVertical } from '@lucide/vue'
 import { useCVState, type EducationItem } from '~/composables/useCVState'
 import { useMediaQuery } from '@vueuse/core'
 import { isEndDateBeforeStartDate, isValidDateString, useCVSectionEditor } from '~/composables/useCVSectionEditor'
 import { parseDescription } from '~/utils/cvText'
+import draggable from 'vuedraggable'
 
 useHead({ title: 'Education' })
 
@@ -101,16 +102,21 @@ const handleNext = () => {
     />
 
     <div class="space-y-6">
-      <div
-        v-for="(item, index) in education"
-        :key="item.id"
+      <draggable
+        v-model="education"
+        item-key="id"
+        filter="button, input, select, textarea, a"
+        :prevent-on-filter="false"
+        ghost-class="opacity-50"
       >
+        <template #item="{ element: item, index }">
+          <div class="mb-6">
         <div
           v-show="activeId !== item.id || isMobile"
           role="button"
           tabindex="0"
           aria-label="Expand education item"
-          class="flex items-center justify-between p-4 bg-white border rounded-xl shadow-xs hover:shadow-sm transition cursor-pointer mb-4"
+          class="flex items-center justify-between p-4 bg-white border rounded-xl shadow-xs hover:shadow-sm transition cursor-grab mb-4"
           :class="[
             showErrors && !validateEducation(item)
               ? 'border-red-300 bg-red-50/20'
@@ -121,6 +127,7 @@ const handleNext = () => {
           @keydown.space.prevent="activeId = item.id"
         >
           <div class="flex items-center gap-3 overflow-hidden">
+            <GripVertical class="w-4 h-4 text-gray-400 shrink-0" aria-hidden="true" />
             <span class="text-xs font-semibold text-gray-400 bg-gray-100 rounded-md px-2 py-1 shrink-0">
               #{{ index + 1 }}
             </span>
@@ -174,7 +181,9 @@ const handleNext = () => {
             @toggle-current="toggleCurrentStatus(item, $event)"
           />
         </EditorFormShell>
-      </div>
+          </div>
+        </template>
+      </draggable>
 
       <Button
         class="w-full py-6 border-2 border-dashed border-gray-200 hover:border-[#C54A22]/50 hover:bg-[#C54A22]/5 rounded-xl flex items-center justify-center gap-2 text-sm font-medium text-[#C54A22] transition cursor-pointer"

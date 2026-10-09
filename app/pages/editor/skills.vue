@@ -13,6 +13,7 @@ import {
   Trash2,
 } from '@lucide/vue'
 import { useCVState } from '~/composables/useCVState'
+import draggable from 'vuedraggable'
 
 definePageMeta({
   layout: 'editor',
@@ -106,51 +107,7 @@ const getLevelBadgeClass = (level?: string) => {
   }
 }
 
-const draggedIndex = ref<number | null>(null)
-const dragOverIndex = ref<number | null>(null)
 
-const onDragStart = (index: number, event: DragEvent) => {
-  draggedIndex.value = index
-  if (event.dataTransfer) {
-    event.dataTransfer.effectAllowed = 'move'
-    event.dataTransfer.setData('text/plain', String(index))
-  }
-}
-
-const onDragOver = (index: number, event: DragEvent) => {
-  event.preventDefault()
-  if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = 'move'
-  }
-  dragOverIndex.value = index
-}
-
-const onDragEnter = (index: number) => {
-  dragOverIndex.value = index
-}
-
-const onDragLeave = (index: number) => {
-  if (dragOverIndex.value === index) {
-    dragOverIndex.value = null
-  }
-}
-
-const onDrop = (targetIndex: number, event: DragEvent) => {
-  event.preventDefault()
-  if (draggedIndex.value !== null && draggedIndex.value !== targetIndex) {
-    const item = skills.value.splice(draggedIndex.value, 1)[0]
-    if (item) {
-      skills.value.splice(targetIndex, 0, item)
-    }
-  }
-  draggedIndex.value = null
-  dragOverIndex.value = null
-}
-
-const onDragEnd = () => {
-  draggedIndex.value = null
-  dragOverIndex.value = null
-}
 
 const handleNext = async () => {
   await navigateTo('/editor/certifications')
@@ -285,35 +242,26 @@ const handleNext = async () => {
       </div>
 
       <!-- Skills Stack (Semantic List) -->
-      <ul
+      <draggable
         v-if="skills.length > 0"
+        v-model="skills"
+        item-key="id"
+        filter="button, input, select, textarea, a"
+        :prevent-on-filter="false"
+        tag="ul"
         role="list"
         aria-label="Active skills list"
         class="space-y-3"
+        ghost-class="opacity-50"
       >
-        <li
-          v-for="(item, index) in skills"
-          :key="item.id"
-          draggable="true"
-          class="bg-white border rounded-xl p-3 sm:px-4 flex items-center justify-between transition-all shadow-xs group cursor-grab select-none"
-          :class="[
-            draggedIndex === index
-              ? 'opacity-40 scale-[0.99] border-dashed border-[#C54A22] cursor-grabbing'
-              : dragOverIndex === index
-                ? 'border-[#C54A22] ring-2 ring-[#C54A22]/30 bg-[#C54A22]/5'
-                : 'border-gray-200 hover:border-gray-300',
-          ]"
-          @dragstart="onDragStart(index, $event)"
-          @dragover="onDragOver(index, $event)"
-          @dragenter="onDragEnter(index)"
-          @dragleave="onDragLeave(index)"
-          @drop="onDrop(index, $event)"
-          @dragend="onDragEnd"
-        >
-          <!-- Left: Grip & Name -->
-          <div class="flex items-center gap-3 min-w-0 pr-3 pointer-events-none">
-            <GripVertical
-              class="w-4 h-4 text-gray-300 group-hover:text-gray-400 shrink-0"
+        <template #item="{ element: item, index }">
+          <li
+            class="bg-white border rounded-xl p-3 sm:px-4 flex items-center justify-between transition-all shadow-xs group select-none border-gray-200 hover:border-gray-300 cursor-grab"
+          >
+            <!-- Left: Grip & Name -->
+            <div class="flex items-center gap-3 min-w-0 pr-3">
+              <GripVertical
+                class="w-4 h-4 text-gray-300 hover:text-gray-400 shrink-0"
               aria-hidden="true"
             />
             <span class="text-sm font-semibold text-gray-900 truncate">
@@ -387,8 +335,9 @@ const handleNext = async () => {
               />
             </button>
           </div>
-        </li>
-      </ul>
+          </li>
+        </template>
+      </draggable>
 
       <!-- Empty State -->
       <div

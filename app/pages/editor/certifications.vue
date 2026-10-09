@@ -12,6 +12,7 @@ import {
 } from '@lucide/vue'
 import { useCVState, type CertificationItem } from '~/composables/useCVState'
 import { isValidDateString, useCVSectionEditor } from '~/composables/useCVSectionEditor'
+import draggable from 'vuedraggable'
 
 definePageMeta({
   layout: 'editor',
@@ -122,10 +123,15 @@ const handleFinish = async () => {
 
     <!-- Certifications Stack -->
     <div class="space-y-5">
-      <div
-        v-for="(item, index) in certifications"
-        :key="item.id"
+      <draggable
+        v-model="certifications"
+        item-key="id"
+        filter="button, input, select, textarea, a"
+        :prevent-on-filter="false"
+        ghost-class="opacity-50"
       >
+        <template #item="{ element: item, index }">
+          <div class="mb-5">
         <!-- 1. Expanded Form Card (Active Item) -->
         <div
           v-if="activeId === item.id"
@@ -378,7 +384,7 @@ const handleFinish = async () => {
           tabindex="0"
           :aria-expanded="false"
           :aria-label="'Expand ' + (item.name.trim() || 'certification') + ' details'"
-          class="border border-gray-200 bg-white rounded-xl p-4 sm:px-5 flex items-center justify-between shadow-xs hover:border-gray-300 transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/30"
+          class="border border-gray-200 bg-white rounded-xl p-4 sm:px-5 flex items-center justify-between shadow-xs hover:border-gray-300 transition-all cursor-grab group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/30"
           :class="[
             showErrors && !validateCertification(item)
               ? 'border-red-300 bg-red-50/20'
@@ -391,7 +397,7 @@ const handleFinish = async () => {
           <!-- Left: Grip & Name -->
           <div class="flex items-center gap-3.5 min-w-0 pr-3">
             <GripVertical
-              class="w-4 h-4 text-gray-300 group-hover:text-gray-400 shrink-0 cursor-grab"
+              class="w-4 h-4 text-gray-300 group-hover:text-gray-400 shrink-0"
               aria-hidden="true"
             />
             <span class="text-sm font-bold text-gray-900 truncate">
@@ -437,6 +443,8 @@ const handleFinish = async () => {
           </div>
         </div>
       </div>
+        </template>
+      </draggable>
 
       <!-- Add Entry Button -->
       <Button

@@ -435,6 +435,13 @@ export function useAutosave() {
           }
         }
 
+        // Check for reordering
+        const lastFinalIds = lastItems.map((i: any) => i.id).filter((id: string) => !deletedIds.includes(id))
+        const currentFinalIds = currentItems.map((i: any) => i.id)
+        if (JSON.stringify(lastFinalIds) !== JSON.stringify(currentFinalIds)) {
+          sectionsChanged = true
+        }
+
         // Additions and Modifications
         for (let i = 0; i < currentItems.length; i++) {
           const item = currentItems[i]
