@@ -368,13 +368,31 @@ async function handleVerify() {
   successMessage.value = ''
 
   try {
-    await verifyEmail({
+    const response = await verifyEmail({
       email: email.value.trim(),
       code: otp.value.join(''),
     })
 
-    successMessage.value = 'Email verified successfully! Redirecting...'
-    await navigateTo('/dashboard')
+    const hasToken = Boolean(
+      auth.token.value
+      || response?.accessToken
+      || response?.access
+      || response?.token,
+    )
+
+    if (hasToken) {
+      successMessage.value = 'Email verified successfully! Redirecting...'
+      await navigateTo('/dashboard')
+    }
+    else {
+      await navigateTo({
+        path: '/login',
+        query: {
+          verified: 'true',
+          email: email.value.trim() || undefined,
+        },
+      })
+    }
   }
   catch (err: unknown) {
     errorMessage.value = extractErrorMessage(err, 'Invalid or expired verification code.')
@@ -436,7 +454,6 @@ async function handleResend() {
 }
 
 onMounted(() => {
-  startCooldown()
   nextTick(() => {
     otpInputs.value[0]?.focus()
   })

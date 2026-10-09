@@ -236,6 +236,29 @@ describe('verify-email.vue', () => {
       expect(mockNavigateTo).toHaveBeenCalledWith('/dashboard')
     })
 
+    it('redirects to /login with verified=true query flag when verifyEmail succeeds without issuing an access token', async () => {
+      mockApi.mockResolvedValueOnce({
+        message: 'Email verified successfully.',
+      })
+
+      const wrapper = await mountVerifyEmailPage({ email: 'test@example.com' })
+      const inputs = wrapper.findAll('input[type="text"]')
+
+      for (let i = 0; i < 6; i++) {
+        await inputs[i]!.setValue(String(i + 1))
+      }
+      await nextTick()
+      await flushPromises()
+
+      expect(mockNavigateTo).toHaveBeenCalledWith({
+        path: '/login',
+        query: {
+          verified: 'true',
+          email: 'test@example.com',
+        },
+      })
+    })
+
     it('handles verification failure: displays backend error message and prevents redirect to /dashboard', async () => {
       mockApi.mockRejectedValueOnce({
         data: { message: 'Invalid or expired verification code' },
@@ -259,27 +282,11 @@ describe('verify-email.vue', () => {
   })
 
   describe('Resend Cooldown', () => {
-    it('initializes with a cooldown countdown and counts down every second', async () => {
+    it('initializes ready to resend and only triggers cooldown countdown when resend button is clicked', async () => {
       vi.useFakeTimers()
       const wrapper = await mountVerifyEmailPage()
 
-      expect(wrapper.find('#resend-cooldown').exists()).toBe(true)
-      expect(wrapper.find('#resend-cooldown').text()).toContain('Resend in 60s')
-
-      await vi.advanceTimersByTimeAsync(1000)
-      expect(wrapper.find('#resend-cooldown').text()).toContain('Resend in 59s')
-
-      await vi.advanceTimersByTimeAsync(59000)
       expect(wrapper.find('#resend-cooldown').exists()).toBe(false)
-      expect(wrapper.find('#resend-btn').exists()).toBe(true)
-    })
-
-    it('triggers resend when button is clicked after cooldown expires', async () => {
-      vi.useFakeTimers()
-      const wrapper = await mountVerifyEmailPage()
-
-      // Advance past 60s cooldown
-      await vi.advanceTimersByTimeAsync(60000)
       expect(wrapper.find('#resend-btn').exists()).toBe(true)
 
       const resendBtn = wrapper.find('#resend-btn')
@@ -289,8 +296,15 @@ describe('verify-email.vue', () => {
       await resendPromise
       await flushPromises()
 
-      // Cooldown restarts
-      expect(wrapper.text()).toContain('Code sent! Check your inbox.')
+      // Sent flash status lasts 3000ms; advance past flash timeout
+      await vi.advanceTimersByTimeAsync(3000)
+      await flushPromises()
+
+      expect(wrapper.find('#resend-cooldown').exists()).toBe(true)
+      expect(wrapper.find('#resend-cooldown').text()).toContain('Resend in 57s')
+
+      await vi.advanceTimersByTimeAsync(1000)
+      expect(wrapper.find('#resend-cooldown').text()).toContain('Resend in 56s')
     })
   })
 })

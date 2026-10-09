@@ -153,6 +153,18 @@
       </div>
 
       <div
+        v-if="isVerifiedNotice"
+        role="status"
+        class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs sm:text-sm font-medium text-emerald-800 flex items-center gap-2"
+      >
+        <CheckCircle
+          aria-hidden="true"
+          class="w-4 h-4 shrink-0 text-emerald-600"
+        />
+        <span>Email verified, please sign in.</span>
+      </div>
+
+      <div
         v-if="serverError"
         role="alert"
         class="mb-4 rounded-xl p-3 text-xs sm:text-sm font-medium"
@@ -222,6 +234,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
+import { CheckCircle } from '@lucide/vue'
 import { useSessionStorage } from '@vueuse/core'
 
 useHead({
@@ -236,7 +249,10 @@ useHead({
 
 definePageMeta({ layout: 'auth' })
 
+const route = useRoute()
 const { login, loading, error: serverError } = useAuth()
+
+const isVerifiedNotice = computed(() => route.query.verified === 'true')
 
 const isUnverifiedError = computed(() => {
   const msg = (serverError.value || '').toLowerCase()
@@ -253,6 +269,12 @@ const form = reactive({
   email: savedEmail.value,
   password: '',
   rememberMe: false,
+})
+
+onMounted(() => {
+  if (route.query.email && typeof route.query.email === 'string' && !form.email) {
+    form.email = route.query.email
+  }
 })
 
 watch(() => form.email, (newVal) => {
