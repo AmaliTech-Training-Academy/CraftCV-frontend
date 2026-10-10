@@ -32,12 +32,14 @@ const contactItems = computed(() => {
   if (p.value.location) items.push({ icon: 'location', value: p.value.location })
   if (p.value.website) items.push({ icon: 'web', value: p.value.website.replace(/^https?:\/\//, ''), link: p.value.website })
   if (p.value.linkedin) items.push({ icon: 'linkedin', value: p.value.linkedin.replace(/^https?:\/\//, ''), link: p.value.linkedin })
+  if (p.value.github) items.push({ icon: 'github', value: p.value.github.replace(/^https?:\/\//, ''), link: p.value.github })
+  if (p.value.twitter) items.push({ icon: 'twitter', value: p.value.twitter.replace(/^https?:\/\//, ''), link: p.value.twitter })
   return items
 })
 </script>
 
 <template>
-  <div class="bg-white font-sans text-[13px] leading-snug min-h-264 overflow-hidden">
+  <div class="bg-white font-sans text-[13px] leading-snug min-h-264 overflow-hidden break-words">
     <!-- ══════════ HEADER ══════════ -->
     <header class="px-10 pt-9 pb-6 border-b-2 border-gray-800">
       <h1 class="text-[28px] font-extrabold text-gray-900 tracking-tight leading-none mb-1">
@@ -114,7 +116,7 @@ const contactItems = computed(() => {
             /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
           </template>
           <!-- linkedin -->
-          <template v-else>
+          <template v-else-if="item.icon === 'linkedin'">
             <svg
               class="w-3 h-3 text-gray-400 shrink-0"
               fill="none"
@@ -131,6 +133,9 @@ const contactItems = computed(() => {
               cy="4"
               r="2"
             /></svg>
+          </template>
+          <template v-else>
+            <div class="w-1 h-1 rounded-full bg-gray-400 shrink-0" />
           </template>
           <span class="break-all">{{ item.value }}</span>
         </span>
@@ -160,7 +165,7 @@ const contactItems = computed(() => {
             :key="exp.id"
           >
             <div class="flex justify-between items-baseline gap-2 flex-wrap">
-              <h3 class="font-bold text-[13px] text-gray-900">
+              <h3 class="font-bold text-[13px] text-gray-900 min-w-0">
                 {{ exp.role }}
               </h3>
               <span class="text-[11px] text-gray-400 shrink-0 italic">
@@ -209,7 +214,7 @@ const contactItems = computed(() => {
             :key="edu.id"
           >
             <div class="flex justify-between items-baseline gap-2 flex-wrap">
-              <h3 class="font-bold text-[13px] text-gray-900">
+              <h3 class="font-bold text-[13px] text-gray-900 min-w-0">
                 {{ edu.degree }}<span v-if="edu.field_of_study">, {{ edu.field_of_study }}</span>
               </h3>
               <span class="text-[11px] text-gray-400 shrink-0 italic">
@@ -278,7 +283,7 @@ const contactItems = computed(() => {
             class="space-y-1"
           >
             <div class="flex justify-between items-start gap-2">
-              <div>
+              <div class="min-w-0">
                 <p class="font-semibold text-[12px] text-gray-900">
                   {{ cert.name }}
                 </p>
@@ -292,6 +297,21 @@ const contactItems = computed(() => {
               >
                 {{ formatDate(cert.issue_date) }}
               </span>
+            </div>
+            <div
+              v-if="cert.credential_id || cert.credential_url"
+              class="text-[11px] text-gray-500 mt-0.5"
+            >
+              <span v-if="cert.credential_id">Credential ID: {{ cert.credential_id }}</span>
+              <span v-if="cert.credential_id && cert.credential_url"> | </span>
+              <a
+                v-if="cert.credential_url"
+                :href="cert.credential_url"
+                target="_blank"
+                class="hover:underline text-gray-900 font-medium break-all"
+              >
+                Verify Credential ↗
+              </a>
             </div>
             <template
               v-for="(blk, i) in parseDescription(cert.description)"
@@ -351,7 +371,7 @@ const contactItems = computed(() => {
             :key="award.id"
           >
             <div class="flex justify-between items-baseline gap-2 flex-wrap">
-              <p class="font-semibold text-[12px] text-gray-900">
+              <p class="font-semibold text-[12px] text-gray-900 min-w-0">
                 {{ award.name }}
               </p>
               <span

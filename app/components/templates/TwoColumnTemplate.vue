@@ -29,12 +29,12 @@ const p = computed(() => props.data.personal_details ?? {})
 
 <template>
   <!-- A4 proportions: 794px wide × 1123px tall at 96dpi -->
-  <div class="flex bg-white font-sans text-[13px] leading-snug min-h-264 overflow-hidden">
+  <div class="flex bg-white font-sans text-[13px] leading-snug min-h-264 overflow-hidden break-words">
     <!-- ═══════════ LEFT SIDEBAR ═══════════ -->
     <aside class="w-[30%] shrink-0 bg-[#2c3e50] text-white flex flex-col">
       <!-- Name block -->
       <div class="px-6 pt-8 pb-6 border-b border-white/10">
-        <h1 class="text-[22px] font-extrabold leading-tight tracking-wide uppercase wrap-break-word">
+        <h1 class="text-[22px] font-extrabold leading-tight tracking-wide uppercase break-words">
           {{ fullName }}
         </h1>
         <p
@@ -115,6 +115,20 @@ const p = computed(() => props.data.personal_details ?? {})
               y2="12"
             /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
             <span class="break-all">{{ p.website?.replace(/^https?:\/\//, '') }}</span>
+          </li>
+          <li
+            v-if="p.github"
+            class="flex items-start gap-2 min-w-0"
+          >
+            <div class="w-1.5 h-1.5 rounded-full bg-white/50 mt-1.5 shrink-0" />
+            <span class="break-words">{{ p.github?.replace(/^https?:\/\//, '') }}</span>
+          </li>
+          <li
+            v-if="p.twitter"
+            class="flex items-start gap-2 min-w-0"
+          >
+            <div class="w-1.5 h-1.5 rounded-full bg-white/50 mt-1.5 shrink-0" />
+            <span class="break-words">{{ p.twitter?.replace(/^https?:\/\//, '') }}</span>
           </li>
           <li
             v-if="p.linkedin"
@@ -237,7 +251,7 @@ const p = computed(() => props.data.personal_details ?? {})
             :key="exp.id"
           >
             <div class="flex justify-between items-baseline gap-2 flex-wrap">
-              <h3 class="font-bold text-gray-900 text-[13px]">
+              <h3 class="font-bold text-gray-900 text-[13px] min-w-0">
                 {{ exp.role }}
               </h3>
               <span class="text-[11px] text-gray-400 shrink-0">
@@ -287,7 +301,7 @@ const p = computed(() => props.data.personal_details ?? {})
             class="space-y-1"
           >
             <div class="flex justify-between items-start gap-2">
-              <div>
+              <div class="min-w-0">
                 <p class="font-semibold text-[12px] text-gray-900">
                   {{ cert.name }}
                 </p>
@@ -299,6 +313,21 @@ const p = computed(() => props.data.personal_details ?? {})
                 v-if="cert.issue_date"
                 class="text-[11px] text-gray-400 shrink-0"
               >{{ formatDate(cert.issue_date) }}</span>
+            </div>
+            <div
+              v-if="cert.credential_id || cert.credential_url"
+              class="text-[10px] text-gray-500 mt-0.5"
+            >
+              <span v-if="cert.credential_id">Credential ID: {{ cert.credential_id }}</span>
+              <span v-if="cert.credential_id && cert.credential_url"> | </span>
+              <a
+                v-if="cert.credential_url"
+                :href="cert.credential_url"
+                target="_blank"
+                class="hover:underline text-[#2c3e50] font-medium break-all"
+              >
+                Verify Credential ↗
+              </a>
             </div>
             <template
               v-for="(blk, i) in parseDescription(cert.description)"

@@ -13,10 +13,17 @@ const emit = defineEmits<{
   (e: 'toggle-current', isCurrent: boolean): void
 }>()
 
-const { experience } = useCVState()
+const { experience, saveErrorFor } = useCVState()
 
 const itemIndex = computed(() => experience.value.findIndex(e => e.id === props.id))
 const item = computed(() => experience.value[itemIndex.value])
+
+/**
+ * The message a rejected save put on one of this entry's fields, or ''. Scoped
+ * to this record by id, so a message the backend sent about another experience
+ * cannot appear here.
+ */
+const backendError = (key: string) => saveErrorFor(props.id, key)
 
 const onEdit = () => {
   // No longer needed to emit for autosave, state is watched globally
@@ -40,7 +47,7 @@ const toggleCurrent = (e: Event) => {
       <EditorFormField
         v-model="item.title"
         :required="true"
-        :error="showErrors && !item.title.trim() ? 'Required' : ''"
+        :error="backendError('title') || (showErrors && !item.title.trim() ? 'Required' : '')"
         label="Job Title"
         placeholder="e.g. Software Engineer"
         autocomplete="organization-title"
@@ -50,7 +57,7 @@ const toggleCurrent = (e: Event) => {
       <EditorFormField
         v-model="item.company"
         :required="true"
-        :error="showErrors && !item.company.trim() ? 'Required' : ''"
+        :error="backendError('company') || (showErrors && !item.company.trim() ? 'Required' : '')"
         label="Company"
         placeholder="e.g. Google"
         autocomplete="organization"
@@ -63,6 +70,7 @@ const toggleCurrent = (e: Event) => {
       v-model="item.location"
       label="Location"
       placeholder="e.g. New York, NY"
+      :error="backendError('location')"
       @update:model-value="onEdit"
     />
 
@@ -70,7 +78,8 @@ const toggleCurrent = (e: Event) => {
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <EditorMonthYearPicker
         v-model="item.startDate"
-        :error="(!isValidDateString(item.startDate) && item.startDate !== '') || (showErrors && !isValidDateString(item.startDate)) ? 'Required' : ''"
+        disable-future
+        :error="backendError('startDate') || ((!isValidDateString(item.startDate) && item.startDate !== '') || (showErrors && !isValidDateString(item.startDate)) ? 'Required' : '')"
         :required="true"
         label="Start Date"
         @update:model-value="onEdit"
@@ -79,7 +88,7 @@ const toggleCurrent = (e: Event) => {
         <EditorMonthYearPicker
           v-model="item.endDate"
           :disabled="item.isCurrent"
-          :error="isEndDateBeforeStartDate(item.startDate, item.endDate, item.isCurrent) ? 'End date must be after the start date' : (showErrors && !item.isCurrent && !isValidDateString(item.endDate) ? 'Required' : '')"
+          :error="backendError('endDate') || (isEndDateBeforeStartDate(item.startDate, item.endDate, item.isCurrent) ? 'End date must be after the start date' : (showErrors && !item.isCurrent && !isValidDateString(item.endDate) ? 'Required' : ''))"
           label="End Date"
           @update:model-value="onEdit"
         />

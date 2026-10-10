@@ -79,6 +79,49 @@ export function extractErrorMessage(
   return fallbackMessage
 }
 
+/**
+ * Per-field messages out of a DRF validation response, keyed by the backend's
+ * own field name.
+ *
+ * DRF sends both halves in one body: `{"phone": ["This field may not be
+ * blank."], "message": "Invalid CV data."}`. `extractErrorMessage` returns a
+ * single string and prefers `message`, which is the generic summary — so the
+ * field names, the half that says *what* to fix, are thrown away. This reads
+ * that half out, to be shown beside the field it belongs to.
+ */
+export function extractFieldErrors(err: unknown): Record<string, string> {
+  const e = err as { data?: unknown, response?: { _data?: unknown, data?: unknown } } | null
+  const responseData = e?.data ?? e?.response?._data ?? e?.response?.data
+
+  if (!responseData || typeof responseData !== 'object' || Array.isArray(responseData)) {
+    return {}
+  }
+
+  // A summary about the request as a whole rather than a field of it, and
+  // `non_field_errors`, which names no field to put a message beside — the
+  // caller keeps both in `extractErrorMessage`.
+  const summaryKeys = ['detail', 'message', 'error', 'non_field_errors']
+
+  const fields: Record<string, string> = {}
+  for (const [key, value] of Object.entries(responseData)) {
+    if (summaryKeys.includes(key)) continue
+
+    // A nested serializer answers with objects, for which there is no single
+    // message to show; those are skipped rather than stringified.
+    let message: string | undefined
+    if (Array.isArray(value)) {
+      message = value.find((entry): entry is string => typeof entry === 'string')
+    }
+    else if (typeof value === 'string') {
+      message = value
+    }
+
+    if (message) fields[key] = message
+  }
+
+  return fields
+}
+
 export const $api = async <T>(
   request: NitroFetchRequest,
   options?: ApiFetchOptions<NitroFetchRequest>,

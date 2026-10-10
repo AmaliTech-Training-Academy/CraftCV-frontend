@@ -18,7 +18,7 @@ definePageMeta({
   middleware: ['auth'],
 })
 
-const { certifications, hasActiveCV } = useCVState()
+const { certifications, hasActiveCV, saveErrorFor } = useCVState()
 
 const generateId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -59,34 +59,21 @@ const {
   validateCertification,
 )
 
-const months = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-]
-const currentYear = new Date().getFullYear()
-const years = Array.from({ length: currentYear - 1970 + 1 }, (_, i) => currentYear - i)
+/**
+ * The message a rejected save put on one of this entry's fields, or ''. Scoped
+ * to the record by id, so a message the backend sent about another certification
+ * cannot appear here.
+ */
+const backendError = (id: string, key: string) => saveErrorFor(id, key)
 
-const getMonthFromDate = (dateStr?: string) => {
-  if (!dateStr) return ''
-  const parts = dateStr.trim().split(' ')
-  return parts.length >= 1 ? (parts[0] ?? '') : ''
-}
+// Name and issuer are hand-rolled markup rather than `EditorFormField`, so each
+// resolves its message once and reuses it across the aria wiring, the border and
+// the message itself.
+const nameError = (item: CertificationItem) =>
+  backendError(item.id, 'name') || (showErrors.value && !item.name.trim() ? 'Certification name is required' : '')
 
-const getYearFromDate = (dateStr?: string) => {
-  if (!dateStr) return ''
-  const parts = dateStr.trim().split(' ')
-  return parts.length >= 2 ? (parts[1] ?? '') : ''
-}
-
-const setIssueMonth = (item: CertificationItem, month: string) => {
-  const currentY = getYearFromDate(item.date) || currentYear.toString()
-  item.date = month ? `${month} ${currentY}`.trim() : ''
-}
-
-const setIssueYear = (item: CertificationItem, year: string) => {
-  const currentM = getMonthFromDate(item.date) || 'January'
-  item.date = year ? `${currentM} ${year}`.trim() : ''
-}
+const issuerError = (item: CertificationItem) =>
+  backendError(item.id, 'issuer') || (showErrors.value && !item.issuer.trim() ? 'Issuing organization is required' : '')
 
 const handleFinish = async () => {
   // Discard only entries that are completely untouched/blank
@@ -190,22 +177,22 @@ const handleFinish = async () => {
                   type="text"
                   placeholder="e.g. UX Master Certified (UXMC)"
                   :aria-required="true"
-                  :aria-invalid="showErrors && !item.name.trim()"
-                  :aria-describedby="showErrors && !item.name.trim() ? 'cert-name-error-' + item.id : undefined"
+                  :aria-invalid="Boolean(nameError(item))"
+                  :aria-describedby="nameError(item) ? 'cert-name-error-' + item.id : undefined"
                   class="w-full h-11 px-4 rounded-xl border text-sm transition-all focus:outline-none"
                   :class="[
-                    showErrors && !item.name.trim()
+                    nameError(item)
                       ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
                       : 'border-gray-200 focus:ring-2 focus:ring-[#C54A22]/20',
                   ]"
                 >
                 <span
-                  v-if="showErrors && !item.name.trim()"
+                  v-if="nameError(item)"
                   :id="'cert-name-error-' + item.id"
                   role="alert"
                   class="text-xs font-semibold text-red-500 mt-1 block"
                 >
-                  Certification name is required
+                  {{ nameError(item) }}
                 </span>
               </div>
 
@@ -226,22 +213,22 @@ const handleFinish = async () => {
                   type="text"
                   placeholder="e.g. Nielsen Norman Group"
                   :aria-required="true"
-                  :aria-invalid="showErrors && !item.issuer.trim()"
-                  :aria-describedby="showErrors && !item.issuer.trim() ? 'cert-issuer-error-' + item.id : undefined"
+                  :aria-invalid="Boolean(issuerError(item))"
+                  :aria-describedby="issuerError(item) ? 'cert-issuer-error-' + item.id : undefined"
                   class="w-full h-11 px-4 rounded-xl border text-sm transition-all focus:outline-none"
                   :class="[
-                    showErrors && !item.issuer.trim()
+                    issuerError(item)
                       ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
                       : 'border-gray-200 focus:ring-2 focus:ring-[#C54A22]/20',
                   ]"
                 >
                 <span
-                  v-if="showErrors && !item.issuer.trim()"
+                  v-if="issuerError(item)"
                   :id="'cert-issuer-error-' + item.id"
                   role="alert"
                   class="text-xs font-semibold text-red-500 mt-1 block"
                 >
-                  Issuing organization is required
+                  {{ issuerError(item) }}
                 </span>
               </div>
             </div>
@@ -249,92 +236,23 @@ const handleFinish = async () => {
             <!-- Row 2: Issue Date & Expiration Date -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-[13px] font-semibold text-gray-800 mb-2">
-                  Issue Date <span
-                    class="text-[#C54A22]"
-                    aria-hidden="true"
-                  >*</span>
-                  <span class="sr-only">(required)</span>
-                </label>
-                <div class="grid grid-cols-2 gap-2.5">
-                  <select
-                    :value="getMonthFromDate(item.date)"
-                    aria-label="Issue Month"
-                    class="w-full h-11 px-3.5 rounded-xl border bg-white text-sm text-gray-700 cursor-pointer focus:outline-none transition-all"
-                    :class="[
-                      showErrors && !isValidDateString(item.date)
-                        ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
-                        : 'border-gray-200 focus:ring-2 focus:ring-[#C54A22]/20',
-                    ]"
-                    @change="setIssueMonth(item, ($event.target as HTMLSelectElement).value)"
-                  >
-                    <option value="">
-                      Month
-                    </option>
-                    <option
-                      v-for="m in months"
-                      :key="m"
-                      :value="m"
-                    >
-                      {{ m }}
-                    </option>
-                  </select>
-
-                  <select
-                    :value="getYearFromDate(item.date)"
-                    aria-label="Issue Year"
-                    class="w-full h-11 px-3.5 rounded-xl border bg-white text-sm text-gray-700 cursor-pointer focus:outline-none transition-all"
-                    :class="[
-                      showErrors && !isValidDateString(item.date)
-                        ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
-                        : 'border-gray-200 focus:ring-2 focus:ring-[#C54A22]/20',
-                    ]"
-                    @change="setIssueYear(item, ($event.target as HTMLSelectElement).value)"
-                  >
-                    <option value="">
-                      Year
-                    </option>
-                    <option
-                      v-for="y in years"
-                      :key="y"
-                      :value="y.toString()"
-                    >
-                      {{ y }}
-                    </option>
-                  </select>
-                </div>
-                <span
-                  v-if="showErrors && !isValidDateString(item.date)"
-                  :id="'cert-date-error-' + item.id"
-                  role="alert"
-                  class="text-xs font-semibold text-red-500 mt-1 block"
-                >
-                  Issue date is required
-                </span>
+                <EditorMonthYearPicker
+                  v-model="item.date"
+                  disable-future
+                  required
+                  label="Issue Date"
+                  :error="backendError(item.id, 'date') || (showErrors && !isValidDateString(item.date) ? 'Issue date is required' : '')"
+                />
               </div>
 
               <div>
-                <label
-                  :for="'cert-exp-' + item.id"
-                  class="block text-[13px] font-semibold text-gray-800 mb-2"
-                >
-                  Expiration Date
-                </label>
-                <input
-                  :id="'cert-exp-' + item.id"
-                  :value="item.doesNotExpire !== false ? 'Does not expire' : (item.expirationDate ?? '')"
-                  type="text"
+                <EditorMonthYearPicker
+                  v-model="item.expirationDate"
                   :disabled="item.doesNotExpire !== false"
-                  aria-label="Expiration Date"
-                  placeholder="e.g. August 2028"
-                  class="w-full h-11 px-4 rounded-xl border text-sm transition-all focus:outline-none"
-                  :class="[
-                    item.doesNotExpire !== false
-                      ? 'bg-gray-50/80 text-gray-500 border-gray-200 cursor-not-allowed'
-                      : 'bg-white border-gray-200 focus:ring-2 focus:ring-[#C54A22]/20 text-gray-900',
-                  ]"
-                  @input="item.expirationDate = ($event.target as HTMLInputElement).value"
-                >
+                  :placeholder="item.doesNotExpire !== false ? 'Does not expire' : 'Select date'"
+                  label="Expiration Date"
+                  :error="backendError(item.id, 'expirationDate')"
+                />
                 <div class="mt-2.5 flex items-center gap-2">
                   <input
                     :id="'no-expire-' + item.id"
@@ -384,13 +302,30 @@ const handleFinish = async () => {
                     type="url"
                     aria-label="Credential verification URL"
                     placeholder="https://www.nngroup.com/verify/1049281"
-                    class="w-full h-11 pl-4 pr-10 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20 transition-all"
+                    :aria-invalid="Boolean(backendError(item.id, 'credentialUrl'))"
+                    :aria-describedby="backendError(item.id, 'credentialUrl') ? 'cert-url-error-' + item.id : undefined"
+                    class="w-full h-11 pl-4 pr-10 rounded-xl border bg-white text-sm text-gray-900 focus:outline-none focus:ring-2 transition-all"
+                    :class="[
+                      backendError(item.id, 'credentialUrl')
+                        ? 'border-red-400 focus:ring-red-400/20'
+                        : 'border-gray-200 focus:ring-[#C54A22]/20',
+                    ]"
                   >
                   <ExternalLink
                     class="w-4 h-4 text-gray-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
                     aria-hidden="true"
                   />
                 </div>
+                <!-- The backend validates this one as a URL, so it is the field
+                     here that can come back rejected. -->
+                <span
+                  v-if="backendError(item.id, 'credentialUrl')"
+                  :id="'cert-url-error-' + item.id"
+                  role="alert"
+                  class="text-xs font-semibold text-red-500 mt-1 block"
+                >
+                  {{ backendError(item.id, 'credentialUrl') }}
+                </span>
               </div>
             </div>
 
