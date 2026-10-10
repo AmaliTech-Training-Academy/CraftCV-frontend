@@ -104,16 +104,7 @@ export function buildProfessionalPdf(
     contactLines.push({ text: personal.location, color: '#CBD5E1', fontSize: 8.5, margin: [0, 0, 0, 3] })
   }
 
-  if (personal.linkedinUrl) {
-    contactLines.push({ text: personal.linkedinUrl.replace(/^https?:\/\//, ''), color: '#E2E8F0', fontSize: 8.5, margin: [0, 0, 0, 3], link: personal.linkedinUrl })
-  }
-  if (personal.githubUrl) {
-    contactLines.push({ text: personal.githubUrl.replace(/^https?:\/\//, ''), color: '#E2E8F0', fontSize: 8.5, margin: [0, 0, 0, 3], link: personal.githubUrl })
-  }
-  if (personal.twitterUrl) {
-    contactLines.push({ text: personal.twitterUrl.replace(/^https?:\/\//, ''), color: '#E2E8F0', fontSize: 8.5, margin: [0, 0, 0, 3], link: personal.twitterUrl })
-  }
-  if (personal.website) {
+        if (personal.website) {
     contactLines.push({
       text: personal.website.replace(/^https?:\/\//, ''),
       ...(options.includeLinks ? { link: toUrl(personal.website) } : {}),

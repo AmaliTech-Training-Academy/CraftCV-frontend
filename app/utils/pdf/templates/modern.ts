@@ -47,9 +47,9 @@ export function buildModernPdf(
     personal.phone ? { text: personal.phone } : null,
     personal.location ? { text: personal.location } : null,
 
-    personal.linkedinUrl ? { text: personal.linkedinUrl.replace(/^https?:\/\//, ''), link: personal.linkedinUrl } : null,
-    personal.githubUrl ? { text: personal.githubUrl.replace(/^https?:\/\//, ''), link: personal.githubUrl } : null,
-    personal.twitterUrl ? { text: personal.twitterUrl.replace(/^https?:\/\//, ''), link: personal.twitterUrl } : null,
+    personal.linkedin ? { text: personal.linkedin.replace(/^https?:\/\//, ''), link: personal.linkedin } : null,
+    personal.github ? { text: personal.github.replace(/^https?:\/\//, ''), link: personal.github } : null,
+    personal.twitter ? { text: personal.twitter.replace(/^https?:\/\//, ''), link: personal.twitter } : null,
     personal.website ? { text: personal.website.replace(/^https?:\/\//, ''), link: options.includeLinks ? toUrl(personal.website) : undefined } : null,
     personal.linkedin ? { text: personal.linkedin.replace(/^https?:\/\//, ''), link: options.includeLinks ? toUrl(personal.linkedin) : undefined } : null,
     personal.github ? { text: personal.github.replace(/^https?:\/\//, ''), link: options.includeLinks ? toUrl(personal.github) : undefined } : null,

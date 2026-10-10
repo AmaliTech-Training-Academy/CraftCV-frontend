@@ -38,7 +38,7 @@ export function useAutosave() {
 
   /**
    * The personal-details fields the backend models, keyed by what the editor
-   * calls them. The backend says `websiteUrl` where the editor says `website`.
+   * calls them. The backend says `website` where the editor says `website`.
    *
    * Everything else the editor collects — title — has no backend field and stays local.
    * they are never sent and a PATCH leaves whatever is there untouched.
@@ -49,10 +49,10 @@ export function useAutosave() {
     email: 'email',
     phone: 'phone',
     location: 'location',
-    websiteUrl: 'websiteUrl',
-    linkedinUrl: 'linkedinUrl',
-    githubUrl: 'githubUrl',
-    twitterUrl: 'twitterUrl',
+    website: 'website',
+    linkedin: 'linkedin',
+    github: 'github',
+    twitter: 'twitter',
   }
 
   /**
@@ -165,7 +165,7 @@ export function useAutosave() {
 
       if (data.personalDetail) {
         // Read back through the same map the save uses, in reverse: the backend
-        // returns `websiteUrl` where the Website control is bound to `website`,
+        // returns `website` where the Website control is bound to `website`,
         // so merging the record verbatim would leave that field blank on
         // refresh. Keys the editor has no control for are deliberately skipped
         // rather than carried around as stray state.

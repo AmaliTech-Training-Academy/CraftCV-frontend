@@ -160,22 +160,22 @@ const getMeterWidth = (level?: string) => {
             {{ data.personal_details.location }}
           </div>
           <div
-            v-if="data.personal_details.websiteUrl && data.personal_details.websiteUrl !== 'www.yourwebsite.com'"
+            v-if="data.personal_details.website && data.personal_details.website !== 'www.yourwebsite.com'"
             class="break-all"
           >
-            {{ data.personal_details.websiteUrl.replace(/^https?:\/\//, '') }}
+            {{ data.personal_details.website.replace(/^https?:\/\//, '') }}
           </div>
           <div
-            v-if="data.personal_details.linkedinUrl"
+            v-if="data.personal_details.linkedin"
             class="break-all"
           >
-            {{ data.personal_details.linkedinUrl.replace(/^https?:\/\//, '') }}
+            {{ data.personal_details.linkedin.replace(/^https?:\/\//, '') }}
           </div>
           <div
-            v-if="data.personal_details.githubUrl"
+            v-if="data.personal_details.github"
             class="break-all"
           >
-            {{ data.personal_details.githubUrl.replace(/^https?:\/\//, '') }}
+            {{ data.personal_details.github.replace(/^https?:\/\//, '') }}
           </div>
         </section>
 

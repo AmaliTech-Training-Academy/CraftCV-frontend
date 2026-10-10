@@ -70,9 +70,10 @@ const toggleCurrent = (e: Event) => {
       />
       <EditorFormField
         v-model="item.fieldOfStudy"
+        :required="true"
         label="Field of Study"
         placeholder="e.g. Computer Science"
-        :error="backendError('fieldOfStudy')"
+        :error="backendError('fieldOfStudy') || (showErrors && (!item.fieldOfStudy || !item.fieldOfStudy.trim()) ? 'Required' : '')"
         @update:model-value="onEdit"
       />
     </div>

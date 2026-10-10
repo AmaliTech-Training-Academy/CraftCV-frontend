@@ -38,6 +38,10 @@ const requestDelete = (cv: CVSummary) => {
   pendingDelete.value = cv
 }
 
+const toggleMenu = (cvId: string) => {
+  showMenuFor.value = showMenuFor.value === cvId ? null : cvId
+}
+
 const confirmDelete = async () => {
   if (!pendingDelete.value) return
   deleting.value = true
@@ -82,6 +86,19 @@ const openCV = async (cv: CVSummary) => {
     return
   }
   await selectCV(cv)
+}
+
+const handleCardClick = (e: MouseEvent, cv: CVSummary) => {
+  const target = e.target as HTMLElement
+  if (target.closest('.actions-menu-container')) return
+  openCV(cv)
+}
+
+const handleCardKeydown = (e: KeyboardEvent, cv: CVSummary) => {
+  const target = e.target as HTMLElement
+  if (target.closest('.actions-menu-container')) return
+  if (e.target !== e.currentTarget) return
+  openCV(cv)
 }
 </script>
 
@@ -157,9 +174,9 @@ const openCV = async (cv: CVSummary) => {
         tabindex="0"
         :aria-label="`Open ${cv.title}`"
         class="group relative flex flex-col cursor-pointer rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-lg hover:border-[#F26438]/40 transition-all duration-200 ease-out hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F26438]/40"
-        @click="openCV(cv)"
-        @keydown.enter.prevent="openCV(cv)"
-        @keydown.space.prevent="openCV(cv)"
+        @click="handleCardClick($event, cv)"
+        @keydown.enter.prevent="handleCardKeydown($event, cv)"
+        @keydown.space.prevent="handleCardKeydown($event, cv)"
         @mouseleave="showMenuFor = null"
       >
         <!-- Thumbnail Image -->
@@ -196,8 +213,9 @@ const openCV = async (cv: CVSummary) => {
 
           <!-- 3-dot Menu Button -->
           <div
-            class="relative"
+            class="actions-menu-container relative"
             @click.stop
+            @keydown.stop
           >
             <button
               type="button"
@@ -205,7 +223,7 @@ const openCV = async (cv: CVSummary) => {
               aria-haspopup="menu"
               :aria-expanded="showMenuFor === cv.cvId"
               class="p-1.5 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F26438]/40"
-              @click="showMenuFor = showMenuFor === cv.cvId ? null : cv.cvId"
+              @click.stop="toggleMenu(cv.cvId)"
             >
               <MoreVertical class="w-4 h-4" />
             </button>
@@ -215,6 +233,8 @@ const openCV = async (cv: CVSummary) => {
               v-if="showMenuFor === cv.cvId"
               role="menu"
               class="absolute right-0 bottom-8 mb-2 w-32 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-20"
+              @click.stop
+              @keydown.stop
             >
               <button
                 type="button"

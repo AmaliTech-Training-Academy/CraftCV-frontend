@@ -52,25 +52,25 @@ const toggleAdditionalField = (fieldId: string) => {
 }
 
 const additionalFields = reactive<Record<string, boolean>>({
-  websiteUrl: false,
-  linkedinUrl: false,
-  githubUrl: false,
-  twitterUrl: false,
+  website: false,
+  linkedin: false,
+  github: false,
+  twitter: false,
 })
 
 // Initialize toggles if data was loaded from backend
 watchEffect(() => {
-  if (personal.value.websiteUrl || personal.value.website) additionalFields.websiteUrl = true
-  if (personal.value.linkedinUrl) additionalFields.linkedinUrl = true
-  if (personal.value.githubUrl) additionalFields.githubUrl = true
-  if (personal.value.twitterUrl) additionalFields.twitterUrl = true
+  if (personal.value.website || personal.value.website) additionalFields.website = true
+  if (personal.value.linkedin) additionalFields.linkedin = true
+  if (personal.value.github) additionalFields.github = true
+  if (personal.value.twitter) additionalFields.twitter = true
 })
 
 const additionalFieldConfigs = [
-  { id: 'websiteUrl', label: 'Website', placeholder: 'e.g. www.portfolio.com', kind: 'text' },
-  { id: 'linkedinUrl', label: 'LinkedIn', placeholder: 'e.g. linkedin.com/in/username', kind: 'text' },
-  { id: 'githubUrl', label: 'GitHub', placeholder: 'e.g. github.com/username', kind: 'text' },
-  { id: 'twitterUrl', label: 'Twitter / X', placeholder: 'e.g. twitter.com/username', kind: 'text' },
+  { id: 'website', label: 'Website', placeholder: 'e.g. www.portfolio.com', kind: 'text' },
+  { id: 'linkedin', label: 'LinkedIn', placeholder: 'e.g. linkedin.com/in/username', kind: 'text' },
+  { id: 'github', label: 'GitHub', placeholder: 'e.g. github.com/username', kind: 'text' },
+  { id: 'twitter', label: 'Twitter / X', placeholder: 'e.g. twitter.com/username', kind: 'text' },
 ] as const
 </script>
 

@@ -55,10 +55,10 @@ const contactItems = computed(() => {
   if (p.value.email) items.push({ icon: 'email', value: p.value.email })
   if (p.value.phone) items.push({ icon: 'phone', value: p.value.phone })
   if (p.value.location) items.push({ icon: 'location', value: p.value.location })
-  if (p.value.websiteUrl) items.push({ icon: 'web', value: p.value.websiteUrl.replace(/^https?:\/\//, ''), link: p.value.websiteUrl })
-  if (p.value.linkedinUrl) items.push({ icon: 'linkedin', value: p.value.linkedinUrl.replace(/^https?:\/\//, ''), link: p.value.linkedinUrl })
-  if (p.value.githubUrl) items.push({ icon: 'github', value: p.value.githubUrl.replace(/^https?:\/\//, ''), link: p.value.githubUrl })
-  if (p.value.twitterUrl) items.push({ icon: 'twitter', value: p.value.twitterUrl.replace(/^https?:\/\//, ''), link: p.value.twitterUrl })
+  if (p.value.website) items.push({ icon: 'web', value: p.value.website.replace(/^https?:\/\//, ''), link: p.value.website })
+  if (p.value.linkedin) items.push({ icon: 'linkedin', value: p.value.linkedin.replace(/^https?:\/\//, ''), link: p.value.linkedin })
+  if (p.value.github) items.push({ icon: 'github', value: p.value.github.replace(/^https?:\/\//, ''), link: p.value.github })
+  if (p.value.twitter) items.push({ icon: 'twitter', value: p.value.twitter.replace(/^https?:\/\//, ''), link: p.value.twitter })
   return items
 })
 </script>

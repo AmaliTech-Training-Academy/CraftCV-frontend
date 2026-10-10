@@ -10,10 +10,10 @@ export interface PersonalDetails {
   phone: string
   location: string
   website: string
-  linkedinUrl: string
-  githubUrl: string
-  twitterUrl: string
-  websiteUrl: string
+  linkedin: string
+  github: string
+  twitter: string
+  website: string
 }
 
 export interface ExperienceItem {
@@ -82,7 +82,7 @@ export interface SaveErrorDetail {
  * a field of any record an error is shown against.
  */
 const backendFieldNames: Record<string, string> = {
-  website: 'websiteUrl',
+  website: 'website',
   title: 'role',
   school: 'institution',
   date: 'issueDate',
@@ -157,10 +157,10 @@ export const useCVState = () => {
     phone: '',
     location: '',
     website: '',
-    linkedinUrl: '',
-    githubUrl: '',
-    twitterUrl: '',
-    websiteUrl: '',
+    linkedin: '',
+    github: '',
+    twitter: '',
+    website: '',
   }))
 
   const summary = useState<string>('cv-summary', () => '')
@@ -236,10 +236,10 @@ export const useCVState = () => {
       phone: '',
       location: '',
       website: '',
-      linkedinUrl: '',
-      githubUrl: '',
-      twitterUrl: '',
-      websiteUrl: '',
+      linkedin: '',
+      github: '',
+      twitter: '',
+      website: '',
     }
     return {
       personal: {
@@ -250,11 +250,10 @@ export const useCVState = () => {
         phone: p.phone.trim() || '0x0000000',
         location: p.location.trim() || 'City, Country',
         website: p.website.trim() || 'www.yourwebsite.com',
-        linkedinUrl: p.linkedinUrl?.trim() || '',
-        githubUrl: p.githubUrl?.trim() || '',
-        twitterUrl: p.twitterUrl?.trim() || '',
-        websiteUrl: p.websiteUrl?.trim() || p.website?.trim() || 'www.yourwebsite.com',
-      },
+        linkedin: p.linkedin?.trim() || '',
+        github: p.github?.trim() || '',
+        twitter: p.twitter?.trim() || '',
+              },
       summary: summary.value.trim() || 'Your professional summary will appear here. Write a short, impactful paragraph highlighting your key achievements, skills, and career goals.',
       experience: experience.value.length > 0
         ? experience.value
@@ -362,10 +361,10 @@ export const useCVState = () => {
       phone: '',
       location: '',
       website: '',
-      linkedinUrl: '',
-      githubUrl: '',
-      twitterUrl: '',
-      websiteUrl: '',
+      linkedin: '',
+      github: '',
+      twitter: '',
+      website: '',
     }
     summary.value = ''
     experience.value = []

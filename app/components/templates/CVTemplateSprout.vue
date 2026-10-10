@@ -34,17 +34,17 @@ const { accentColor } = useCVState()
         <span v-if="data.personal_details.email && data.personal_details.phone">&middot;</span>
         <span v-if="data.personal_details.phone">{{ data.personal_details.phone }}</span>
 
-        <template v-if="data.personal_details.websiteUrl && data.personal_details.websiteUrl !== 'www.yourwebsite.com'">
+        <template v-if="data.personal_details.website && data.personal_details.website !== 'www.yourwebsite.com'">
           <span>&middot;</span>
-          <span>{{ data.personal_details.websiteUrl.replace(/^https?:\/\//, '') }}</span>
+          <span>{{ data.personal_details.website.replace(/^https?:\/\//, '') }}</span>
         </template>
-        <template v-if="data.personal_details.linkedinUrl">
+        <template v-if="data.personal_details.linkedin">
           <span>&middot;</span>
-          <span>{{ data.personal_details.linkedinUrl.replace(/^https?:\/\//, '') }}</span>
+          <span>{{ data.personal_details.linkedin.replace(/^https?:\/\//, '') }}</span>
         </template>
-        <template v-if="data.personal_details.githubUrl">
+        <template v-if="data.personal_details.github">
           <span>&middot;</span>
-          <span>{{ data.personal_details.githubUrl.replace(/^https?:\/\//, '') }}</span>
+          <span>{{ data.personal_details.github.replace(/^https?:\/\//, '') }}</span>
         </template>
       </div>
 

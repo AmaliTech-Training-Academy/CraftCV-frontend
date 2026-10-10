@@ -73,14 +73,14 @@ describe('useCVState', () => {
       const { education, getEducationStatus } = useCVState()
       expect(getEducationStatus()).toBe('empty')
 
-      education.value.push({ id: '1', degree: 'BSc', school: '', location: '', startDate: '', endDate: '', description: '' })
+      education.value.push({ id: '1', degree: 'BSc', school: '', fieldOfStudy: '', location: '', startDate: '', endDate: '', description: '' })
       expect(getEducationStatus()).toBe('empty')
 
       education.value[0]!.school = 'UG'
       education.value[0]!.startDate = '2015'
       expect(getEducationStatus()).toBe('complete')
 
-      education.value.push({ id: '2', degree: 'MSc', school: '', location: '', startDate: '', endDate: '', description: '' })
+      education.value.push({ id: '2', degree: 'MSc', school: '', fieldOfStudy: '', location: '', startDate: '', endDate: '', description: '' })
       expect(getEducationStatus()).toBe('incomplete')
     })
 
@@ -134,7 +134,7 @@ describe('useCVState', () => {
       expect(previewData.value.skills.length).toBe(3)
       expect(rawCVData.value.skills.length).toBe(0)
 
-      expect(previewData.value.certifications.length).toBe(0)
+      expect(previewData.value.certifications.length).toBe(1)
       expect(rawCVData.value.certifications.length).toBe(0)
     })
 

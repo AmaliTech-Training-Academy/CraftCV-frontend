@@ -42,21 +42,21 @@ const { accentColor } = useCVState()
       <span v-if="data.personal_details.phone && data.personal_details.email">&middot;</span>
       <span v-if="data.personal_details.email">{{ data.personal_details.email }}</span>
 
-      <template v-if="data.personal_details.websiteUrl && data.personal_details.websiteUrl !== 'www.yourwebsite.com'">
+      <template v-if="data.personal_details.website && data.personal_details.website !== 'www.yourwebsite.com'">
         <span>&middot;</span>
-        <span>{{ data.personal_details.websiteUrl }}</span>
+        <span>{{ data.personal_details.website }}</span>
       </template>
-      <template v-if="data.personal_details.linkedinUrl">
+      <template v-if="data.personal_details.linkedin">
         <span>&middot;</span>
-        <span>{{ data.personal_details.linkedinUrl }}</span>
+        <span>{{ data.personal_details.linkedin }}</span>
       </template>
-      <template v-if="data.personal_details.githubUrl">
+      <template v-if="data.personal_details.github">
         <span>&middot;</span>
-        <span>{{ data.personal_details.githubUrl }}</span>
+        <span>{{ data.personal_details.github }}</span>
       </template>
-      <template v-if="data.personal_details.twitterUrl">
+      <template v-if="data.personal_details.twitter">
         <span>&middot;</span>
-        <span>{{ data.personal_details.twitterUrl }}</span>
+        <span>{{ data.personal_details.twitter }}</span>
       </template>
     </div>
 

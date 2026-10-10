@@ -285,7 +285,7 @@ describe('useAutosave', () => {
       email: 'ada@example.com',
       phone: '0123456789',
       location: 'London',
-      websiteUrl: 'https://ada.dev',
+      website: 'https://ada.dev',
       nationality: 'British',
       passport: 'X123',
     }
@@ -302,7 +302,7 @@ describe('useAutosave', () => {
     expect(options.method).toBe('PUT')
 
     // A PUT is a full replace, so every field goes. `website` is the backend's
-    // `websiteUrl`; nationality and passport have no backend field at all and
+    // `website`; nationality and passport have no backend field at all and
     // stay in the editor.
     expect(options.body).toEqual({
       firstName: 'Ada',
@@ -310,10 +310,10 @@ describe('useAutosave', () => {
       email: 'ada@example.com',
       phone: '0123456789',
       location: 'London',
-      websiteUrl: 'https://ada.dev',
-      linkedinUrl: '',
-      githubUrl: '',
-      twitterUrl: '',
+      website: 'https://ada.dev',
+      linkedin: '',
+      github: '',
+      twitter: '',
     })
   })
 
@@ -325,7 +325,7 @@ describe('useAutosave', () => {
         firstName: 'Ada',
         lastName: 'Lovelace',
         email: 'ada@example.com',
-        websiteUrl: 'https://ada.dev',
+        website: 'https://ada.dev',
       },
     })
 
@@ -335,8 +335,8 @@ describe('useAutosave', () => {
 
     const state = useCVState()
 
-    // The record says `websiteUrl`; the Website control is bound to `websiteUrl` now.
-    expect(state.personal.value.websiteUrl).toBe('https://ada.dev')
+    // The record says `website`; the Website control is bound to `website` now.
+    expect(state.personal.value.website).toBe('https://ada.dev')
 
     mockApi.mockReset()
     mockApi.mockResolvedValue({})

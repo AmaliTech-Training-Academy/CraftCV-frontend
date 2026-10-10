@@ -7,10 +7,10 @@ export interface PersonalDetails {
   linkedin?: string
   github?: string
   twitter?: string
-  linkedinUrl?: string
-  githubUrl?: string
-  twitterUrl?: string
-  websiteUrl?: string
+  linkedin?: string
+  github?: string
+  twitter?: string
+  website?: string
 }
 
 export interface Education {
