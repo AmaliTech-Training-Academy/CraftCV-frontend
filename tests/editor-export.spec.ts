@@ -1,13 +1,32 @@
 // @vitest-environment nuxt
-import { describe, expect, it, beforeEach } from 'vitest'
+import { describe, expect, it, beforeEach, vi } from 'vitest'
+import { nextTick } from 'vue'
 import { useCVState } from '~/composables/useCVState'
 import { getRenderer } from '~/utils/pdf/registry'
 import { buildDocumentDefinition } from '~/utils/pdfExport'
 
+const { mockApi } = vi.hoisted(() => ({
+  mockApi: vi.fn(),
+}))
+
+vi.mock('../app/utils/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../app/utils/api')>()
+  return {
+    ...actual,
+    $api: mockApi,
+  }
+})
+
 describe('Editor Export Integration', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    mockApi.mockReset()
     const { resetCV } = useCVState()
     resetCV()
+
+    // `cvId` is a cookie, and `useCookie` gives each caller its own ref rather
+    // than sharing one the way `useState` does — so the reset only reaches the
+    // layout once the write has flushed.
+    await nextTick()
   })
 
   it('selects the appropriate PDF renderer according to selectedTemplateSlug', () => {
@@ -82,7 +101,7 @@ describe('Editor Export Integration', () => {
       },
     })
 
-    const exportButtons = wrapper.findAll('button').filter(b => b.text().includes('Export PDF'))
+    const exportButtons = wrapper.findAll('button').filter(b => b.text().includes('Export'))
     expect(exportButtons.length).toBeGreaterThan(0)
 
     expect(document.body.textContent).not.toContain('Ready to export')
@@ -91,6 +110,47 @@ describe('Editor Export Integration', () => {
 
     expect(document.body.textContent).toContain('Ready to export')
     expect(document.body.textContent).toContain('Export Document')
+
+    wrapper.unmount()
+  })
+
+  it('holds the workspace behind a loading state until the CV has loaded', async () => {
+    const { mountSuspended } = await import('@nuxt/test-utils/runtime')
+    const EditorLayout = (await import('~/layouts/editor.vue')).default
+
+    // A CV id means the editor is about to fetch one. Leaving the request
+    // pending is the reload the loading state exists for: without it the form
+    // renders from empty state and a CV with content looks like it lost it.
+    mockApi.mockImplementation(() => new Promise(() => {}))
+    useCVState().cvId.value = 'cv-slow'
+    await nextTick()
+
+    const wrapper = await mountSuspended(EditorLayout, {
+      slots: {
+        default: () => '<div>Editor Form Content</div>',
+      },
+    })
+
+    expect(wrapper.text()).toContain('Loading your CV')
+    expect(wrapper.text()).not.toContain('Editor Form Content')
+
+    wrapper.unmount()
+  })
+
+  it('renders the form straight away when there is no CV to load', async () => {
+    const { mountSuspended } = await import('@nuxt/test-utils/runtime')
+    const EditorLayout = (await import('~/layouts/editor.vue')).default
+
+    // A brand new CV has an empty id, so nothing is fetched and a loading state
+    // would be a stall for no reason.
+    const wrapper = await mountSuspended(EditorLayout, {
+      slots: {
+        default: () => '<div>Editor Form Content</div>',
+      },
+    })
+
+    expect(wrapper.text()).toContain('Editor Form Content')
+    expect(wrapper.text()).not.toContain('Loading your CV')
 
     wrapper.unmount()
   })

@@ -126,6 +126,15 @@ export function buildProfessionalPdf(
       margin: [0, 0, 0, 3],
     })
   }
+  if (personal.twitter) {
+    contactLines.push({
+      text: personal.twitter.replace(/^https?:\/\//, ''),
+      ...(options.includeLinks ? { link: toUrl(personal.twitter) } : {}),
+      color: options.includeLinks ? '#93C5FD' : '#E2E8F0',
+      fontSize: 8.5,
+      margin: [0, 0, 0, 3],
+    })
+  }
 
   if (contactLines.length > 0) {
     sidebarStack.push(sidebarSectionHeader('Contact'))

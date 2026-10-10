@@ -14,7 +14,7 @@ export interface Education {
   id: string
   institution: string
   degree: string
-  field_of_study?: string
+  field_of_study: string
   location?: string
   start_date: string
   end_date: string | null // null indicates "Present"

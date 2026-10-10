@@ -1,6 +1,7 @@
 // @vitest-environment nuxt
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import ExperiencePage from '~/pages/editor/experience.vue'
 import EducationPage from '~/pages/editor/education.vue'
 import SkillsPage from '~/pages/editor/skills.vue'
@@ -174,6 +175,37 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
 
       // It should discard the invalid item instead of expanding it
       expect(experience.value.length).toBe(0)
+    })
+
+    it('shows a message the backend rejected on the entry it belongs to', async () => {
+      const { experience, saveErrorDetail } = useCVState()
+      experience.value = [{
+        id: 'exp-7',
+        title: 'Developer',
+        company: 'Stripe',
+        location: 'Remote',
+        startDate: 'January 2022',
+        endDate: 'Present',
+        description: '',
+      }]
+
+      const wrapper = mount(ExperiencePage, { global: { stubs: sharedStubs } })
+
+      const expandDiv = wrapper.find('[aria-label="Expand experience item"]')
+      if (expandDiv.exists()) await expandDiv.trigger('click')
+
+      // The backend's name for the job title is `role`, and the message is filed
+      // against the entry being written.
+      saveErrorDetail.value = { target: 'exp-7', fields: { role: 'This field may not be blank.' } }
+      await nextTick()
+
+      expect(wrapper.text()).toContain('This field may not be blank.')
+
+      // The same message about a different entry draws nothing here.
+      saveErrorDetail.value = { target: 'exp-8', fields: { role: 'This field may not be blank.' } }
+      await nextTick()
+
+      expect(wrapper.text()).not.toContain('This field may not be blank.')
     })
 
     it('prompts delete modal and deletes by UUID safely', async () => {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Edit, Trash2, Plus, ArrowRight, ChevronRight } from '@lucide/vue'
+import { Edit, Trash2, Plus, ArrowRight, ChevronRight, GripVertical } from '@lucide/vue'
 import { useMediaQuery } from '@vueuse/core'
+import { useSortable } from '@vueuse/integrations/useSortable'
 import { useCVState, type ExperienceItem } from '~/composables/useCVState'
 import { isEndDateBeforeStartDate, isValidDateString, useCVSectionEditor } from '~/composables/useCVSectionEditor'
 import { parseDescription } from '~/utils/cvText'
@@ -88,6 +89,12 @@ const handleNext = () => {
     await navigateTo('/editor/education')
   })
 }
+
+const listRef = ref<HTMLElement | null>(null)
+useSortable(listRef, experience, {
+  handle: '.drag-handle',
+  animation: 200,
+})
 </script>
 
 <template>
@@ -99,7 +106,10 @@ const handleNext = () => {
       back-text="Back to Summary"
     />
 
-    <div class="space-y-6">
+    <div
+      ref="listRef"
+      class="space-y-6"
+    >
       <div
         v-for="(item, index) in experience"
         :key="item.id"
@@ -120,6 +130,10 @@ const handleNext = () => {
           @keydown.space.prevent="activeId = item.id"
         >
           <div class="flex items-center gap-3 overflow-hidden">
+            <GripVertical
+              class="drag-handle w-4 h-4 cursor-grab text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+              @click.stop
+            />
             <span class="text-xs font-semibold text-gray-400 bg-gray-100 rounded-md px-2 py-1 shrink-0">
               #{{ index + 1 }}
             </span>

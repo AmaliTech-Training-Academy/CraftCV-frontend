@@ -8,7 +8,13 @@ definePageMeta({
   middleware: ['auth'],
 })
 
-const { summary } = useCVState()
+const { summary, saveErrorFor } = useCVState()
+
+/**
+ * The summary is a field of the CV record itself, not of a section entry, which
+ * is why it is looked up under 'cv'.
+ */
+const backendError = () => saveErrorFor('cv', 'professionalSummary')
 </script>
 
 <template>
@@ -29,8 +35,23 @@ const { summary } = useCVState()
             v-model="summary"
             rows="6"
             placeholder="e.g. Innovative Product Designer with 5+ years of experience..."
-            class="w-full rounded-xl border border-gray-300 p-4 focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20 focus:border-[#C54A22] transition-all text-[15px] resize-y"
+            :aria-invalid="Boolean(backendError())"
+            :aria-describedby="backendError() ? 'summary-error' : undefined"
+            class="w-full rounded-xl border p-4 focus:outline-none focus:ring-2 transition-all text-[15px] resize-y"
+            :class="[
+              backendError()
+                ? 'border-red-400 focus:ring-red-400/20 focus:border-red-500'
+                : 'border-gray-300 focus:ring-[#C54A22]/20 focus:border-[#C54A22]',
+            ]"
           />
+          <p
+            v-if="backendError()"
+            id="summary-error"
+            role="alert"
+            class="text-xs font-semibold text-red-500 mt-1.5"
+          >
+            {{ backendError() }}
+          </p>
         </div>
       </div>
     </div>

@@ -160,6 +160,17 @@ const paperClass = computed(() => 'w-[210mm] min-h-[297mm]')
 const zoomLabel = computed(() => `${zoom.value}%`)
 const formatLabel = computed(() => format.value === 'pdf' ? 'Export as PDF' : 'Export as Plain Text')
 
+const cvElement = ref<HTMLElement | null>(null)
+const cvHeight = ref<number | null>(null)
+
+useResizeObserver(cvElement, (entries) => {
+  const entry = entries[0]
+  if (entry) {
+    // The contentRect height gives us the unscaled height
+    cvHeight.value = entry.contentRect.height
+  }
+})
+
 const calculateFitZoom = () => {
   if (!previewContainer.value) {
     zoom.value = 50
@@ -270,7 +281,7 @@ const submitExport = () => {
   <Dialog v-model:open="isOpen">
     <DialogContent
       :show-close-button="false"
-      class="sm:max-w-none w-[calc(100%-2rem)] max-w-[1280px] h-[min(780px,calc(100vh-2rem))] max-h-[calc(100vh-2rem)] gap-0 overflow-hidden rounded-2xl bg-stone-50 p-0 text-stone-900 shadow-2xl z-[70]"
+      class="sm:max-w-none w-[calc(100%-2rem)] max-w-3xl h-[min(780px,calc(100vh-2rem))] max-h-[calc(100vh-2rem)] gap-0 overflow-hidden rounded-2xl bg-stone-50 p-0 text-stone-900 shadow-2xl z-[70]"
     >
       <DialogHeader class="flex h-13 shrink-0 flex-row items-center justify-between border-b border-stone-200 bg-white px-5 py-0 text-left">
         <div class="flex items-center gap-3">
@@ -369,9 +380,10 @@ const submitExport = () => {
           >
             <div
               class="flex min-w-full justify-center transition-all duration-200"
-              :style="{ minHeight: `calc(297mm * ${zoom / 100} + 1.5rem)` }"
+              :style="{ height: cvHeight ? `${cvHeight * (zoom / 100)}px` : `calc(297mm * ${zoom / 100})` }"
             >
               <div
+                ref="cvElement"
                 class="export-target-container origin-top border border-stone-200/80 shadow-[0_10px_30px_rgba(75,61,46,0.14)] bg-white transition-transform duration-200"
                 :class="paperClass"
                 :style="{ transform: `scale(${zoom / 100})` }"

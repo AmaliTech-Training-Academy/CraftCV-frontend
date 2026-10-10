@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Loader2 } from '@lucide/vue'
+import { AlertCircle, Loader2 } from '@lucide/vue'
 import type { useTemplates } from '~/composables/useTemplates'
 import { useCVState } from '~/composables/useCVState'
+import { useCVs } from '~/composables/useCVs'
+import { extractErrorMessage } from '~/utils/api'
 
 useHead({ title: 'Choose Template' })
 
@@ -35,22 +37,38 @@ const navigateTemplate = (template: Template) => {
 }
 
 const isCreating = ref(false)
-const { hasActiveCV, selectedTemplateId, selectedTemplateSlug } = useCVState()
+const createError = ref<string | null>(null)
+const { selectedTemplateId, selectedTemplateSlug, resetCV } = useCVState()
+const { createCV } = useCVs()
 
 const handleUseTemplate = async (template: Template) => {
   closePreview()
   isCreating.value = true
+  createError.value = null
 
-  // Save template selection and mark CV as active
+  // Start from a clean slate: without this, choosing a new template after
+  // editing another CV would carry that CV's personal details and sections
+  // into the new one. resetCV also clears the cvId cookie, which is what stops
+  // the editor loading the previous CV instead of this one.
+  resetCV()
+
+  // Record the choice locally up front so the editor's preview renders in the
+  // right design from its first paint.
   selectedTemplateId.value = template.templateId
   selectedTemplateSlug.value = template.slug
-  hasActiveCV.value = true
 
-  // Simulate network request/CV creation time
-  await new Promise(resolve => setTimeout(resolve, 1500))
-
-  isCreating.value = false
-  await navigateTo('/editor/personal')
+  try {
+    // Create the CV now rather than waiting for the first autosave. Otherwise a
+    // user who picks a template and leaves would find nothing in My Resumes.
+    await createCV(template.templateId)
+    await navigateTo('/editor/personal')
+  }
+  catch (err) {
+    createError.value = extractErrorMessage(err, 'Couldn\'t start your CV. Please try again.')
+  }
+  finally {
+    isCreating.value = false
+  }
 }
 </script>
 
@@ -66,6 +84,19 @@ const handleUseTemplate = async (template: Template) => {
           Pick a design you like — you can customize or switch it anytime.
         </p>
       </header>
+
+      <!-- Creating the CV failed — stay put and say so, rather than opening an
+           editor for a CV the backend never made. -->
+      <div
+        v-if="createError"
+        role="alert"
+        class="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 mb-6"
+      >
+        <AlertCircle class="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+        <p class="text-sm font-medium text-red-700">
+          {{ createError }}
+        </p>
+      </div>
 
       <!-- Mobile Categories Pill Strip (Hidden on md+, only shows if > 1 category) -->
       <div
