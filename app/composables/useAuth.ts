@@ -1,4 +1,5 @@
-import { extractErrorMessage } from '../utils/api'
+import { ref, computed } from 'vue'
+import { extractErrorMessage, requestTokenRefresh, getAuthCookieOptions } from '../utils/api'
 
 interface LoginCredentials {
   email: string
@@ -31,6 +32,7 @@ export interface User {
 export interface TokenPayload {
   user?: User
   accessToken?: string
+  access_token?: string
   access?: string
   token?: string
   requiresVerification?: boolean
@@ -42,6 +44,14 @@ export const useAuth = () => {
   const user = useCookie<User | null>('authUser', getAuthCookieOptions())
   const loading = ref(false)
   const error = ref<string | null>(null)
+
+  const refreshToken = async () => {
+    const config = useRuntimeConfig()
+    const baseURL = config.public.apiBase as string
+    const newAccessToken = await requestTokenRefresh(baseURL)
+    token.value = newAccessToken
+    return newAccessToken
+  }
 
   const fetchUser = async () => {
     if (!token.value) {
@@ -95,7 +105,7 @@ export const useAuth = () => {
         return response
       }
 
-      const tokenVal = response.accessToken || response.access || response.token
+      const tokenVal = response.accessToken || response.access_token || response.access || response.token
       if (tokenVal) {
         const tokenCookie = useCookie<string | null>('accessToken', getAuthCookieOptions(rememberMe))
         tokenCookie.value = tokenVal
@@ -167,7 +177,7 @@ export const useAuth = () => {
         unauthenticated: true,
       })
 
-      const tokenVal = response.accessToken || response.access || response.token
+      const tokenVal = response.accessToken || response.access_token || response.access || response.token
       if (tokenVal) {
         const tokenCookie = useCookie<string | null>('accessToken', getAuthCookieOptions())
         tokenCookie.value = tokenVal
@@ -211,7 +221,7 @@ export const useAuth = () => {
         unauthenticated: true,
       })
 
-      const tokenVal = response.accessToken || response.access || response.token
+      const tokenVal = response.accessToken || response.access_token || response.access || response.token
       if (tokenVal) {
         const tokenCookie = useCookie<string | null>('accessToken', getAuthCookieOptions())
         tokenCookie.value = tokenVal
@@ -274,6 +284,7 @@ export const useAuth = () => {
     token,
     user,
     fetchUser,
+    refreshToken,
     loading,
     error,
     login,

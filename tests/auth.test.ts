@@ -108,6 +108,8 @@ describe('Authentication Flow', () => {
     for (const key in cookies) delete cookies[key]
     const userState = getStateRef('auth_user')
     userState.value = null
+    const tokenState = getStateRef('authToken')
+    tokenState.value = null
     vi.clearAllMocks()
   })
 
