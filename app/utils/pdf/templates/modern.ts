@@ -46,13 +46,10 @@ export function buildModernPdf(
     personal.email ? { text: personal.email, link: options.includeLinks ? `mailto:${personal.email}` : undefined } : null,
     personal.phone ? { text: personal.phone } : null,
     personal.location ? { text: personal.location } : null,
-
-    personal.linkedin ? { text: personal.linkedin.replace(/^https?:\/\//, ''), link: personal.linkedin } : null,
-    personal.github ? { text: personal.github.replace(/^https?:\/\//, ''), link: personal.github } : null,
-    personal.twitter ? { text: personal.twitter.replace(/^https?:\/\//, ''), link: personal.twitter } : null,
     personal.website ? { text: personal.website.replace(/^https?:\/\//, ''), link: options.includeLinks ? toUrl(personal.website) : undefined } : null,
     personal.linkedin ? { text: personal.linkedin.replace(/^https?:\/\//, ''), link: options.includeLinks ? toUrl(personal.linkedin) : undefined } : null,
     personal.github ? { text: personal.github.replace(/^https?:\/\//, ''), link: options.includeLinks ? toUrl(personal.github) : undefined } : null,
+    personal.twitter ? { text: personal.twitter.replace(/^https?:\/\//, ''), link: options.includeLinks ? toUrl(personal.twitter) : undefined } : null,
   ].filter((p): p is { text: string, link?: string } => p !== null && Boolean(p.text))
 
   const fullName = `${personal.firstName} ${personal.lastName}`.trim()

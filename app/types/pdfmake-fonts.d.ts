@@ -10,3 +10,23 @@ declare module 'pdfmake/build/pdfmake' {
   export type Column = import('pdfmake/interfaces').Column
   export type TDocumentDefinitions = Parameters<typeof import('pdfmake').createPdf>[0]
 }
+
+declare module 'pdfmake/build/standard-fonts/Times' {
+  const font: unknown
+  export default font
+}
+
+declare module 'pdfmake/build/standard-fonts/Helvetica' {
+  const font: unknown
+  export default font
+}
+
+declare module 'pdfmake/build/standard-fonts/Courier' {
+  const font: unknown
+  export default font
+}
+
+declare module 'pdfmake/build/standard-fonts/*' {
+  const font: unknown
+  export default font
+}

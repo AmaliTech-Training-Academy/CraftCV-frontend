@@ -197,7 +197,7 @@ export const useCVState = () => {
 
   const getExperienceStatus = (): StepStatus => {
     const filled = experience.value.filter(
-      e => e.title.trim() && e.company.trim() && e.startDate.trim(),
+      e => e.title?.trim() && e.company?.trim() && e.startDate?.trim(),
     )
     if (filled.length === 0) return 'empty'
     if (filled.length === experience.value.length) return 'complete'
@@ -206,7 +206,7 @@ export const useCVState = () => {
 
   const getEducationStatus = (): StepStatus => {
     const filled = education.value.filter(
-      e => e.degree.trim() && e.school.trim() && e.startDate.trim(),
+      e => e.degree?.trim() && e.school?.trim() && e.startDate?.trim(),
     )
     if (filled.length === 0) return 'empty'
     if (filled.length === education.value.length) return 'complete'
@@ -215,13 +215,13 @@ export const useCVState = () => {
 
   const getSkillsStatus = (): StepStatus => {
     if (skills.value.length === 0) return 'empty'
-    const isComplete = skills.value.every(s => s.name.trim())
+    const isComplete = skills.value.every(s => s.name?.trim())
     return isComplete ? 'complete' : 'incomplete'
   }
 
   const getCertificationsStatus = (): StepStatus => {
     if (certifications.value.length === 0) return 'empty'
-    const isComplete = certifications.value.every(c => c.name.trim() && c.issuer.trim() && c.date.trim())
+    const isComplete = certifications.value.every(c => c.name?.trim() && c.issuer?.trim() && c.date?.trim())
     return isComplete ? 'complete' : 'incomplete'
   }
 

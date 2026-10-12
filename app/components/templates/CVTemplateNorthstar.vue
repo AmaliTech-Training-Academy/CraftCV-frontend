@@ -280,7 +280,7 @@ const getMeterWidthStr = (level?: string) => {
             <div class="w-full h-1.5 bg-[#cbd5e1] rounded-full overflow-hidden">
               <div
                 class="h-full  rounded-full"
-                :style="{ backgroundColor: accentColor, width: getMeterWidthStr(lang.level) }"
+                :style="{ backgroundColor: accentColor, width: getMeterWidthStr(lang.proficiency) }"
               />
             </div>
           </div>

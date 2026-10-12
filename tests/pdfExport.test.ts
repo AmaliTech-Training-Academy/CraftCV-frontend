@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildDocumentDefinition } from '~/utils/pdfExport'
+import { buildDocumentDefinition, getPdfMake } from '~/utils/pdfExport'
 import { getRenderer, PDF_RENDERERS } from '~/utils/pdf/registry'
 import { buildClassicPdf } from '~/utils/pdf/templates/classic'
 import { buildModernPdf } from '~/utils/pdf/templates/modern'
@@ -492,5 +492,37 @@ describe('Placeholder Stripping & Section Omission', () => {
     expect(serialized).not.toContain('&amp;')
     expect(serialized).not.toContain('&lt;')
     expect(serialized).not.toContain('&gt;')
+  })
+})
+
+describe('Real PDF Generation (all templates)', () => {
+  it('generates a real binary PDF without font errors for every registered template', async () => {
+    const pdfMake = await getPdfMake()
+    for (const templateSlug of Object.keys(PDF_RENDERERS)) {
+      const docDef = buildDocumentDefinition({
+        cvData: fullCvData,
+        filename: `${templateSlug}.pdf`,
+        paperSize: 'a4',
+        includeLinks: true,
+        templateSlug,
+      })
+      const buffer = await pdfMake.createPdf(docDef).getBuffer()
+      expect(buffer.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('generates a real binary PDF even for a CV with just a name, for every template', async () => {
+    const pdfMake = await getPdfMake()
+    const minimal = { personal: { firstName: 'Alex' } }
+    for (const templateSlug of Object.keys(PDF_RENDERERS)) {
+      const docDef = buildDocumentDefinition({
+        cvData: minimal,
+        filename: `${templateSlug}-minimal.pdf`,
+        paperSize: 'a4',
+        templateSlug,
+      })
+      const buffer = await pdfMake.createPdf(docDef).getBuffer()
+      expect(buffer.length).toBeGreaterThan(0)
+    }
   })
 })

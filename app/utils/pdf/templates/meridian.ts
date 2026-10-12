@@ -179,6 +179,23 @@ export function buildMeridianPdf(
     })
   }
 
+  // Skills
+  if (data.skills && data.skills.length > 0) {
+    content.push(makeSectionTitle('Skills'))
+    content.push({ text: data.skills.map(s => s.name).join('  •  '), style: 'bodyText' })
+  }
+
+  // Certifications
+  if (data.certifications && data.certifications.length > 0) {
+    content.push(makeSectionTitle('Certifications'))
+    data.certifications.forEach((cert, idx) => {
+      const isLast = idx === data.certifications!.length - 1
+      content.push({ text: cert.name || '', style: 'itemTitle' })
+      content.push({ text: `${cert.issuer || ''} • ${cert.date || ''}`, style: 'itemMeta' })
+      if (!isLast) content.push({ text: '', margin: [0, 0, 0, 10] })
+    })
+  }
+
   const styles: TDocumentDefinitions['styles'] = {
     headerName: {
       font: 'Times',

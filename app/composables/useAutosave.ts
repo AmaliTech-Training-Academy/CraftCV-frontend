@@ -5,6 +5,7 @@ import { useCVState } from './useCVState'
 import { useCVs } from './useCVs'
 import { useTemplates } from './useTemplates'
 import { $api, extractErrorMessage, extractFieldErrors } from '../utils/api'
+import { MONTH_NAMES, formatMonthYear } from '../utils/cvText'
 
 export function useAutosave() {
   const {
@@ -38,7 +39,7 @@ export function useAutosave() {
 
   /**
    * The personal-details fields the backend models, keyed by what the editor
-   * calls them. The backend says `website` where the editor says `website`.
+   * calls them. The backend says `websiteUrl` where the editor says `website`.
    *
    * Everything else the editor collects — title — has no backend field and stays local.
    * they are never sent and a PATCH leaves whatever is there untouched.
@@ -49,10 +50,10 @@ export function useAutosave() {
     email: 'email',
     phone: 'phone',
     location: 'location',
-    website: 'website',
-    linkedin: 'linkedin',
-    github: 'github',
-    twitter: 'twitter',
+    website: 'websiteUrl',
+    linkedin: 'linkedinUrl',
+    github: 'githubUrl',
+    twitter: 'twitterUrl',
   }
 
   /**
@@ -168,7 +169,7 @@ export function useAutosave() {
 
       if (data.personalDetail) {
         // Read back through the same map the save uses, in reverse: the backend
-        // returns `website` where the Website control is bound to `website`,
+        // returns `websiteUrl` where the Website control is bound to `website`,
         // so merging the record verbatim would leave that field blank on
         // refresh. Keys the editor has no control for are deliberately skipped
         // rather than carried around as stray state.
@@ -176,6 +177,9 @@ export function useAutosave() {
         for (const [localKey, backendKey] of Object.entries(personalDetailKeys)) {
           if (data.personalDetail[backendKey] !== undefined) {
             incoming[localKey] = data.personalDetail[backendKey]
+          }
+          else if (data.personalDetail[localKey] !== undefined) {
+            incoming[localKey] = data.personalDetail[localKey]
           }
         }
         personal.value = { ...personal.value, ...incoming }
@@ -186,14 +190,23 @@ export function useAutosave() {
       }
 
       // Load related sections, mapping backend fields back to frontend fields
-      education.value = (data.educations || []).map((e: any) => ({ ...e, school: e.school || e.institution }))
-      experience.value = (data.experiences || []).map((e: any) => ({ ...e, title: e.title || e.role }))
+      education.value = (data.educations || []).map((e: any) => ({
+        ...e,
+        school: e.school || e.institution || '',
+        degree: e.degree || '',
+        fieldOfStudy: e.fieldOfStudy || e.field_of_study || '',
+      }))
+      experience.value = (data.experiences || []).map((e: any) => ({
+        ...e,
+        title: e.title || e.role || '',
+        company: e.company || '',
+      }))
       skills.value = data.skills || []
       certifications.value = (data.certifications || []).map((c: any) => ({
         ...c,
         id: c.certificationId || c.id,
-        date: c.date || c.issueDate || '',
-        expirationDate: c.expirationDate || '',
+        date: formatMonthYear(c.date || c.issueDate || c.issue_date),
+        expirationDate: formatMonthYear(c.expirationDate || c.expiration_date),
         doesNotExpire: c.doesNotExpire ?? false,
         credentialId: c.credentialId || '',
         credentialUrl: c.credentialUrl || '',
@@ -445,11 +458,27 @@ export function useAutosave() {
           }
         }
 
-        // Check for reordering
+        // Check for reordering — if order changed, PATCH each moved item with its new displayOrder
         const lastFinalIds = lastItems.map((i: any) => i.id).filter((id: string) => !deletedIds.includes(id))
         const currentFinalIds = currentItems.map((i: any) => i.id)
-        if (JSON.stringify(lastFinalIds) !== JSON.stringify(currentFinalIds)) {
+        const orderChanged = JSON.stringify(lastFinalIds) !== JSON.stringify(currentFinalIds)
+        if (orderChanged) {
           sectionsChanged = true
+          for (let i = 0; i < currentItems.length; i++) {
+            const item = currentItems[i]
+            const lastIndex = lastFinalIds.indexOf(item.id)
+            if (lastIndex !== i && !item.id.startsWith('mock-') && !item.id.startsWith('temp_')) {
+              try {
+                await $api<any>(`/cvs/${endpoint}/${item.id}/`, {
+                  method: 'PATCH',
+                  body: { displayOrder: i },
+                })
+              }
+              catch (e) {
+                console.warn(`Failed to update displayOrder for ${item.id} in ${endpoint}`, e)
+              }
+            }
+          }
         }
 
         // Additions and Modifications
@@ -486,10 +515,15 @@ export function useAutosave() {
               if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed
               if (/^\d{4}-\d{2}$/.test(trimmed)) return `${trimmed}-01`
               if (/^\d{4}$/.test(trimmed)) return `${trimmed}-01-01`
-              return trimmed
+              const [month, year] = trimmed.split(/\s+/)
+              const monthIdx = month ? MONTH_NAMES.findIndex(m => m.toLowerCase() === month.toLowerCase() || m.toLowerCase().slice(0, 3) === month.toLowerCase()) : -1
+              if (monthIdx !== -1 && year && /^\d{4}$/.test(year)) {
+                return `${year}-${String(monthIdx + 1).padStart(2, '0')}-01`
+              }
+              return null
             }
 
-            payload.issueDate = normalizeDate(payload.issueDate) || '2024-01-01'
+            payload.issueDate = normalizeDate(payload.issueDate)
             payload.expirationDate = normalizeDate(payload.expirationDate)
             payload.doesNotExpire = Boolean(payload.doesNotExpire)
             if (!payload.credentialUrl?.trim()) payload.credentialUrl = null

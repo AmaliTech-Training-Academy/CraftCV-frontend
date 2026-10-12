@@ -19,25 +19,38 @@ type PdfMake = typeof import('pdfmake/build/pdfmake')
 
 let pdfMakePromise: Promise<PdfMake> | undefined
 
-async function getPdfMake(): Promise<PdfMake> {
+export async function getPdfMake(): Promise<PdfMake> {
   if (!pdfMakePromise) {
     pdfMakePromise = (import('pdfmake/build/pdfmake') as Promise<unknown>).then(async (module) => {
       const pdfMake = (module as { default?: unknown }).default ?? module
       const typedPdfMake = pdfMake as {
         addVirtualFileSystem?: (vfs: unknown) => void
+        addFontContainer?: (container: unknown) => void
         vfs?: Record<string, string>
         createPdf: (docDefinition: TDocumentDefinitions) => {
           download: (filename: string) => void
           print: () => void
+          getBuffer: () => Promise<Buffer>
         }
       }
-      const vfsFonts = await import('pdfmake/build/vfs_fonts')
+      const [vfsFonts, times, helvetica, courier] = await Promise.all([
+        import('pdfmake/build/vfs_fonts'),
+        import('pdfmake/build/standard-fonts/Times'),
+        import('pdfmake/build/standard-fonts/Helvetica'),
+        import('pdfmake/build/standard-fonts/Courier'),
+      ])
       const vfs = (vfsFonts.default ?? vfsFonts) as { pdfMake?: { vfs: Record<string, string> } }
       if (typedPdfMake.addVirtualFileSystem && vfs.pdfMake?.vfs) {
         typedPdfMake.addVirtualFileSystem(vfs.pdfMake.vfs)
       }
       else if (vfs.pdfMake?.vfs) {
         typedPdfMake.vfs = vfs.pdfMake.vfs
+      }
+      if (typedPdfMake.addFontContainer) {
+        const unwrap = (m: unknown) => (m as { default?: unknown }).default ?? m
+        typedPdfMake.addFontContainer(unwrap(times))
+        typedPdfMake.addFontContainer(unwrap(helvetica))
+        typedPdfMake.addFontContainer(unwrap(courier))
       }
       return typedPdfMake as unknown as PdfMake
     })

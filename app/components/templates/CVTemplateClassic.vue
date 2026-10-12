@@ -41,6 +41,24 @@ const { accentColor } = useCVState()
             <span class="truncate">{{ data.personal_details.website }}</span>
           </div>
         </template>
+        <template v-if="data.personal_details.linkedin">
+          <span class="text-gray-300">|</span>
+          <div class="flex items-center gap-1 min-w-0">
+            <span class="truncate">{{ data.personal_details.linkedin }}</span>
+          </div>
+        </template>
+        <template v-if="data.personal_details.github">
+          <span class="text-gray-300">|</span>
+          <div class="flex items-center gap-1 min-w-0">
+            <span class="truncate">{{ data.personal_details.github }}</span>
+          </div>
+        </template>
+        <template v-if="data.personal_details.twitter">
+          <span class="text-gray-300">|</span>
+          <div class="flex items-center gap-1 min-w-0">
+            <span class="truncate">{{ data.personal_details.twitter }}</span>
+          </div>
+        </template>
       </div>
     </div>
 

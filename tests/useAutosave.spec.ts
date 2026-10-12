@@ -306,10 +306,10 @@ describe('useAutosave', () => {
       email: 'ada@example.com',
       phone: '0123456789',
       location: 'London',
-      website: 'https://ada.dev',
-      linkedin: '',
-      github: '',
-      twitter: '',
+      websiteUrl: 'https://ada.dev',
+      linkedinUrl: '',
+      githubUrl: '',
+      twitterUrl: '',
     })
   })
 
@@ -321,7 +321,7 @@ describe('useAutosave', () => {
         firstName: 'Ada',
         lastName: 'Lovelace',
         email: 'ada@example.com',
-        website: 'https://ada.dev',
+        websiteUrl: 'https://ada.dev',
       },
     })
 
@@ -331,7 +331,7 @@ describe('useAutosave', () => {
 
     const state = useCVState()
 
-    // The record says `website`; the Website control is bound to `website` now.
+    // The record says `websiteUrl`; the Website control is bound to `website`.
     expect(state.personal.value.website).toBe('https://ada.dev')
 
     mockApi.mockReset()
@@ -682,5 +682,94 @@ describe('useAutosave', () => {
     await loadCV('cv-second')
     await flushMicrotasks()
     expect(useCVState().personal.value.title).toBe('')
+  })
+
+  it('converts certification date "May 2024" to "2024-05-01" on save and never invents dates', async () => {
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-cert-save',
+      title: 'Cert CV',
+      certifications: [],
+    })
+
+    const { loadCV, triggerAutosave } = useAutosave()
+    await loadCV('cv-cert-save')
+    await vi.runAllTimersAsync()
+
+    const state = useCVState()
+    mockApi.mockReset()
+    mockApi.mockResolvedValue({ id: 'real-cert-id' })
+
+    state.certifications.value.push({
+      id: 'cert_temp_1',
+      name: 'AWS Solutions Architect',
+      issuer: 'Amazon',
+      date: 'May 2024',
+      expirationDate: 'May 2027',
+      doesNotExpire: false,
+    })
+
+    triggerAutosave()
+    await flushMicrotasks()
+
+    expect(mockApi).toHaveBeenCalledWith('/cvs/certifications/', {
+      method: 'POST',
+      body: expect.objectContaining({
+        name: 'AWS Solutions Architect',
+        issuer: 'Amazon',
+        issueDate: '2024-05-01',
+        expirationDate: '2027-05-01',
+      }),
+    })
+
+    // Now test with a blank date — should NOT invent '2024-01-01'
+    mockApi.mockReset()
+    mockApi.mockResolvedValue({ id: 'real-cert-id-2' })
+
+    state.certifications.value.push({
+      id: 'cert_temp_2',
+      name: 'Google Cloud Professional',
+      issuer: 'Google',
+      date: '',
+      expirationDate: '',
+      doesNotExpire: true,
+    })
+
+    triggerAutosave()
+    await flushMicrotasks()
+
+    expect(mockApi).toHaveBeenCalledWith('/cvs/certifications/', {
+      method: 'POST',
+      body: expect.objectContaining({
+        name: 'Google Cloud Professional',
+        issuer: 'Google',
+        issueDate: null,
+        expirationDate: null,
+      }),
+    })
+  })
+
+  it('converts certification dates from "2024-05-01" back to "May 2024" on load', async () => {
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-cert-load',
+      title: 'Cert Load CV',
+      certifications: [
+        {
+          id: 'cert-1',
+          name: 'AWS Certified',
+          issuer: 'Amazon',
+          issueDate: '2024-05-01',
+          expirationDate: '2027-05-01',
+          doesNotExpire: false,
+        },
+      ],
+    })
+
+    const { loadCV } = useAutosave()
+    await loadCV('cv-cert-load')
+    await flushMicrotasks()
+
+    const state = useCVState()
+    expect(state.certifications.value[0]?.date).toBe('May 2024')
+    expect(state.certifications.value[0]?.expirationDate).toBe('May 2027')
   })
 })
