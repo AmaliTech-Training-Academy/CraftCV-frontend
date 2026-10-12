@@ -607,6 +607,17 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import {
+  AlertCircle,
+  Check,
+  CheckCircle,
+  Clock,
+  Eye,
+  EyeOff,
+  KeyRound,
+  Mail,
+  ShieldCheck,
+} from '@lucide/vue'
 import { usePasswordReset } from '~/composables/usePasswordReset'
 import { extractErrorMessage } from '~/utils/api'
 

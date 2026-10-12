@@ -179,9 +179,15 @@ export function buildClassicPdf(
 
   if (data.skills.length > 0) {
     content.push(sectionTitle('Skills', contentWidth))
+    const inlineSkills: Content[] = []
+    data.skills.forEach((skill, idx) => {
+      if (idx > 0) inlineSkills.push({ text: '  •  ', color: '#9CA3AF' })
+      inlineSkills.push({ text: skill.level ? `${skill.name} (${skill.level})` : skill.name })
+    })
     content.push({
-      ul: data.skills.map(skill => skill.level ? `${skill.name} (${skill.level})` : skill.name),
+      text: inlineSkills,
       style: 'body',
+      margin: [0, 0, 0, 6],
     })
   }
 

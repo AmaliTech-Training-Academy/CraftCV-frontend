@@ -177,4 +177,103 @@ describe('ExportModal.vue', () => {
 
     expect(wrapper.emitted('clear-error')).toBeDefined()
   })
+
+  it('toggles mobile tabs between Export Options and Preview Document', async () => {
+    wrapper = await mountSuspended(ExportModal, {
+      props: {
+        modelValue: true,
+        activeTemplateComponent: PreviewStub,
+        cvData,
+      },
+    })
+
+    const optionsTab = getBodyButton('Export Options')
+    const previewTab = getBodyButton('Preview Document')
+    expect(optionsTab).not.toBeUndefined()
+    expect(previewTab).not.toBeUndefined()
+
+    // Initially, options tab is active
+    expect(optionsTab?.className).toContain('bg-white')
+    expect(previewTab?.className).toContain('text-stone-500')
+
+    // Click preview tab
+    previewTab?.click()
+    await nextTick()
+
+    expect(previewTab?.className).toContain('bg-white')
+    expect(optionsTab?.className).toContain('text-stone-500')
+
+    // Click options tab back
+    optionsTab?.click()
+    await nextTick()
+
+    expect(optionsTab?.className).toContain('bg-white')
+    expect(previewTab?.className).toContain('text-stone-500')
+  })
+
+  it('renders dynamic pagination controls and disables arrows when single page', async () => {
+    wrapper = await mountSuspended(ExportModal, {
+      props: {
+        modelValue: true,
+        activeTemplateComponent: PreviewStub,
+        cvData,
+      },
+    })
+
+    expect(document.body.textContent).toContain('Page 1 of 1')
+    const prevBtn = document.body.querySelector<HTMLButtonElement>('button[aria-label="Previous page"]')
+    const nextBtn = document.body.querySelector<HTMLButtonElement>('button[aria-label="Next page"]')
+    expect(prevBtn).not.toBeNull()
+    expect(nextBtn).not.toBeNull()
+    expect(prevBtn?.disabled).toBe(true)
+    expect(nextBtn?.disabled).toBe(true)
+  })
+
+  it('renders floating zoom controls and adjusts zoom on click', async () => {
+    wrapper = await mountSuspended(ExportModal, {
+      props: {
+        modelValue: true,
+        activeTemplateComponent: PreviewStub,
+        cvData,
+      },
+    })
+
+    const zoomOutBtn = document.body.querySelector<HTMLButtonElement>('button[aria-label="Zoom out"]')
+    const zoomInBtn = document.body.querySelector<HTMLButtonElement>('button[aria-label="Zoom in"]')
+    const fitBtn = document.body.querySelector<HTMLButtonElement>('button[aria-label="Fit to view"]')
+    expect(zoomOutBtn).not.toBeNull()
+    expect(zoomInBtn).not.toBeNull()
+    expect(fitBtn).not.toBeNull()
+
+    // Initial default zoom is 35%
+    expect(document.body.textContent).toContain('35%')
+
+    // Zoom in
+    zoomInBtn?.click()
+    await nextTick()
+    expect(document.body.textContent).toContain('45%')
+
+    // Zoom out twice
+    zoomOutBtn?.click()
+    await nextTick()
+    expect(document.body.textContent).toContain('35%')
+    zoomOutBtn?.click()
+    await nextTick()
+    expect(document.body.textContent).toContain('30%')
+    // At minimum 30%, zoomOutBtn should be disabled
+    expect(zoomOutBtn?.disabled).toBe(true)
+
+    // Fit resets zoom
+    fitBtn?.click()
+    await nextTick()
+    expect(document.body.textContent).toContain('35%')
+
+    // Can zoom past 45% all the way up to 150%
+    for (let i = 0; i < 15; i++) {
+      zoomInBtn?.click()
+    }
+    await nextTick()
+    expect(document.body.textContent).toContain('150%')
+    expect(zoomInBtn?.disabled).toBe(true)
+  })
 })

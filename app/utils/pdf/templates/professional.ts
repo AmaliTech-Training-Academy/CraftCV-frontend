@@ -279,7 +279,7 @@ export function buildProfessionalPdf(
     background: (_currentPage: number, pageSize: { width: number, height: number }) => ({
       canvas: [
         {
-          type: 'rect',
+          type: 'rect' as const,
           x: 0,
           y: 0,
           w: sidebarWidth,

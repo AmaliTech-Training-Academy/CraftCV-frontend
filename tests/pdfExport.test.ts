@@ -483,4 +483,44 @@ describe('Placeholder Stripping & Section Omission', () => {
     expect(serialized).not.toContain('&lt;')
     expect(serialized).not.toContain('&gt;')
   })
+
+  it('retains certification expiration_date, does_not_expire, credential_id, and description during sanitization', async () => {
+    const { sanitizeExportData } = await import('~/utils/pdf/sanitizeExportData')
+    const sanitized = sanitizeExportData({
+      certifications: [
+        {
+          name: 'Certified Kubernetes Administrator',
+          issuer: 'Linux Foundation',
+          issue_date: '2023-01',
+          expiration_date: '2026-01',
+          does_not_expire: false,
+          credential_id: 'CKA-12345',
+          description: 'Hands-on Kubernetes administration skills.',
+        },
+        {
+          name: 'Lifetime AWS Certification',
+          issuer: 'Amazon',
+          doesNotExpire: true,
+          expirationDate: 'None',
+        },
+      ],
+    })
+
+    expect(sanitized.certifications).toHaveLength(2)
+    expect(sanitized.certifications[0]).toMatchObject({
+      name: 'Certified Kubernetes Administrator',
+      issuer: 'Linux Foundation',
+      issue_date: '2023-01',
+      expiration_date: '2026-01',
+      does_not_expire: false,
+      credential_id: 'CKA-12345',
+      description: 'Hands-on Kubernetes administration skills.',
+    })
+    expect(sanitized.certifications[1]).toMatchObject({
+      name: 'Lifetime AWS Certification',
+      issuer: 'Amazon',
+      does_not_expire: true,
+      expiration_date: 'None',
+    })
+  })
 })
