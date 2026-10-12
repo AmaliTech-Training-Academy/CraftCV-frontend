@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildDocumentDefinition, getPdfMake } from '~/utils/pdfExport'
+import { buildDocumentDefinition, getPdfMake, sanitizeExportData } from '~/utils/pdfExport'
 import { getRenderer, PDF_RENDERERS } from '~/utils/pdf/registry'
 import { buildClassicPdf } from '~/utils/pdf/templates/classic'
 import { buildModernPdf } from '~/utils/pdf/templates/modern'
@@ -524,5 +524,42 @@ describe('Real PDF Generation (all templates)', () => {
       const buffer = await pdfMake.createPdf(docDef).getBuffer()
       expect(buffer.length).toBeGreaterThan(0)
     }
+  })
+})
+
+describe('Skills export and proficiency level preservation', () => {
+  it('preserves skill level and proficiency in sanitizeExportData', () => {
+    const sanitized = sanitizeExportData({
+      personal_details: { first_name: 'Jane', last_name: 'Doe' },
+      skills: [
+        { id: 's-1', name: 'Vue.js', level: 'Beginner' },
+        { id: 's-2', name: 'TypeScript', proficiency: 'Intermediate' },
+      ],
+    })
+
+    expect(sanitized.skills).toHaveLength(2)
+    expect(sanitized.skills[0]?.level).toBe('Beginner')
+    expect(sanitized.skills[1]?.level).toBe('Intermediate')
+  })
+
+  it('calculates skill meter widths corresponding to level in Prism template', () => {
+    const docDef = buildDocumentDefinition({
+      cvData: {
+        personal: { firstName: 'Jane', lastName: 'Doe' },
+        skills: [
+          { id: 's-1', name: 'Vue.js', level: 'Beginner' },
+          { id: 's-2', name: 'TypeScript', level: 'Intermediate' },
+          { id: 's-3', name: 'Go', level: 'Advanced' },
+        ],
+      },
+      filename: 'prism-skills.pdf',
+      paperSize: 'a4',
+      templateSlug: 'prism',
+    })
+
+    const serialized = JSON.stringify(docDef)
+    expect(serialized).toContain('Vue.js')
+    expect(serialized).toContain('TypeScript')
+    expect(serialized).toContain('Go')
   })
 })

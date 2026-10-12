@@ -158,6 +158,7 @@ export function sanitizeExportData(data: ResolvedCvData | Record<string, unknown
     .map((skill, index) => ({
       id: String(skill.id ?? `skill-${index}`),
       name: String(skill.name),
+      level: isRealText(String(skill.level ?? skill.proficiency ?? '')) ? String(skill.level ?? skill.proficiency) : undefined,
       display_order: typeof skill.display_order === 'number' ? skill.display_order : index,
     }))
 

@@ -206,6 +206,7 @@ export function useAutosave() {
       skills.value = (data.skills || []).map((s: any) => ({
         ...s,
         id: s.skillId || s.id,
+        level: s.level || s.proficiency || 'Intermediate',
       }))
       certifications.value = (data.certifications || []).map((c: any) => ({
         ...c,
