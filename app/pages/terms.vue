@@ -63,7 +63,7 @@
             6. Sensitive Personal Information
           </h2>
           <p>
-            CraftCV’s Personal Details section supports optional fields that may constitute sensitive personal data, including Nationality, Date of Birth, Visa status, and Passport/ID. These fields are entirely optional, encrypted at rest and in transit, retained only for as long as your account remains active (and deleted within 30 days of account deletion), and presented behind an explicit “Add details” action. CraftCV is committed to handling this data in line with Ghana’s Data Protection Act, 2012 (Act 843), and the guidance of the Data Protection Commission.
+            CraftCV’s Personal Details section supports optional fields that may constitute sensitive personal data. These fields are entirely optional, encrypted at rest and in transit, retained only for as long as your account remains active (and deleted within 30 days of account deletion), and presented behind an explicit “Add details” action. CraftCV is committed to handling this data in line with Ghana’s Data Protection Act, 2012 (Act 843), and the guidance of the Data Protection Commission.
           </p>
         </section>
 

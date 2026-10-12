@@ -367,7 +367,7 @@ describe('register.vue', () => {
       expect(wrapper.find('#password-guidance').exists()).toBe(true)
       expect(wrapper.find('#password-error').exists()).toBe(false)
       expect(wrapper.find('#password-guidance').text()).toBe(
-        'To make it stronger, add: a lowercase letter, a number, a special symbol, avoid common sequences.',
+        'To make it stronger, add: a lowercase letter, a number, a special symbol and avoid common sequences.',
       )
 
       // When blurred (engaging another field), guidance hides and error only shows what to add
@@ -375,13 +375,19 @@ describe('register.vue', () => {
       expect(wrapper.find('#password-guidance').exists()).toBe(false)
       expect(wrapper.find('#password-error').exists()).toBe(true)
       expect(wrapper.find('#password-error').text()).toBe(
-        'To make it stronger, add: a lowercase letter, a number, a special symbol, avoid common sequences.',
+        'To make it stronger, add: a lowercase letter, a number, a special symbol and avoid common sequences.',
       )
 
       // When user starts typing / focuses again, guidance returns and error hides
       await passwordInput.trigger('focus')
       expect(wrapper.find('#password-guidance').exists()).toBe(true)
       expect(wrapper.find('#password-error').exists()).toBe(false)
+
+      // When password has all required character types but fails only unpredictable check
+      await passwordInput.setValue('Password1!')
+      expect(wrapper.find('#password-guidance').text()).toBe(
+        'To make it stronger, avoid common sequences.',
+      )
 
       // Submit button must remain disabled
       const submitBtn = wrapper.find('button[type="submit"]')

@@ -82,7 +82,7 @@ export function tiptapJSONToDescription(json: JSONContent): string {
   return lines.join('\n')
 }
 
-const MONTH_NAMES = [
+export const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
@@ -95,7 +95,7 @@ export function formatMonthYear(dateString?: string | null): string {
   if (!dateString) return ''
 
   const parts = dateString.split('-')
-  if (parts.length === 3) {
+  if (parts.length === 3 || parts.length === 2) {
     const year = parts[0]
     const month = parseInt(parts[1] || '1', 10) - 1
     if (year && month >= 0 && month <= 11) {

@@ -770,6 +770,22 @@ const isPasswordValid = computed(() => {
   return passwordCriteria.value.every(rule => rule.passed)
 })
 
+function formatMissingPasswordGuidance(missing: { key: string, hint: string }[]) {
+  const toAdd = missing.filter(m => m.key !== 'unpredictable').map(m => m.hint)
+  const hasUnpredictable = missing.some(m => m.key === 'unpredictable')
+
+  if (toAdd.length > 0 && hasUnpredictable) {
+    return `To make it stronger, add: ${toAdd.join(', ')} and avoid common sequences.`
+  }
+  if (toAdd.length > 0) {
+    return `To make it stronger, add: ${toAdd.join(', ')}.`
+  }
+  if (hasUnpredictable) {
+    return 'To make it stronger, avoid common sequences.'
+  }
+  return ''
+}
+
 // Dynamic inline suggestion text
 const passwordGuidance = computed(() => {
   if (!newPassword.value) return ''
@@ -786,8 +802,7 @@ const passwordGuidance = computed(() => {
   }
 
   // Specifically tell the user what to add to make it strong
-  const missingHints = missing.map(m => m.hint)
-  return `To make it stronger, add: ${missingHints.join(', ')}.`
+  return formatMissingPasswordGuidance(missing)
 })
 
 const isResetFormValid = computed(() => {

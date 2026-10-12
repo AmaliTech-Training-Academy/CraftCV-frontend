@@ -202,7 +202,7 @@ describe('verify-email.vue', () => {
   })
 
   describe('Verification & Submission', () => {
-    it('dispatches POST /api/auth/verify-email/, saves session cookies, and redirects to /dashboard upon success', async () => {
+    it('dispatches POST /api/auth/verify-email/, saves session cookies, and redirects to /onboarding upon success', async () => {
       mockApi.mockResolvedValueOnce({
         accessToken: 'valid-access-token-123',
         user: { id: 'u1', email: 'test@example.com' },
@@ -233,7 +233,7 @@ describe('verify-email.vue', () => {
       expect(userCookie.value?.email).toBe('test@example.com')
 
       expect(wrapper.find('#verify-success').text()).toContain('Email verified successfully! Redirecting...')
-      expect(mockNavigateTo).toHaveBeenCalledWith('/dashboard')
+      expect(mockNavigateTo).toHaveBeenCalledWith('/onboarding')
     })
 
     it('redirects to /login with verified=true query flag when verifyEmail succeeds without issuing an access token', async () => {
@@ -259,7 +259,7 @@ describe('verify-email.vue', () => {
       })
     })
 
-    it('handles verification failure: displays backend error message and prevents redirect to /dashboard', async () => {
+    it('handles verification failure: displays backend error message and prevents redirect to /onboarding', async () => {
       mockApi.mockRejectedValueOnce({
         data: { message: 'Invalid or expired verification code' },
       })
@@ -273,7 +273,7 @@ describe('verify-email.vue', () => {
       await nextTick()
       await flushPromises()
 
-      expect(mockNavigateTo).not.toHaveBeenCalledWith('/dashboard')
+      expect(mockNavigateTo).not.toHaveBeenCalledWith('/onboarding')
       expect(wrapper.find('#verify-error').text()).toContain('Invalid or expired verification code')
 
       const submitBtn = wrapper.find('button[type="submit"]')

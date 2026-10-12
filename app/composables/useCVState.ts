@@ -1,5 +1,6 @@
 import { useState } from '#imports'
 import { computed } from 'vue'
+import { templateAccent } from '../utils/templateAccents'
 
 export interface PersonalDetails {
   firstName: string
@@ -29,7 +30,7 @@ export interface EducationItem {
   id: string
   degree: string
   school: string
-  fieldOfStudy: string
+  fieldOfStudy?: string
   location: string
   startDate: string
   endDate: string | null
@@ -80,7 +81,7 @@ export interface SaveErrorDetail {
  * a field of any record an error is shown against.
  */
 const backendFieldNames: Record<string, string> = {
-  website: 'websiteUrl',
+  website: 'website',
   title: 'role',
   school: 'institution',
   date: 'issueDate',
@@ -95,6 +96,41 @@ export const useCVState = () => {
   const lastSavedAt = useState<string | null>('cv-last-saved-at', () => null)
   const saveState = useState<'saving' | 'saved' | 'error' | 'idle'>('cv-save-state', () => 'idle')
   const saveErrorMessage = useState<string | null>('cv-save-error', () => null)
+  /**
+   * The accent colour of every CV that has had one chosen, keyed by CV id.
+   *
+   * One colour for the whole account was the wrong shape: picking a colour on
+   * one CV repainted every other one. A CV that has never had a colour chosen
+   * takes its template's own (see `templateAccent`), so a template that was
+   * never customised keeps the look it was designed with.
+   *
+   * A CV that does not exist yet has no id to key on — the editor creates one
+   * on the first save, and a colour can be picked before that — so that choice
+   * lives under `draft` until the CV has a colour of its own.
+   */
+  const accentColorsCookie = useCookie<Record<string, string>>('cv-accent-colors', {
+    default: () => ({}),
+    maxAge: 60 * 60 * 24 * 365,
+    path: '/',
+  })
+
+  const accentColorsShared = useState<Record<string, string>>('cv-accent-colors-shared', () => accentColorsCookie.value || {})
+
+  const DRAFT_ACCENT_KEY = 'draft'
+
+  const accentColor = computed<string>({
+    get: () => {
+      const stored = accentColorsShared.value || {}
+      return stored[cvId.value || DRAFT_ACCENT_KEY]
+        || stored[DRAFT_ACCENT_KEY]
+        || templateAccent(selectedTemplateSlug.value)
+    },
+    set: (value: string) => {
+      const updated = { ...(accentColorsShared.value || {}), [cvId.value || DRAFT_ACCENT_KEY]: value }
+      accentColorsShared.value = updated
+      accentColorsCookie.value = updated
+    },
+  })
   /**
    * The fields a rejected save named. `saveErrorMessage` is the header badge
    * and has room for one sentence; this is what the editor pages render beside
@@ -161,7 +197,7 @@ export const useCVState = () => {
 
   const getExperienceStatus = (): StepStatus => {
     const filled = experience.value.filter(
-      e => e.title.trim() && e.company.trim() && e.startDate.trim(),
+      e => e.title?.trim() && e.company?.trim() && e.startDate?.trim(),
     )
     if (filled.length === 0) return 'empty'
     if (filled.length === experience.value.length) return 'complete'
@@ -179,13 +215,13 @@ export const useCVState = () => {
 
   const getSkillsStatus = (): StepStatus => {
     if (skills.value.length === 0) return 'empty'
-    const isComplete = skills.value.every(s => s.name.trim())
+    const isComplete = skills.value.every(s => s.name?.trim())
     return isComplete ? 'complete' : 'incomplete'
   }
 
   const getCertificationsStatus = (): StepStatus => {
     if (certifications.value.length === 0) return 'empty'
-    const isComplete = certifications.value.every(c => c.name.trim() && c.issuer.trim() && c.date.trim())
+    const isComplete = certifications.value.every(c => c.name?.trim() && c.issuer?.trim() && c.date?.trim())
     return isComplete ? 'complete' : 'incomplete'
   }
 
@@ -211,9 +247,9 @@ export const useCVState = () => {
         phone: p.phone.trim() || '0x0000000',
         location: p.location.trim() || 'City, Country',
         website: p.website.trim() || 'www.yourwebsite.com',
-        linkedin: p.linkedin.trim() || 'LinkedIn',
-        github: p.github.trim() || 'GitHub',
-        twitter: p.twitter.trim() || 'Twitter',
+        linkedin: p.linkedin?.trim() || '',
+        github: p.github?.trim() || '',
+        twitter: p.twitter?.trim() || '',
       },
       summary: summary.value.trim() || 'Your professional summary will appear here. Write a short, impactful paragraph highlighting your key achievements, skills, and career goals.',
       experience: experience.value.length > 0
@@ -245,7 +281,6 @@ export const useCVState = () => {
               id: 'mock-edu-1',
               degree: 'Your Degree or Certification',
               school: 'School or University Name',
-              fieldOfStudy: '',
               location: 'City, Country',
               startDate: 'Start Date',
               endDate: 'End Date',
@@ -259,7 +294,17 @@ export const useCVState = () => {
             { id: 'mock-skill-2', name: 'Another Skill', level: 'Level' },
             { id: 'mock-skill-3', name: 'Relevant Tool', level: 'Level' },
           ],
-      certifications: certifications.value,
+      certifications: certifications.value.length > 0
+        ? certifications.value
+        : [
+            {
+              id: 'mock-cert-1',
+              name: 'Your Certification Name',
+              issuer: 'Issuing Organization',
+              date: 'YYYY-MM-01',
+              description: 'Details about this certification or award.',
+            },
+          ],
     }
   })
 
@@ -279,6 +324,15 @@ export const useCVState = () => {
     hasActiveCV.value = false
     // A field error belongs to the record that was open, so it goes with it.
     saveErrorDetail.value = { target: null, fields: {} }
+    // The colour belongs to the CV it was chosen for, so only that CV's entry
+    // goes — the other CVs keep theirs. The draft goes too: it was picked for
+    // the CV being left, not for whichever one is opened next. Read before
+    // `cvId` is cleared below, which is what names the entry.
+    const accentKeys = { ...(accentColorsShared.value || {}) }
+    Reflect.deleteProperty(accentKeys, cvId.value || DRAFT_ACCENT_KEY)
+    Reflect.deleteProperty(accentKeys, DRAFT_ACCENT_KEY)
+    accentColorsShared.value = accentKeys
+    accentColorsCookie.value = accentKeys
     // Clearing this matters as much as the rest: cvId is a cookie, so leaving it
     // set would point the editor at a CV that was just deleted or replaced, and
     // the next mount would happily load it back.
@@ -316,6 +370,7 @@ export const useCVState = () => {
     saveErrorMessage,
     saveErrorDetail,
     saveErrorFor,
+    accentColor,
     personal,
     summary,
     experience,

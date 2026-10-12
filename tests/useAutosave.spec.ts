@@ -286,7 +286,6 @@ describe('useAutosave', () => {
       phone: '0123456789',
       location: 'London',
       website: 'https://ada.dev',
-      github: 'adalovelace',
     }
 
     triggerAutosave()
@@ -300,11 +299,8 @@ describe('useAutosave', () => {
     const options = calls[0]![1]
     expect(options.method).toBe('PUT')
 
-    // A PUT is a full replace, so every field goes. `website` is the backend's
-    // `websiteUrl`; nationality and passport have no backend field at all and
-    // stay in the editor.
+    // A PUT is a full replace, so every field goes.
     expect(options.body).toEqual({
-      title: 'My CV',
       firstName: 'Ada',
       lastName: 'Lovelace',
       email: 'ada@example.com',
@@ -312,7 +308,7 @@ describe('useAutosave', () => {
       location: 'London',
       websiteUrl: 'https://ada.dev',
       linkedinUrl: '',
-      githubUrl: 'adalovelace',
+      githubUrl: '',
       twitterUrl: '',
     })
   })
@@ -624,5 +620,245 @@ describe('useAutosave', () => {
 
     await nextTick()
     expect(useCVState().selectedTemplateId.value).toBe('tpl-9')
+  })
+
+  it('populates personal title from professionalTitle on loadCV', async () => {
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-prof',
+      title: 'Resume',
+      professionalTitle: 'Staff Engineer',
+    })
+
+    const { loadCV } = useAutosave()
+    await loadCV('cv-prof')
+    await flushMicrotasks()
+
+    expect(useCVState().personal.value.title).toBe('Staff Engineer')
+  })
+
+  it('sends professionalTitle in CV patch when personal title changes', async () => {
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-prof',
+      title: 'Resume',
+      professionalTitle: 'Junior Dev',
+    })
+
+    const { loadCV, triggerAutosave } = useAutosave()
+    await loadCV('cv-prof')
+    await flushMicrotasks()
+
+    mockApi.mockReset()
+    mockApi.mockResolvedValue({})
+
+    const state = useCVState()
+    state.personal.value = { ...state.personal.value, title: 'Senior Dev' }
+
+    triggerAutosave()
+    await flushMicrotasks()
+
+    expect(mockApi).toHaveBeenCalledWith('/cvs/cv-prof/', {
+      method: 'PATCH',
+      body: expect.objectContaining({ professionalTitle: 'Senior Dev' }),
+    })
+  })
+
+  it('resets personal title when switching between CVs', async () => {
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-first',
+      title: 'First',
+      professionalTitle: 'Architect',
+    })
+
+    const { loadCV } = useAutosave()
+    await loadCV('cv-first')
+    await flushMicrotasks()
+    expect(useCVState().personal.value.title).toBe('Architect')
+
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-second',
+      title: 'Second',
+    })
+
+    await loadCV('cv-second')
+    await flushMicrotasks()
+    expect(useCVState().personal.value.title).toBe('')
+  })
+
+  it('converts certification date "May 2024" to "2024-05-01" on save and never invents dates', async () => {
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-cert-save',
+      title: 'Cert CV',
+      certifications: [],
+    })
+
+    const { loadCV, triggerAutosave } = useAutosave()
+    await loadCV('cv-cert-save')
+    await vi.runAllTimersAsync()
+
+    const state = useCVState()
+    mockApi.mockReset()
+    mockApi.mockResolvedValue({ id: 'real-cert-id' })
+
+    state.certifications.value.push({
+      id: 'cert_temp_1',
+      name: 'AWS Solutions Architect',
+      issuer: 'Amazon',
+      date: 'May 2024',
+      expirationDate: 'May 2027',
+      doesNotExpire: false,
+    })
+
+    triggerAutosave()
+    await flushMicrotasks()
+
+    expect(mockApi).toHaveBeenCalledWith('/cvs/certifications/', {
+      method: 'POST',
+      body: expect.objectContaining({
+        name: 'AWS Solutions Architect',
+        issuer: 'Amazon',
+        issueDate: '2024-05-01',
+        expirationDate: '2027-05-01',
+      }),
+    })
+
+    // Now test with a blank date — should NOT invent '2024-01-01'
+    mockApi.mockReset()
+    mockApi.mockResolvedValue({ id: 'real-cert-id-2' })
+
+    state.certifications.value.push({
+      id: 'cert_temp_2',
+      name: 'Google Cloud Professional',
+      issuer: 'Google',
+      date: '',
+      expirationDate: '',
+      doesNotExpire: true,
+    })
+
+    triggerAutosave()
+    await flushMicrotasks()
+
+    expect(mockApi).toHaveBeenCalledWith('/cvs/certifications/', {
+      method: 'POST',
+      body: expect.objectContaining({
+        name: 'Google Cloud Professional',
+        issuer: 'Google',
+        issueDate: null,
+        expirationDate: null,
+      }),
+    })
+  })
+
+  it('converts certification dates from "2024-05-01" back to "May 2024" on load', async () => {
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-cert-load',
+      title: 'Cert Load CV',
+      certifications: [
+        {
+          id: 'cert-1',
+          name: 'AWS Certified',
+          issuer: 'Amazon',
+          issueDate: '2024-05-01',
+          expirationDate: '2027-05-01',
+          doesNotExpire: false,
+        },
+      ],
+    })
+
+    const { loadCV } = useAutosave()
+    await loadCV('cv-cert-load')
+    await flushMicrotasks()
+
+    const state = useCVState()
+    expect(state.certifications.value[0]?.date).toBe('May 2024')
+    expect(state.certifications.value[0]?.expirationDate).toBe('May 2027')
+  })
+
+  it('does not send a displayOrder PATCH for newly added items before they are created', async () => {
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-new-item-test',
+      title: 'New Item Test',
+      experiences: [
+        { id: 'exp-existing-1', role: 'Dev', company: 'Co', displayOrder: 0 },
+      ],
+    })
+
+    const { loadCV, triggerAutosave } = useAutosave()
+    await loadCV('cv-new-item-test')
+    await flushMicrotasks()
+
+    const state = useCVState()
+    mockApi.mockReset()
+    mockApi.mockResolvedValue({ experienceId: 'exp-created-2' })
+
+    // Add a new experience with a UUID (as crypto.randomUUID() produces)
+    state.experience.value.push({
+      id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      title: 'Senior Dev',
+      company: 'NewCo',
+      location: '',
+      startDate: '',
+      endDate: '',
+      description: '',
+    })
+
+    triggerAutosave()
+    await flushMicrotasks()
+
+    // Must NOT have called PATCH /cvs/experiences/a1b2c3d4-e5f6-7890-abcd-ef1234567890/
+    const prematurePatches = mockApi.mock.calls.filter(
+      call => call[0] === '/cvs/experiences/a1b2c3d4-e5f6-7890-abcd-ef1234567890/' && call[1]?.method === 'PATCH',
+    )
+    expect(prematurePatches).toHaveLength(0)
+
+    // Should have POSTed the new item
+    expect(mockApi).toHaveBeenCalledWith('/cvs/experiences/', {
+      method: 'POST',
+      body: expect.objectContaining({
+        role: 'Senior Dev',
+        company: 'NewCo',
+        displayOrder: 1,
+      }),
+    })
+  })
+
+  it('resolves skillId from POST /cvs/skills/ and updates the CV relationship with the backend ID', async () => {
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-skill-test',
+      title: 'Skill Test',
+      skills: [],
+    })
+
+    const { loadCV, triggerAutosave } = useAutosave()
+    await loadCV('cv-skill-test')
+    await flushMicrotasks()
+
+    const state = useCVState()
+    mockApi.mockReset()
+    mockApi.mockResolvedValueOnce({
+      skillId: 'uuid-backend-skill-456',
+      name: 'TypeScript',
+      displayOrder: 0,
+    })
+    mockApi.mockResolvedValueOnce({ lastSavedAt: '2026-10-12T10:00:00Z' })
+
+    state.skills.value.push({
+      id: 'skill_temp_local_789',
+      name: 'TypeScript',
+      level: 'Advanced',
+    })
+
+    triggerAutosave()
+    await flushMicrotasks()
+
+    // The reactive state should now have the backend's skillId
+    expect(state.skills.value[0]?.id).toBe('uuid-backend-skill-456')
+
+    // The CV PATCH relationship should include the backend skillId, NOT the temp string
+    expect(mockApi).toHaveBeenCalledWith('/cvs/cv-skill-test/', {
+      method: 'PATCH',
+      body: expect.objectContaining({
+        skills: ['uuid-backend-skill-456'],
+      }),
+    })
   })
 })

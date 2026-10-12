@@ -83,6 +83,7 @@ export interface CvExportAdditionalInformation {
   id: string
   title: string
   content: string
+  description?: string
   display_order: number
 }
 
@@ -264,15 +265,32 @@ export function toExportData(source: unknown): CvExportData {
       const issuer = firstString(item, 'issuer')
       const date = firstString(item, 'date', 'issueDate', 'issue_date')
       const credentialUrl = firstString(item, 'credentialUrl', 'credential_url')
+      const credentialId = firstString(item, 'credentialId', 'credential_id')
+
+      const expirationDate = firstString(item, 'expirationDate', 'expiration_date')
+      const doesNotExpire = item.doesNotExpire ?? item.does_not_expire
+      const rawDescription = firstString(item, 'description')
+
+      const parts = []
+      if (credentialId) parts.push(`Credential ID: ${credentialId}`)
+      if (credentialUrl) parts.push(`URL: ${credentialUrl}`)
+      const extraDesc = parts.length > 0 ? parts.join(' | ') : ''
+      const finalDesc = [extraDesc, rawDescription].filter(Boolean).join('\n\n')
+
+      let dateLabel = date || ''
+      if (expirationDate && !doesNotExpire) {
+        dateLabel = dateLabel ? `${dateLabel} – Expires ${expirationDate}` : `Expires ${expirationDate}`
+      }
 
       return {
         id: firstString(item, 'id') || `certification-${index}`,
         name,
         issuer: isRealText(issuer) ? issuer : '',
-        date: isRealText(date) ? date : '',
-        issue_date: isRealText(date) ? date : '',
+        date: dateLabel,
+        issue_date: dateLabel,
         credentialUrl: isRealText(credentialUrl) ? credentialUrl : '',
         credential_url: isRealText(credentialUrl) ? credentialUrl : '',
+        description: finalDesc || undefined,
         display_order: typeof item.display_order === 'number' ? item.display_order : index,
       }
     })
@@ -298,13 +316,17 @@ export function toExportData(source: unknown): CvExportData {
     }))
 
   const additionalInformation: CvExportAdditionalInformation[] = asRecords(data.additional_information ?? data.additionalInformation)
-    .filter(item => isRealText(firstString(item, 'title')) || isRealText(firstString(item, 'content')))
-    .map((item, index) => ({
-      id: firstString(item, 'id') || `additional-${index}`,
-      title: isRealText(firstString(item, 'title')) ? firstString(item, 'title') : '',
-      content: isRealText(firstString(item, 'content')) ? firstString(item, 'content') : '',
-      display_order: typeof item.display_order === 'number' ? item.display_order : index,
-    }))
+    .filter(item => isRealText(firstString(item, 'title')) || isRealText(firstString(item, 'content')) || isRealText(firstString(item, 'description')))
+    .map((item, index) => {
+      const desc = firstString(item, 'description', 'content')
+      return {
+        id: firstString(item, 'id') || `additional-${index}`,
+        title: isRealText(firstString(item, 'title')) ? firstString(item, 'title') : '',
+        content: isRealText(firstString(item, 'content', 'description')) ? firstString(item, 'content', 'description') : '',
+        description: isRealText(desc) ? desc : '',
+        display_order: typeof item.display_order === 'number' ? item.display_order : index,
+      }
+    })
 
   const rawDocTitle = firstString(data, 'title', 'cvTitle')
   const docTitle = isRealText(rawDocTitle) ? rawDocTitle : personalTitle

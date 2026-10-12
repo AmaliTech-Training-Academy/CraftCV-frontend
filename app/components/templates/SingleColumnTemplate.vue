@@ -2,10 +2,35 @@
 import { computed } from 'vue'
 import type { ResolvedCvData } from '~/types/cv'
 import { parseDescription } from '~/utils/cvText'
+import { useCVState } from '~/composables/useCVState'
+import { accentTint } from '~/utils/templateAccents'
 
 const props = defineProps<{
   data: ResolvedCvData
 }>()
+
+const { accentColor } = useCVState()
+
+/**
+ * How far the rule under a heading is washed towards white.
+ *
+ * The accent itself goes on the heading text, but a solid rule under a solid
+ * heading reads as one heavy band — and with the accent defaulting to
+ * near-black, an untinted rule would darken every divider the template ships
+ * with. Tinted, the default stays the pale line it was drawn in.
+ */
+const RULE_TINT = 0.2
+
+const headingStyle = computed(() => ({
+  color: accentColor.value,
+  borderBottomColor: accentTint(accentColor.value, RULE_TINT),
+}))
+
+/** Skill chips take the same two colours as the section headings. */
+const chipStyle = computed(() => ({
+  color: accentColor.value,
+  borderColor: accentTint(accentColor.value, RULE_TINT),
+}))
 
 const fullName = computed(() => {
   const first = props.data.personal_details?.first_name || ''
@@ -41,7 +66,10 @@ const contactItems = computed(() => {
 <template>
   <div class="bg-white font-sans text-[13px] leading-snug min-h-264 overflow-hidden break-words">
     <!-- ══════════ HEADER ══════════ -->
-    <header class="px-10 pt-9 pb-6 border-b-2 border-gray-800">
+    <header
+      class="px-10 pt-9 pb-6 border-b-2"
+      :style="{ borderColor: accentColor }"
+    >
       <h1 class="text-[28px] font-extrabold text-gray-900 tracking-tight leading-none mb-1">
         {{ fullName }}
       </h1>
@@ -134,6 +162,26 @@ const contactItems = computed(() => {
               r="2"
             /></svg>
           </template>
+          <!-- github -->
+          <template v-else-if="item.icon === 'github'">
+            <svg
+              class="w-3 h-3 text-gray-400 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            ><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" /></svg>
+          </template>
+          <!-- twitter -->
+          <template v-else-if="item.icon === 'twitter'">
+            <svg
+              class="w-3 h-3 text-gray-400 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            ><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" /></svg>
+          </template>
           <template v-else>
             <div class="w-1 h-1 rounded-full bg-gray-400 shrink-0" />
           </template>
@@ -146,7 +194,10 @@ const contactItems = computed(() => {
     <div class="px-10 py-7 space-y-6">
       <!-- Summary -->
       <section v-if="data.professional_summary">
-        <h2 class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-800 border-b border-gray-300 pb-1 mb-3">
+        <h2
+          class="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-1 mb-3"
+          :style="headingStyle"
+        >
           Professional Summary
         </h2>
         <p class="text-[12px] text-gray-700 leading-relaxed">
@@ -156,7 +207,10 @@ const contactItems = computed(() => {
 
       <!-- Experience -->
       <section v-if="data.experiences?.length">
-        <h2 class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-800 border-b border-gray-300 pb-1 mb-4">
+        <h2
+          class="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-1 mb-4"
+          :style="headingStyle"
+        >
           Professional Experience
         </h2>
         <div class="space-y-5">
@@ -205,7 +259,10 @@ const contactItems = computed(() => {
 
       <!-- Education -->
       <section v-if="data.educations?.length">
-        <h2 class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-800 border-b border-gray-300 pb-1 mb-4">
+        <h2
+          class="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-1 mb-4"
+          :style="headingStyle"
+        >
           Education
         </h2>
         <div class="space-y-4">
@@ -254,14 +311,18 @@ const contactItems = computed(() => {
 
       <!-- Skills -->
       <section v-if="data.skills?.length">
-        <h2 class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-800 border-b border-gray-300 pb-1 mb-3">
+        <h2
+          class="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-1 mb-3"
+          :style="headingStyle"
+        >
           Skills
         </h2>
         <div class="flex flex-wrap gap-1.5">
           <span
             v-for="skill in data.skills"
             :key="skill.id"
-            class="px-2.5 py-0.5 border border-gray-300 rounded text-[11px] text-gray-700"
+            class="px-2.5 py-0.5 border rounded text-[11px]"
+            :style="chipStyle"
           >
             {{ skill.name }}<span
               v-if="skill.level"
@@ -273,7 +334,10 @@ const contactItems = computed(() => {
 
       <!-- Certifications -->
       <section v-if="data.certifications?.length">
-        <h2 class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-800 border-b border-gray-300 pb-1 mb-4">
+        <h2
+          class="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-1 mb-4"
+          :style="headingStyle"
+        >
           Certifications
         </h2>
         <div class="space-y-3">
@@ -343,7 +407,10 @@ const contactItems = computed(() => {
 
       <!-- Languages -->
       <section v-if="data.languages?.length">
-        <h2 class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-800 border-b border-gray-300 pb-1 mb-3">
+        <h2
+          class="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-1 mb-3"
+          :style="headingStyle"
+        >
           Languages
         </h2>
         <div class="flex flex-wrap gap-x-6 gap-y-1">
@@ -362,7 +429,10 @@ const contactItems = computed(() => {
 
       <!-- Awards -->
       <section v-if="data.awards?.length">
-        <h2 class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-800 border-b border-gray-300 pb-1 mb-4">
+        <h2
+          class="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-1 mb-4"
+          :style="headingStyle"
+        >
           Awards
         </h2>
         <div class="space-y-3">
@@ -393,7 +463,10 @@ const contactItems = computed(() => {
 
       <!-- Additional Information -->
       <section v-if="data.additional_information?.length">
-        <h2 class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-800 border-b border-gray-300 pb-1 mb-4">
+        <h2
+          class="text-[10px] font-bold uppercase tracking-[0.2em] border-b pb-1 mb-4"
+          :style="headingStyle"
+        >
           Additional Information
         </h2>
         <div class="space-y-3">

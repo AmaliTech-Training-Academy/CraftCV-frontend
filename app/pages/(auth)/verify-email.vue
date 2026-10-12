@@ -382,7 +382,7 @@ async function handleVerify() {
 
     if (hasToken) {
       successMessage.value = 'Email verified successfully! Redirecting...'
-      await navigateTo('/dashboard')
+      await navigateTo('/onboarding')
     }
     else {
       await navigateTo({

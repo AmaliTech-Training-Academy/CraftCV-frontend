@@ -7,6 +7,7 @@ import { useCVState } from './useCVState'
 export interface CVSummary {
   cvId: string
   title: string
+  professionalTitle?: string
   template?: string
   lastSavedAt?: string
 }
@@ -43,6 +44,7 @@ export const useCVs = () => {
   const toSummary = (cv: any): CVSummary => ({
     cvId: String(cv.cvId ?? cv.id ?? cv.uuid ?? ''),
     title: cv.title || 'Untitled',
+    professionalTitle: cv.professionalTitle ?? undefined,
     template: cv.template ?? undefined,
     lastSavedAt: cv.lastSavedAt ?? undefined,
   })
@@ -86,6 +88,7 @@ export const useCVs = () => {
       body: {
         title: state.cvTitle.value || 'Untitled',
         professionalSummary: state.summary.value || '',
+        ...(state.personal.value.title?.trim() ? { professionalTitle: state.personal.value.title.trim() } : {}),
         ...(templateId ? { template: templateId } : {}),
       },
     })
@@ -105,6 +108,11 @@ export const useCVs = () => {
     // pointing at a record that no longer exists.
     const state = useCVState()
     if (state.cvId.value === id) state.resetCV()
+  }
+
+  const duplicateCV = async (id: string) => {
+    await $api<unknown>(`/cvs/${id}/duplicate/`, { method: 'POST' })
+    await fetchCVs()
   }
 
   /**
@@ -133,6 +141,7 @@ export const useCVs = () => {
     fetchCVs,
     createCV,
     deleteCV,
+    duplicateCV,
     selectCV,
   }
 }
