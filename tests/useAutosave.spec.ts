@@ -286,7 +286,6 @@ describe('useAutosave', () => {
       phone: '0123456789',
       location: 'London',
       website: 'https://ada.dev',
-      github: 'adalovelace',
     }
 
     triggerAutosave()
@@ -300,20 +299,17 @@ describe('useAutosave', () => {
     const options = calls[0]![1]
     expect(options.method).toBe('PUT')
 
-    // A PUT is a full replace, so every field goes. `website` is the backend's
-    // `websiteUrl`; nationality and passport have no backend field at all and
-    // stay in the editor.
+    // A PUT is a full replace, so every field goes.
     expect(options.body).toEqual({
-      title: 'My CV',
       firstName: 'Ada',
       lastName: 'Lovelace',
       email: 'ada@example.com',
       phone: '0123456789',
       location: 'London',
-      websiteUrl: 'https://ada.dev',
-      linkedinUrl: '',
-      githubUrl: 'adalovelace',
-      twitterUrl: '',
+      website: 'https://ada.dev',
+      linkedin: '',
+      github: '',
+      twitter: '',
     })
   })
 
@@ -325,7 +321,7 @@ describe('useAutosave', () => {
         firstName: 'Ada',
         lastName: 'Lovelace',
         email: 'ada@example.com',
-        websiteUrl: 'https://ada.dev',
+        website: 'https://ada.dev',
       },
     })
 
@@ -335,7 +331,7 @@ describe('useAutosave', () => {
 
     const state = useCVState()
 
-    // The record says `websiteUrl`; the Website control is bound to `website`.
+    // The record says `website`; the Website control is bound to `website` now.
     expect(state.personal.value.website).toBe('https://ada.dev')
 
     mockApi.mockReset()
@@ -624,5 +620,67 @@ describe('useAutosave', () => {
 
     await nextTick()
     expect(useCVState().selectedTemplateId.value).toBe('tpl-9')
+  })
+
+  it('populates personal title from professionalTitle on loadCV', async () => {
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-prof',
+      title: 'Resume',
+      professionalTitle: 'Staff Engineer',
+    })
+
+    const { loadCV } = useAutosave()
+    await loadCV('cv-prof')
+    await flushMicrotasks()
+
+    expect(useCVState().personal.value.title).toBe('Staff Engineer')
+  })
+
+  it('sends professionalTitle in CV patch when personal title changes', async () => {
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-prof',
+      title: 'Resume',
+      professionalTitle: 'Junior Dev',
+    })
+
+    const { loadCV, triggerAutosave } = useAutosave()
+    await loadCV('cv-prof')
+    await flushMicrotasks()
+
+    mockApi.mockReset()
+    mockApi.mockResolvedValue({})
+
+    const state = useCVState()
+    state.personal.value = { ...state.personal.value, title: 'Senior Dev' }
+
+    triggerAutosave()
+    await flushMicrotasks()
+
+    expect(mockApi).toHaveBeenCalledWith('/cvs/cv-prof/', {
+      method: 'PATCH',
+      body: expect.objectContaining({ professionalTitle: 'Senior Dev' }),
+    })
+  })
+
+  it('resets personal title when switching between CVs', async () => {
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-first',
+      title: 'First',
+      professionalTitle: 'Architect',
+    })
+
+    const { loadCV } = useAutosave()
+    await loadCV('cv-first')
+    await flushMicrotasks()
+    expect(useCVState().personal.value.title).toBe('Architect')
+
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-second',
+      title: 'Second',
+    })
+
+    await loadCV('cv-second')
+    await flushMicrotasks()
+    expect(useCVState().personal.value.title).toBe('')
   })
 })

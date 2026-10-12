@@ -2,10 +2,18 @@
 import { computed } from 'vue'
 import type { ResolvedCvData } from '~/types/cv'
 import { parseDescription } from '~/utils/cvText'
+import { useCVState } from '~/composables/useCVState'
 
 const props = defineProps<{
   data: ResolvedCvData
 }>()
+
+/**
+ * Drives the sidebar panel and the main-column headings. It defaults to the
+ * slate this template was drawn in, so it looks untouched until a colour is
+ * chosen — then the whole chrome of the page follows it.
+ */
+const { accentColor } = useCVState()
 
 const fullName = computed(() => {
   const first = props.data.personal_details?.first_name || ''
@@ -31,7 +39,10 @@ const p = computed(() => props.data.personal_details ?? {})
   <!-- A4 proportions: 794px wide × 1123px tall at 96dpi -->
   <div class="flex bg-white font-sans text-[13px] leading-snug min-h-264 overflow-hidden break-words">
     <!-- ═══════════ LEFT SIDEBAR ═══════════ -->
-    <aside class="w-[30%] shrink-0 bg-[#2c3e50] text-white flex flex-col">
+    <aside
+      class="w-[30%] shrink-0 text-white flex flex-col"
+      :style="{ backgroundColor: accentColor }"
+    >
       <!-- Name block -->
       <div class="px-6 pt-8 pb-6 border-b border-white/10">
         <h1 class="text-[22px] font-extrabold leading-tight tracking-wide uppercase break-words">
@@ -117,20 +128,6 @@ const p = computed(() => props.data.personal_details ?? {})
             <span class="break-all">{{ p.website?.replace(/^https?:\/\//, '') }}</span>
           </li>
           <li
-            v-if="p.github"
-            class="flex items-start gap-2 min-w-0"
-          >
-            <div class="w-1.5 h-1.5 rounded-full bg-white/50 mt-1.5 shrink-0" />
-            <span class="break-words">{{ p.github?.replace(/^https?:\/\//, '') }}</span>
-          </li>
-          <li
-            v-if="p.twitter"
-            class="flex items-start gap-2 min-w-0"
-          >
-            <div class="w-1.5 h-1.5 rounded-full bg-white/50 mt-1.5 shrink-0" />
-            <span class="break-words">{{ p.twitter?.replace(/^https?:\/\//, '') }}</span>
-          </li>
-          <li
             v-if="p.linkedin"
             class="flex items-start gap-2 min-w-0"
           >
@@ -151,6 +148,32 @@ const p = computed(() => props.data.personal_details ?? {})
               r="2"
             /></svg>
             <span class="break-all">{{ p.linkedin?.replace(/^https?:\/\//, '') }}</span>
+          </li>
+          <li
+            v-if="p.github"
+            class="flex items-start gap-2 min-w-0"
+          >
+            <svg
+              class="w-3 h-3 mt-0.5 shrink-0 text-white/50"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            ><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" /></svg>
+            <span class="break-all">{{ p.github?.replace(/^https?:\/\//, '') }}</span>
+          </li>
+          <li
+            v-if="p.twitter"
+            class="flex items-start gap-2 min-w-0"
+          >
+            <svg
+              class="w-3 h-3 mt-0.5 shrink-0 text-white/50"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            ><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" /></svg>
+            <span class="break-all">{{ p.twitter?.replace(/^https?:\/\//, '') }}</span>
           </li>
         </ul>
       </div>
@@ -232,7 +255,10 @@ const p = computed(() => props.data.personal_details ?? {})
     <main class="flex-1 px-8 py-8 space-y-6 text-gray-800 overflow-hidden">
       <!-- Professional Summary -->
       <section v-if="data.professional_summary">
-        <h2 class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#2c3e50] border-b border-gray-200 pb-1.5 mb-3">
+        <h2
+          class="text-[10px] font-bold uppercase tracking-[0.18em] border-b border-gray-200 pb-1.5 mb-3"
+          :style="{ color: accentColor }"
+        >
           Professional Summary
         </h2>
         <p class="text-[12px] text-gray-700 leading-relaxed">
@@ -242,7 +268,10 @@ const p = computed(() => props.data.personal_details ?? {})
 
       <!-- Work Experience -->
       <section v-if="data.experiences?.length">
-        <h2 class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#2c3e50] border-b border-gray-200 pb-1.5 mb-4">
+        <h2
+          class="text-[10px] font-bold uppercase tracking-[0.18em] border-b border-gray-200 pb-1.5 mb-4"
+          :style="{ color: accentColor }"
+        >
           Professional Experience
         </h2>
         <div class="space-y-5">
@@ -291,7 +320,10 @@ const p = computed(() => props.data.personal_details ?? {})
 
       <!-- Certifications -->
       <section v-if="data.certifications?.length">
-        <h2 class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#2c3e50] border-b border-gray-200 pb-1.5 mb-4">
+        <h2
+          class="text-[10px] font-bold uppercase tracking-[0.18em] border-b border-gray-200 pb-1.5 mb-4"
+          :style="{ color: accentColor }"
+        >
           Certifications
         </h2>
         <div class="space-y-3">
@@ -324,7 +356,8 @@ const p = computed(() => props.data.personal_details ?? {})
                 v-if="cert.credential_url"
                 :href="cert.credential_url"
                 target="_blank"
-                class="hover:underline text-[#2c3e50] font-medium break-all"
+                class="hover:underline font-medium break-all"
+                :style="{ color: accentColor }"
               >
                 Verify Credential ↗
               </a>
@@ -359,7 +392,10 @@ const p = computed(() => props.data.personal_details ?? {})
 
       <!-- Awards -->
       <section v-if="data.awards?.length">
-        <h2 class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#2c3e50] border-b border-gray-200 pb-1.5 mb-4">
+        <h2
+          class="text-[10px] font-bold uppercase tracking-[0.18em] border-b border-gray-200 pb-1.5 mb-4"
+          :style="{ color: accentColor }"
+        >
           Awards
         </h2>
         <div class="space-y-2">

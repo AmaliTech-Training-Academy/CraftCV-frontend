@@ -5,16 +5,16 @@ export interface PersonalDetails {
   phone?: string
   location?: string
   linkedin?: string
-  website?: string
   github?: string
   twitter?: string
+  website?: string
 }
 
 export interface Education {
   id: string
   institution: string
   degree: string
-  field_of_study: string
+  field_of_study?: string
   location?: string
   start_date: string
   end_date: string | null // null indicates "Present"
@@ -63,6 +63,7 @@ export interface Language {
 export interface Award {
   id: string
   name: string
+  title?: string
   issuer?: string
   date?: string
   description?: string
@@ -72,7 +73,8 @@ export interface Award {
 export interface AdditionalInformation {
   id: string
   title: string
-  content: string
+  content?: string
+  description?: string
   display_order: number
 }
 

@@ -7,5 +7,6 @@ declare module 'pdfmake/build/vfs_fonts' {
 
 declare module 'pdfmake/build/pdfmake' {
   export * from 'pdfmake'
+  export type Column = import('pdfmake/interfaces').Column
   export type TDocumentDefinitions = Parameters<typeof import('pdfmake').createPdf>[0]
 }

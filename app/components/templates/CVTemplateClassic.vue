@@ -1,14 +1,17 @@
 <script setup lang="ts">
+import { useCVState } from '~/composables/useCVState'
 import { parseDescription, dateRangeLabel, formatMonthYear } from '~/utils/cvText'
 
 defineProps<{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any
 }>()
+
+const { accentColor } = useCVState()
 </script>
 
 <template>
-  <div class="w-full h-full bg-white px-10 py-12 text-gray-900 font-serif shadow-sm flex flex-col text-left break-words">
+  <div class="w-full min-h-[1123px] bg-white px-10 py-12 text-gray-900 font-serif shadow-sm flex flex-col text-left break-words">
     <!-- Header -->
     <div class="flex flex-col border-b border-gray-300 pb-6 mb-6">
       <h1 class="text-4xl font-bold uppercase tracking-widest mb-2 text-gray-900">
@@ -36,24 +39,6 @@ defineProps<{
           <span class="text-gray-300">|</span>
           <div class="flex items-center gap-1 min-w-0">
             <span class="truncate">{{ data.personal_details.website }}</span>
-          </div>
-        </template>
-        <template v-if="data.personal_details.linkedin">
-          <span class="text-gray-300">|</span>
-          <div class="flex items-center gap-1 min-w-0">
-            <span class="truncate">{{ data.personal_details.linkedin }}</span>
-          </div>
-        </template>
-        <template v-if="data.personal_details.github">
-          <span class="text-gray-300">|</span>
-          <div class="flex items-center gap-1 min-w-0">
-            <span class="truncate">{{ data.personal_details.github }}</span>
-          </div>
-        </template>
-        <template v-if="data.personal_details.twitter">
-          <span class="text-gray-300">|</span>
-          <div class="flex items-center gap-1 min-w-0">
-            <span class="truncate">{{ data.personal_details.twitter }}</span>
           </div>
         </template>
       </div>
@@ -95,7 +80,10 @@ defineProps<{
               <span class="text-[11px] text-gray-500 font-semibold shrink-0">{{ dateRangeLabel(job.start_date, job.end_date, !job.end_date) }}</span>
             </div>
             <div class="flex justify-between items-baseline mb-1 gap-2">
-              <span class="text-[13px] text-[#C54A22] font-semibold min-w-0">{{ job.company }}</span>
+              <span
+                class="text-[13px] font-semibold min-w-0"
+                :style="{ color: accentColor }"
+              >{{ job.company }}</span>
               <span class="text-[11px] text-gray-500 shrink-0">{{ job.location }}</span>
             </div>
             <template
@@ -145,7 +133,10 @@ defineProps<{
               <span class="text-[11px] text-gray-500 font-semibold shrink-0">{{ dateRangeLabel(edu.start_date, edu.end_date, !edu.end_date) }}</span>
             </div>
             <div class="flex justify-between items-baseline mb-1 gap-2">
-              <span class="text-[13px] text-[#C54A22] font-semibold min-w-0">{{ edu.institution }}</span>
+              <span
+                class="text-[13px] font-semibold min-w-0"
+                :style="{ color: accentColor }"
+              >{{ edu.institution }}</span>
               <span class="text-[11px] text-gray-500 shrink-0">{{ edu.location }}</span>
             </div>
             <template
@@ -188,7 +179,10 @@ defineProps<{
             :key="skill.id"
             class="flex items-center gap-2"
           >
-            <span class="w-1.5 h-1.5 bg-[#C54A22] rounded-full" />
+            <span
+              class="w-1.5 h-1.5 rounded-full"
+              :style="{ backgroundColor: accentColor }"
+            />
             <span class="text-[13px] font-semibold text-gray-800">{{ skill.name }}</span>
             <span
               v-if="skill.level"
@@ -222,7 +216,10 @@ defineProps<{
               >{{ formatMonthYear(cert.issue_date) }}</span>
             </div>
             <div class="flex justify-between items-baseline gap-2">
-              <span class="text-[13px] text-[#C54A22] font-semibold min-w-0">{{ cert.issuer }}</span>
+              <span
+                class="text-[13px] font-semibold min-w-0"
+                :style="{ color: accentColor }"
+              >{{ cert.issuer }}</span>
             </div>
             <div
               v-if="cert.credential_id || cert.credential_url"
@@ -234,7 +231,8 @@ defineProps<{
                 v-if="cert.credential_url"
                 :href="cert.credential_url"
                 target="_blank"
-                class="hover:underline text-[#C54A22] break-all"
+                class="hover:underline break-all"
+                :style="{ color: accentColor }"
               >
                 Verify Credential ↗
               </a>

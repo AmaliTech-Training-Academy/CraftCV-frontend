@@ -23,10 +23,6 @@ const PLACEHOLDER_STRINGS = new Set([
   '0x0000000',
   'start date',
   'end date',
-  'nationality',
-  'dd/mm/yyyy',
-  'passport number',
-  'availability status',
   'level',
 ])
 
@@ -48,6 +44,8 @@ export function isRealText(val?: string | null): boolean {
 
 interface RawDataWithAliases {
   title?: string
+  professionalTitle?: string
+  professional_title?: string
   summary?: string
   professional_summary?: string
   personal?: Record<string, unknown>
@@ -94,7 +92,7 @@ export function sanitizeExportData(data: ResolvedCvData | Record<string, unknown
   const twitter = String(p.twitter ?? '')
 
   const rawSummary = String(raw.professional_summary ?? raw.summary ?? '')
-  const rawTitle = String(raw.title ?? '')
+  const rawTitle = String(raw.title ?? raw.professionalTitle ?? raw.professional_title ?? p.title ?? '')
 
   const rawExperiences = raw.experiences ?? raw.experience ?? []
   const experiences = rawExperiences

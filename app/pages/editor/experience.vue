@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Edit, Trash2, Plus, ArrowRight, ChevronRight, GripVertical } from '@lucide/vue'
 import { useMediaQuery } from '@vueuse/core'
-import { useSortable } from '@vueuse/integrations/useSortable'
 import { useCVState, type ExperienceItem } from '~/composables/useCVState'
 import { isEndDateBeforeStartDate, isValidDateString, useCVSectionEditor } from '~/composables/useCVSectionEditor'
 import { parseDescription } from '~/utils/cvText'
+import draggable from 'vuedraggable'
 
 useHead({ title: 'Work Experience' })
 
@@ -89,12 +89,6 @@ const handleNext = () => {
     await navigateTo('/editor/education')
   })
 }
-
-const listRef = ref<HTMLElement | null>(null)
-useSortable(listRef, experience, {
-  handle: '.drag-handle',
-  animation: 200,
-})
 </script>
 
 <template>
@@ -106,88 +100,92 @@ useSortable(listRef, experience, {
       back-text="Back to Summary"
     />
 
-    <div
-      ref="listRef"
-      class="space-y-6"
-    >
-      <div
-        v-for="(item, index) in experience"
-        :key="item.id"
+    <div class="space-y-6">
+      <draggable
+        v-model="experience"
+        item-key="id"
+        filter="button, input, select, textarea, a"
+        :prevent-on-filter="false"
+        ghost-class="opacity-50"
       >
-        <div
-          v-show="activeId !== item.id || isMobile"
-          role="button"
-          tabindex="0"
-          aria-label="Expand experience item"
-          class="flex items-center justify-between p-4 bg-white border rounded-xl shadow-sm hover:shadow transition cursor-pointer mb-4"
-          :class="[
-            showErrors && !validateExperience(item)
-              ? 'border-red-300 bg-red-50/20'
-              : 'border-gray-200 hover:border-[#B64A22]/30',
-          ]"
-          @click="activeId = item.id"
-          @keydown.enter.prevent="activeId = item.id"
-          @keydown.space.prevent="activeId = item.id"
-        >
-          <div class="flex items-center gap-3 overflow-hidden">
-            <GripVertical
-              class="drag-handle w-4 h-4 cursor-grab text-gray-400 hover:text-gray-600 transition-colors shrink-0"
-              @click.stop
-            />
-            <span class="text-xs font-semibold text-gray-400 bg-gray-100 rounded-md px-2 py-1 shrink-0">
-              #{{ index + 1 }}
-            </span>
-            <span class="text-sm font-semibold text-gray-800 truncate">
-              {{ [item.title.trim(), item.company.trim()].filter(Boolean).join(' at ') || `Position ${index + 1}` }}
-            </span>
-            <span
-              v-if="showErrors && !validateExperience(item)"
-              class="text-xs font-semibold text-red-500 shrink-0"
-            >
-              (Incomplete)
-            </span>
-          </div>
-          <div
-            class="flex items-center gap-1 shrink-0"
-            @click.stop
-          >
-            <Button
-              aria-label="Edit entry"
-              class="h-9 w-9 text-gray-500 hover:text-gray-900 hover:bg-gray-100 cursor-pointer rounded-lg"
-              size="icon"
-              type="button"
-              variant="ghost"
+        <template #item="{ element: item, index }">
+          <div class="mb-6">
+            <div
+              v-show="activeId !== item.id || isMobile"
+              role="button"
+              tabindex="0"
+              aria-label="Expand experience item"
+              class="flex items-center justify-between p-4 bg-white border rounded-xl shadow-sm hover:shadow transition cursor-grab mb-4"
+              :class="[
+                showErrors && !validateExperience(item)
+                  ? 'border-red-300 bg-red-50/20'
+                  : 'border-gray-200 hover:border-[#B64A22]/30',
+              ]"
               @click="activeId = item.id"
+              @keydown.enter.prevent="activeId = item.id"
+              @keydown.space.prevent="activeId = item.id"
             >
-              <Edit class="w-4 h-4" />
-            </Button>
-            <Button
-              aria-label="Delete entry"
-              class="h-9 w-9 text-gray-400 hover:text-red-600 hover:bg-red-50 cursor-pointer rounded-lg"
-              size="icon"
-              type="button"
-              variant="ghost"
-              @click="promptDelete(item.id)"
-            >
-              <Trash2 class="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+              <div class="flex items-center gap-3 overflow-hidden">
+                <GripVertical
+                  class="w-4 h-4 text-gray-400 shrink-0"
+                  aria-hidden="true"
+                />
+                <span class="text-xs font-semibold text-gray-400 bg-gray-100 rounded-md px-2 py-1 shrink-0">
+                  #{{ index + 1 }}
+                </span>
+                <span class="text-sm font-semibold text-gray-800 truncate">
+                  {{ [item.title.trim(), item.company.trim()].filter(Boolean).join(' at ') || `Position ${index + 1}` }}
+                </span>
+                <span
+                  v-if="showErrors && !validateExperience(item)"
+                  class="text-xs font-semibold text-red-500 shrink-0"
+                >
+                  (Incomplete)
+                </span>
+              </div>
+              <div
+                class="flex items-center gap-1 shrink-0"
+                @click.stop
+              >
+                <Button
+                  aria-label="Edit entry"
+                  class="h-9 w-9 text-gray-500 hover:text-gray-900 hover:bg-gray-100 cursor-pointer rounded-lg"
+                  size="icon"
+                  type="button"
+                  variant="ghost"
+                  @click="activeId = item.id"
+                >
+                  <Edit class="w-4 h-4" />
+                </Button>
+                <Button
+                  aria-label="Delete entry"
+                  class="h-9 w-9 text-gray-400 hover:text-red-600 hover:bg-red-50 cursor-pointer rounded-lg"
+                  size="icon"
+                  type="button"
+                  variant="ghost"
+                  @click="promptDelete(item.id)"
+                >
+                  <Trash2 class="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
 
-        <EditorFormShell
-          :id="item.id"
-          :title="[item.title.trim(), item.company.trim()].filter(Boolean).join(' at ') || 'Edit Experience'"
-          :is-open="activeId === item.id"
-          @close="handleFormCancel(item)"
-          @done="handleFormDone(item)"
-        >
-          <EditorExperienceForm
-            :id="item.id"
-            :show-errors="itemShowErrors[item.id]"
-            @toggle-current="toggleCurrentStatus(item, $event)"
-          />
-        </EditorFormShell>
-      </div>
+            <EditorFormShell
+              :id="item.id"
+              :title="[item.title.trim(), item.company.trim()].filter(Boolean).join(' at ') || 'Edit Experience'"
+              :is-open="activeId === item.id"
+              @close="handleFormCancel(item)"
+              @done="handleFormDone(item)"
+            >
+              <EditorExperienceForm
+                :id="item.id"
+                :show-errors="itemShowErrors[item.id]"
+                @toggle-current="toggleCurrentStatus(item, $event)"
+              />
+            </EditorFormShell>
+          </div>
+        </template>
+      </draggable>
 
       <Button
         class="w-full py-6 border-2 border-dashed border-gray-200 hover:border-[#C54A22]/50 hover:bg-[#C54A22]/5 rounded-xl flex items-center justify-center gap-2 text-sm font-medium text-[#C54A22] transition cursor-pointer"

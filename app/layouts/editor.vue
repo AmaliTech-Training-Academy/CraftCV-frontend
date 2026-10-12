@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useResizeObserver } from '@vueuse/core'
+import { useResizeObserver, useWindowSize } from '@vueuse/core'
 import { DialogRoot, DialogPortal, DialogOverlay, DialogContent, DialogClose } from 'reka-ui'
 import {
   User,
@@ -29,10 +29,17 @@ import { useCVState } from '~/composables/useCVState'
 import { useAutosave } from '~/composables/useAutosave'
 import { useCVs, type CVSummary } from '~/composables/useCVs'
 import { useAuth } from '~/composables/useAuth'
+import { templateAccent } from '~/utils/templateAccents'
 import type { ResolvedCvData } from '~/types/cv'
 import CVTemplateClassic from '~/components/templates/CVTemplateClassic.vue'
 import SingleColumnTemplate from '~/components/templates/SingleColumnTemplate.vue'
 import TwoColumnTemplate from '~/components/templates/TwoColumnTemplate.vue'
+import CVTemplateInkwell from '~/components/templates/CVTemplateInkwell.vue'
+import CVTemplatePrism from '~/components/templates/CVTemplatePrism.vue'
+import CVTemplateCampus from '~/components/templates/CVTemplateCampus.vue'
+import CVTemplateSprout from '~/components/templates/CVTemplateSprout.vue'
+import CVTemplateNorthstar from '~/components/templates/CVTemplateNorthstar.vue'
+import CVTemplateMeridian from '~/components/templates/CVTemplateMeridian.vue'
 import ExportModal from '~/components/export/ExportModal.vue'
 import type { ExportPayload } from '~/types/export'
 import { generatePDF, generatePlainText, printDocument } from '~/utils/pdfExport'
@@ -52,9 +59,24 @@ const {
   saveState,
   lastSavedAt,
   saveErrorMessage,
+  accentColor,
 } = useCVState()
 
 const { loadCV } = useAutosave()
+
+/**
+ * The swatches the colour control offers.
+ *
+ * The template's own colour leads the row: a CV that has never had a colour
+ * chosen is set in it, so without it the control would show nothing selected
+ * and leave no way back to the template's palette once another colour was
+ * picked. Presets the template already uses are not repeated.
+ */
+const accentPresets = computed(() => {
+  const presets = ['#F26438', '#0F172A', '#059669', '#2563EB', '#D946EF']
+  const templateColor = templateAccent(selectedTemplateSlug.value)
+  return presets.includes(templateColor) ? presets : [templateColor, ...presets]
+})
 
 // The saved-CV collection, for the resume switcher in the header. Its state is
 // shared, so a list the dashboard already fetched is reused rather than
@@ -99,6 +121,12 @@ const layoutBySlug: Record<string, unknown> = {
   classic: CVTemplateClassic,
   modern: SingleColumnTemplate,
   professional: TwoColumnTemplate,
+  inkwell: CVTemplateInkwell,
+  prism: CVTemplatePrism,
+  campus: CVTemplateCampus,
+  sprout: CVTemplateSprout,
+  northstar: CVTemplateNorthstar,
+  meridian: CVTemplateMeridian,
 }
 
 const activeTemplateComponent = computed(() => {
@@ -151,21 +179,52 @@ const resolvedPreviewData = computed<ResolvedCvData>(() => {
       level: s.level,
       display_order: i,
     })),
-    certifications: (previewData.value.certifications ?? []).map((c, i) => ({
-      id: c.id,
-      name: c.name || '',
-      issuer: c.issuer || '',
-      issue_date: c.date || undefined,
-      expiration_date: c.expirationDate || undefined,
-      does_not_expire: c.doesNotExpire ?? false,
-      credential_id: c.credentialId || undefined,
-      credential_url: c.credentialUrl || undefined,
-      description: c.description || undefined,
+    certifications: (previewData.value.certifications ?? []).map((c, i) => {
+      const parts = []
+      if (c.credentialId) parts.push(`Credential ID: ${c.credentialId}`)
+      if (c.credentialUrl) parts.push(`URL: ${c.credentialUrl}`)
+      const extraDesc = parts.length > 0 ? parts.join(' | ') : ''
+      const finalDesc = [extraDesc, c.description].filter(Boolean).join('\n\n')
+
+      let dateLabel = c.date || ''
+      if (c.expirationDate && !c.doesNotExpire) {
+        dateLabel = dateLabel ? `${dateLabel} – Expires ${c.expirationDate}` : `Expires ${c.expirationDate}`
+      }
+
+      return {
+        id: c.id,
+        name: c.name || '',
+        issuer: c.issuer || '',
+        issue_date: dateLabel || undefined,
+        expiration_date: c.expirationDate || undefined,
+        does_not_expire: c.doesNotExpire ?? false,
+        credential_id: c.credentialId || undefined,
+        credential_url: c.credentialUrl || undefined,
+        description: finalDesc || undefined,
+        display_order: i,
+      }
+    }),
+    languages: (previewData.value.languages ?? []).map((l, i) => ({
+      id: l.id,
+      name: l.name,
+      proficiency: l.proficiency,
       display_order: i,
     })),
-    languages: [],
-    awards: [],
-    additional_information: [],
+    awards: (previewData.value.awards ?? []).map((a, i) => ({
+      id: a.id,
+      name: a.title || '',
+      title: a.title,
+      date: a.date,
+      description: a.description,
+      display_order: i,
+    })),
+    additional_information: (previewData.value.additional_information ?? []).map((info, i) => ({
+      id: info.id,
+      title: info.title,
+      description: info.description,
+      content: info.description,
+      display_order: i,
+    })),
   }
 })
 
@@ -227,6 +286,7 @@ const handleExport = async (payload: ExportPayload) => {
         paperSize: payload.paperSize,
         includeLinks: payload.includeLinks,
         templateSlug: selectedTemplateSlug.value || 'classic',
+        accentColor: accentColor.value,
       })
     }
   }
@@ -250,6 +310,7 @@ const handlePrint = async () => {
       paperSize: 'a4',
       includeLinks: true,
       templateSlug: selectedTemplateSlug.value || 'classic',
+      accentColor: accentColor.value,
     })
   }
   catch (error) {
@@ -301,6 +362,13 @@ const previewScale = ref(1)
 const previewPageH = ref(1123)
 const PAGE_W = 794
 
+const { width: windowWidth, height: windowHeight } = useWindowSize()
+const modalScale = computed(() => {
+  const availableWidth = Math.min(1024, windowWidth.value) - 32
+  const availableHeight = (windowHeight.value * 0.95) - 32
+  return Math.min(availableWidth / PAGE_W, availableHeight / 1123)
+})
+
 useResizeObserver(previewHost, (entries) => {
   const entry = entries[0]
   if (entry) {
@@ -316,7 +384,7 @@ useResizeObserver(previewPage, (entries) => {
   if (entry && entry.target instanceof HTMLElement) {
     const pageH = entry.target.offsetHeight
     if (pageH > 0) {
-      previewPageH.value = pageH
+      previewPageH.value = Math.max(1123, pageH)
     }
   }
 })
@@ -356,9 +424,10 @@ useResizeObserver(previewPage, (entries) => {
           <div class="flex items-center gap-1.5 text-gray-900 group min-w-0 max-w-56 flex-1">
             <input
               v-model="cvTitle"
-              class="text-[13px] font-semibold bg-gray-50 border border-gray-200 hover:border-gray-300 focus:ring-2 focus:ring-[#C54A22]/20 focus:outline-none rounded-md px-2.5 py-1 w-full min-w-0 transition-all truncate"
+              class="text-[13px] font-semibold bg-white border border-gray-300 shadow-sm hover:border-gray-400 hover:shadow focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 focus:outline-none rounded-md px-3 py-1.5 w-full min-w-0 transition-all truncate placeholder-gray-400"
+              placeholder="Resume Name"
+              title="Resume Name"
             >
-            <Pencil class="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600 transition-colors pointer-events-none shrink-0" />
           </div>
 
           <!-- Save Status -->
@@ -393,7 +462,7 @@ useResizeObserver(previewPage, (entries) => {
           >
             <AlertCircle class="w-3.5 h-3.5 text-red-500 shrink-0" />
             <span class="text-[11px] font-medium text-red-600">
-              <span class="hidden lg:inline">{{ saveErrorMessage || 'Couldn\'t save. Retrying...' }}</span>
+              <span class="hidden lg:inline">Failed to save</span>
               <span class="sr-only lg:hidden">Error</span>
             </span>
           </div>
@@ -537,6 +606,17 @@ useResizeObserver(previewPage, (entries) => {
         <LayoutMobileNavMenu class="xl:hidden" />
       </div>
     </header>
+
+    <!-- Global Error Banner (Option 4) -->
+    <div
+      v-if="saveState === 'error'"
+      class="bg-red-50 border-b border-red-200 px-4 sm:px-6 py-3 flex items-start sm:items-center gap-3 shrink-0 animate-in slide-in-from-top-4 duration-300"
+    >
+      <AlertCircle class="w-5 h-5 text-red-500 shrink-0 mt-0.5 sm:mt-0" />
+      <p class="text-sm text-red-700 font-medium leading-snug break-words">
+        {{ saveErrorMessage || 'An error occurred while saving your changes. We will keep trying.' }}
+      </p>
+    </div>
 
     <!-- Loading state: the workspace is held back until the CV has arrived, so
          the fields are never rendered empty (see `isBootstrapping`). -->
@@ -683,6 +763,18 @@ useResizeObserver(previewPage, (entries) => {
           </div>
         </div>
 
+        <!-- Color Picker -->
+        <div class="px-4 lg:px-8 py-3 flex items-center justify-center gap-3 shrink-0">
+          <button
+            v-for="color in accentPresets"
+            :key="color"
+            :class="['w-6 h-6 rounded-full shadow-sm transition-transform cursor-pointer', accentColor === color ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : 'hover:scale-110']"
+            :style="{ backgroundColor: color }"
+            :aria-label="`Set theme color to ${color}`"
+            @click="accentColor = color"
+          />
+        </div>
+
         <!-- Canvas Area with ResizeObserver -->
         <div
           ref="previewHost"
@@ -718,12 +810,18 @@ useResizeObserver(previewPage, (entries) => {
     <DialogRoot v-model:open="isPreviewModalOpen">
       <DialogPortal>
         <DialogOverlay class="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-100 animate-in fade-in transition-opacity" />
-        <DialogContent class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-full max-w-5xl h-[95vh] flex justify-center p-4 outline-none animate-in fade-in zoom-in-95 duration-200">
-          <div class="relative h-full aspect-[1/1.414] bg-white shadow-2xl rounded-sm overflow-hidden flex flex-col items-center justify-center border border-gray-200">
+        <DialogContent class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-100 w-[calc(100vw-2rem)] h-[calc(100vh-2rem)] max-h-[95vh] max-w-5xl overflow-y-auto flex items-center justify-center outline-none animate-in fade-in zoom-in-95 duration-200">
+          <div
+            class="relative shadow-2xl rounded-sm border border-gray-200"
+            :style="{ width: PAGE_W * modalScale + 'px', height: previewPageH * modalScale + 'px' }"
+          >
             <DialogClose class="absolute top-4 right-4 p-2.5 bg-gray-100 hover:bg-gray-200 rounded-full shadow-sm transition-colors z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400">
               <X class="w-5 h-5 text-gray-700" />
             </DialogClose>
-            <div class="w-full h-full">
+            <div
+              class="absolute top-0 left-0 origin-top-left pointer-events-auto"
+              :style="{ width: '794px', height: previewPageH + 'px', transform: `scale(${modalScale})` }"
+            >
               <component
                 :is="activeTemplateComponent"
                 :data="resolvedPreviewData"

@@ -1,10 +1,18 @@
 import type { Content, TDocumentDefinitions } from 'pdfmake/build/pdfmake'
 import type { CvExportData } from '../exportData'
 import { formatDateRange, normalizeBullets } from '../formatters'
+import { TEMPLATE_ACCENT_DEFAULTS } from '../../templateAccents'
 
 export interface PdfTemplateOptions {
   paperSize: 'a4' | 'letter'
   includeLinks: boolean
+  /**
+   * The colour the CV is set in, as chosen in the editor. Absent means the CV
+   * has never had one chosen, and each renderer falls back to its template's
+   * own colour — so the exported file matches the live preview, which resolves
+   * the same default through `useCVState`.
+   */
+  accentColor?: string
 }
 
 const sectionTitle = (text: string, lineWidth: number): Content => ({
@@ -64,16 +72,17 @@ export function buildClassicPdf(
   options: PdfTemplateOptions,
 ): TDocumentDefinitions {
   const { personal } = data
+  const accent = options.accentColor || TEMPLATE_ACCENT_DEFAULTS.classic
   const contentWidth = options.paperSize === 'a4' ? 535 : 552
   const contactItems: ContactItem[] = []
 
   if (personal.email) contactItems.push(contactLink(personal.email, `mailto:${personal.email}`, options.includeLinks))
   if (personal.phone) contactItems.push({ text: personal.phone, color: '#4B5563' })
   if (personal.location) contactItems.push({ text: personal.location, color: '#4B5563' })
+
   if (personal.website) contactItems.push(contactLink(personal.website, toUrl(personal.website), options.includeLinks))
   if (personal.linkedin) contactItems.push(contactLink(personal.linkedin, toUrl(personal.linkedin), options.includeLinks))
   if (personal.github) contactItems.push(contactLink(personal.github, toUrl(personal.github), options.includeLinks))
-  if (personal.twitter) contactItems.push(contactLink(personal.twitter, toUrl(personal.twitter), options.includeLinks))
 
   const fullName = `${personal.firstName} ${personal.lastName}`.trim()
   const content: Content[] = []
@@ -285,7 +294,7 @@ export function buildClassicPdf(
       accent: {
         font: 'Roboto',
         fontSize: 9.75,
-        color: '#C54A22',
+        color: accent,
       },
       meta: {
         font: 'Roboto',

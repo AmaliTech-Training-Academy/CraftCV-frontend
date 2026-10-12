@@ -98,7 +98,17 @@ describe('PDF Registry', () => {
   })
 
   it('contains expected renderer keys', () => {
-    expect(Object.keys(PDF_RENDERERS)).toEqual(['classic', 'modern', 'professional'])
+    expect(Object.keys(PDF_RENDERERS)).toEqual([
+      'classic',
+      'modern',
+      'professional',
+      'inkwell',
+      'prism',
+      'campus',
+      'sprout',
+      'northstar',
+      'meridian',
+    ])
   })
 })
 

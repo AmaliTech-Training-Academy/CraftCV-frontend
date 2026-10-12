@@ -392,6 +392,22 @@ const isPasswordValid = computed(() => {
   return passwordCriteria.value.every(rule => rule.passed)
 })
 
+function formatMissingPasswordGuidance(missing: { key: string, hint: string }[]) {
+  const toAdd = missing.filter(m => m.key !== 'unpredictable').map(m => m.hint)
+  const hasUnpredictable = missing.some(m => m.key === 'unpredictable')
+
+  if (toAdd.length > 0 && hasUnpredictable) {
+    return `To make it stronger, add: ${toAdd.join(', ')} and avoid common sequences.`
+  }
+  if (toAdd.length > 0) {
+    return `To make it stronger, add: ${toAdd.join(', ')}.`
+  }
+  if (hasUnpredictable) {
+    return 'To make it stronger, avoid common sequences.'
+  }
+  return ''
+}
+
 // Dynamic inline suggestion text
 const passwordGuidance = computed(() => {
   if (!form.password) return ''
@@ -408,8 +424,7 @@ const passwordGuidance = computed(() => {
   }
 
   // Specifically tell the user what to add to make it strong
-  const missingHints = missing.map(m => m.hint)
-  return `To make it stronger, add: ${missingHints.join(', ')}.`
+  return formatMissingPasswordGuidance(missing)
 })
 
 const isEmailValid = computed(() => {
@@ -436,8 +451,7 @@ function fieldError(field: Field) {
     if (!form.password) return 'Password is required.'
     if (form.password.length < 8) return 'Password must be at least 8 characters.'
     if (!isPasswordValid.value) {
-      const missing = passwordCriteria.value.filter(c => !c.passed)
-      return `To make it stronger, add: ${missing.map(m => m.hint).join(', ')}.`
+      return formatMissingPasswordGuidance(passwordCriteria.value.filter(c => !c.passed))
     }
   }
   if (field === 'confirmPassword') {

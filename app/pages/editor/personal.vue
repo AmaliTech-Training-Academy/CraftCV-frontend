@@ -114,6 +114,7 @@ const additionalFieldConfigs = [
         label="Professional Title"
         placeholder="e.g. Senior Product Designer"
         autocomplete="organization-title"
+        :error="saveErrorFor('cv', 'professionalTitle')"
       />
 
       <!-- Contact Details Section -->
@@ -166,7 +167,6 @@ const additionalFieldConfigs = [
           >
             <EditorFormField
               v-model="personal[field.id]"
-
               :label="field.label"
               :placeholder="field.placeholder"
               :error="backendError(field.id)"

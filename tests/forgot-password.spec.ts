@@ -168,6 +168,10 @@ describe('forgot-password.vue', () => {
       expect(wrapper.find('#password-guidance').text()).toBe(
         'To make it stronger, add: at least 8 characters.',
       )
+      await wrapper.find('#new-password').setValue('Password1!')
+      expect(wrapper.find('#password-guidance').text()).toBe(
+        'To make it stronger, avoid common sequences.',
+      )
       await wrapper.find('#confirm-password').setValue('Short1!')
       expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
 

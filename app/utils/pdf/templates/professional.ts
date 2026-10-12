@@ -2,6 +2,7 @@ import type { Content, TDocumentDefinitions } from 'pdfmake/build/pdfmake'
 import type { CvExportData } from '../exportData'
 import type { PdfTemplateOptions } from './classic'
 import { formatDateRange, normalizeBullets } from '../formatters'
+import { TEMPLATE_ACCENT_DEFAULTS } from '../../templateAccents'
 
 function toUrl(value: string): string {
   return value.startsWith('http://') || value.startsWith('https://')
@@ -49,6 +50,9 @@ export function buildProfessionalPdf(
 ): TDocumentDefinitions {
   const { personal } = data
   const sidebarWidth = options.paperSize === 'a4' ? 180 : 185
+  // Sidebar panel and main-column headings both follow the accent; the default
+  // is the slate this template was drawn in. Mirrors TwoColumnTemplate.vue.
+  const accent = options.accentColor || TEMPLATE_ACCENT_DEFAULTS.professional
 
   const sidebarStack: Content[] = []
 
@@ -99,6 +103,7 @@ export function buildProfessionalPdf(
   if (personal.location) {
     contactLines.push({ text: personal.location, color: '#CBD5E1', fontSize: 8.5, margin: [0, 0, 0, 3] })
   }
+
   if (personal.website) {
     contactLines.push({
       text: personal.website.replace(/^https?:\/\//, ''),
@@ -121,15 +126,6 @@ export function buildProfessionalPdf(
     contactLines.push({
       text: personal.github.replace(/^https?:\/\//, ''),
       ...(options.includeLinks ? { link: toUrl(personal.github) } : {}),
-      color: options.includeLinks ? '#93C5FD' : '#E2E8F0',
-      fontSize: 8.5,
-      margin: [0, 0, 0, 3],
-    })
-  }
-  if (personal.twitter) {
-    contactLines.push({
-      text: personal.twitter.replace(/^https?:\/\//, ''),
-      ...(options.includeLinks ? { link: toUrl(personal.twitter) } : {}),
       color: options.includeLinks ? '#93C5FD' : '#E2E8F0',
       fontSize: 8.5,
       margin: [0, 0, 0, 3],
@@ -284,7 +280,7 @@ export function buildProfessionalPdf(
           y: 0,
           w: sidebarWidth,
           h: pageSize.height,
-          color: '#2C3E50',
+          color: accent,
         },
       ],
     }),
@@ -360,7 +356,7 @@ export function buildProfessionalPdf(
       mainSectionTitle: {
         fontSize: 9,
         bold: true,
-        color: '#2C3E50',
+        color: accent,
         characterSpacing: 1.4,
       },
       mainItemTitle: {
