@@ -204,27 +204,9 @@ const resolvedPreviewData = computed<ResolvedCvData>(() => {
         display_order: i,
       }
     }),
-    languages: (previewData.value.languages ?? []).map((l, i) => ({
-      id: l.id,
-      name: l.name,
-      proficiency: l.proficiency,
-      display_order: i,
-    })),
-    awards: (previewData.value.awards ?? []).map((a, i) => ({
-      id: a.id,
-      name: a.title || '',
-      title: a.title,
-      date: a.date,
-      description: a.description,
-      display_order: i,
-    })),
-    additional_information: (previewData.value.additional_information ?? []).map((info, i) => ({
-      id: info.id,
-      title: info.title,
-      description: info.description,
-      content: info.description,
-      display_order: i,
-    })),
+    languages: [],
+    awards: [],
+    additional_information: [],
   }
 })
 
