@@ -304,7 +304,7 @@ export const useCVState = () => {
               date: 'YYYY-MM-01',
               description: 'Details about this certification or award.',
             },
-          ]
+          ],
     }
   })
 
