@@ -304,17 +304,7 @@ export const useCVState = () => {
               date: 'YYYY-MM-01',
               description: 'Details about this certification or award.',
             },
-          ],
-      languages: [
-        { id: 'mock-lang-1', name: 'English', proficiency: 'Native' },
-        { id: 'mock-lang-2', name: 'Spanish', proficiency: 'Fluent' },
-      ],
-      awards: [
-        { id: 'mock-award-1', title: 'Award Title', date: 'YYYY-MM-01', description: 'Brief description of the award.' },
-      ],
-      additional_information: [
-        { id: 'mock-info-1', title: 'Project Title', description: 'Describe a significant project or key achievement.' },
-      ],
+          ]
     }
   })
 
