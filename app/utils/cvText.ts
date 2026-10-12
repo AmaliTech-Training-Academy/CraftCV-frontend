@@ -117,3 +117,22 @@ export function dateRangeLabel(startDate?: string | null, endDate?: string | nul
   if (!end) return start
   return `${start} - ${end}`
 }
+
+/**
+ * Normalizes 'Month YYYY', 'YYYY-MM', or 'YYYY-MM-DD' date string into 'YYYY-MM-01'.
+ * Returns null if the string is empty or invalid.
+ */
+export function normalizeDate(d?: string | null): string | null {
+  if (!d || !d.trim()) return null
+  const trimmed = d.trim()
+  if (trimmed.toLowerCase() === 'present') return null
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed
+  if (/^\d{4}-\d{2}$/.test(trimmed)) return `${trimmed}-01`
+  if (/^\d{4}$/.test(trimmed)) return `${trimmed}-01-01`
+  const [month, year] = trimmed.split(/\s+/)
+  const monthIdx = month ? MONTH_NAMES.findIndex(m => m.toLowerCase() === month.toLowerCase() || m.toLowerCase().slice(0, 3) === month.toLowerCase()) : -1
+  if (monthIdx !== -1 && year && /^\d{4}$/.test(year)) {
+    return `${year}-${String(monthIdx + 1).padStart(2, '0')}-01`
+  }
+  return null
+}

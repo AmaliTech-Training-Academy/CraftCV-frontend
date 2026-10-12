@@ -5,6 +5,7 @@ import {
   tiptapJSONToDescription,
   formatMonthYear,
   dateRangeLabel,
+  normalizeDate,
 } from '../app/utils/cvText'
 
 describe('cvText utilities', () => {
@@ -124,6 +125,30 @@ describe('cvText utilities', () => {
       expect(dateRangeLabel('2022-01-01', '2023-05-01', false)).toBe('January 2022 - May 2023')
       expect(dateRangeLabel('2022-01-01', null, true)).toBe('January 2022 - Present')
       expect(dateRangeLabel(null, null, false)).toBe('')
+    })
+  })
+
+  describe('normalizeDate', () => {
+    it('normalizes "Month YYYY" to YYYY-MM-01', () => {
+      expect(normalizeDate('October 2025')).toBe('2025-10-01')
+      expect(normalizeDate('January 2024')).toBe('2024-01-01')
+      expect(normalizeDate('Dec 2023')).toBe('2023-12-01')
+    })
+
+    it('passes through YYYY-MM-DD and normalizes YYYY-MM and YYYY', () => {
+      expect(normalizeDate('2025-10-01')).toBe('2025-10-01')
+      expect(normalizeDate('2025-10')).toBe('2025-10-01')
+      expect(normalizeDate('2025')).toBe('2025-01-01')
+    })
+
+    it('returns null for Present, empty strings, and invalid dates', () => {
+      expect(normalizeDate('Present')).toBeNull()
+      expect(normalizeDate('present')).toBeNull()
+      expect(normalizeDate('')).toBeNull()
+      expect(normalizeDate('   ')).toBeNull()
+      expect(normalizeDate(null)).toBeNull()
+      expect(normalizeDate(undefined)).toBeNull()
+      expect(normalizeDate('NotADate')).toBeNull()
     })
   })
 })
