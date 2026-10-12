@@ -192,16 +192,21 @@ export function useAutosave() {
       // Load related sections, mapping backend fields back to frontend fields
       education.value = (data.educations || []).map((e: any) => ({
         ...e,
+        id: e.educationId || e.id,
         school: e.school || e.institution || '',
         degree: e.degree || '',
         fieldOfStudy: e.fieldOfStudy || e.field_of_study || '',
       }))
       experience.value = (data.experiences || []).map((e: any) => ({
         ...e,
+        id: e.experienceId || e.id,
         title: e.title || e.role || '',
         company: e.company || '',
       }))
-      skills.value = data.skills || []
+      skills.value = (data.skills || []).map((s: any) => ({
+        ...s,
+        id: s.skillId || s.id,
+      }))
       certifications.value = (data.certifications || []).map((c: any) => ({
         ...c,
         id: c.certificationId || c.id,
@@ -467,7 +472,7 @@ export function useAutosave() {
           for (let i = 0; i < currentItems.length; i++) {
             const item = currentItems[i]
             const lastIndex = lastFinalIds.indexOf(item.id)
-            if (lastIndex !== i && !item.id.startsWith('mock-') && !item.id.startsWith('temp_')) {
+            if (lastIndex !== -1 && lastIndex !== i && !item.id.startsWith('mock-') && !item.id.startsWith('temp_')) {
               try {
                 await $api<any>(`/cvs/${endpoint}/${item.id}/`, {
                   method: 'PATCH',
@@ -545,13 +550,14 @@ export function useAutosave() {
               // Mutate the reactive state directly so the UI knows the real ID
               const stateRef = (useCVState() as any)[localKey]
               const targetItem = stateRef.value?.find((s: any) => s.id === item.id)
+              const realId = res?.skillId || res?.educationId || res?.experienceId || res?.certificationId || res?.id || res?.uuid || id
               if (targetItem) {
-                targetItem.id = res?.id || res?.uuid || id
+                targetItem.id = realId
               }
               else if (stateRef.value?.[i]) {
-                stateRef.value[i].id = res?.id || res?.uuid || id
+                stateRef.value[i].id = realId
               }
-              finalIds.push(res?.id || res?.uuid || id)
+              finalIds.push(realId)
               sectionsChanged = true
             }
             else if (JSON.stringify(item) !== JSON.stringify(lastItem)) {

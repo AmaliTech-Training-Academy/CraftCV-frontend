@@ -772,4 +772,93 @@ describe('useAutosave', () => {
     expect(state.certifications.value[0]?.date).toBe('May 2024')
     expect(state.certifications.value[0]?.expirationDate).toBe('May 2027')
   })
+
+  it('does not send a displayOrder PATCH for newly added items before they are created', async () => {
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-new-item-test',
+      title: 'New Item Test',
+      experiences: [
+        { id: 'exp-existing-1', role: 'Dev', company: 'Co', displayOrder: 0 },
+      ],
+    })
+
+    const { loadCV, triggerAutosave } = useAutosave()
+    await loadCV('cv-new-item-test')
+    await flushMicrotasks()
+
+    const state = useCVState()
+    mockApi.mockReset()
+    mockApi.mockResolvedValue({ experienceId: 'exp-created-2' })
+
+    // Add a new experience with a UUID (as crypto.randomUUID() produces)
+    state.experience.value.push({
+      id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      title: 'Senior Dev',
+      company: 'NewCo',
+      location: '',
+      startDate: '',
+      endDate: '',
+      description: '',
+    })
+
+    triggerAutosave()
+    await flushMicrotasks()
+
+    // Must NOT have called PATCH /cvs/experiences/a1b2c3d4-e5f6-7890-abcd-ef1234567890/
+    const prematurePatches = mockApi.mock.calls.filter(
+      call => call[0] === '/cvs/experiences/a1b2c3d4-e5f6-7890-abcd-ef1234567890/' && call[1]?.method === 'PATCH',
+    )
+    expect(prematurePatches).toHaveLength(0)
+
+    // Should have POSTed the new item
+    expect(mockApi).toHaveBeenCalledWith('/cvs/experiences/', {
+      method: 'POST',
+      body: expect.objectContaining({
+        role: 'Senior Dev',
+        company: 'NewCo',
+        displayOrder: 1,
+      }),
+    })
+  })
+
+  it('resolves skillId from POST /cvs/skills/ and updates the CV relationship with the backend ID', async () => {
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-skill-test',
+      title: 'Skill Test',
+      skills: [],
+    })
+
+    const { loadCV, triggerAutosave } = useAutosave()
+    await loadCV('cv-skill-test')
+    await flushMicrotasks()
+
+    const state = useCVState()
+    mockApi.mockReset()
+    mockApi.mockResolvedValueOnce({
+      skillId: 'uuid-backend-skill-456',
+      name: 'TypeScript',
+      displayOrder: 0,
+    })
+    mockApi.mockResolvedValueOnce({ lastSavedAt: '2026-10-12T10:00:00Z' })
+
+    state.skills.value.push({
+      id: 'skill_temp_local_789',
+      name: 'TypeScript',
+      level: 'Advanced',
+    })
+
+    triggerAutosave()
+    await flushMicrotasks()
+
+    // The reactive state should now have the backend's skillId
+    expect(state.skills.value[0]?.id).toBe('uuid-backend-skill-456')
+
+    // The CV PATCH relationship should include the backend skillId, NOT the temp string
+    expect(mockApi).toHaveBeenCalledWith('/cvs/cv-skill-test/', {
+      method: 'PATCH',
+      body: expect.objectContaining({
+        skills: ['uuid-backend-skill-456'],
+      }),
+    })
+  })
 })
