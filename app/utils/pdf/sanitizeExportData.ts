@@ -170,7 +170,19 @@ export function sanitizeExportData(data: ResolvedCvData | Record<string, unknown
       name: String(cert.name),
       issuer: isRealText(String(cert.issuer ?? '')) ? String(cert.issuer) : '',
       issue_date: isRealText(String(cert.issue_date ?? cert.date ?? '')) ? String(cert.issue_date ?? cert.date) : undefined,
+      expiration_date: isRealText(String(cert.expiration_date ?? cert.expirationDate ?? ''))
+        ? String(cert.expiration_date ?? cert.expirationDate)
+        : undefined,
+      does_not_expire: typeof (cert.does_not_expire ?? cert.doesNotExpire) === 'boolean'
+        ? Boolean(cert.does_not_expire ?? cert.doesNotExpire)
+        : undefined,
+      credential_id: isRealText(String(cert.credential_id ?? cert.credentialId ?? ''))
+        ? String(cert.credential_id ?? cert.credentialId)
+        : undefined,
       credential_url: isRealText(String(cert.credential_url ?? cert.credentialUrl ?? '')) ? String(cert.credential_url ?? cert.credentialUrl) : undefined,
+      description: isRealText(String(cert.description ?? ''))
+        ? String(cert.description)
+        : undefined,
       display_order: typeof cert.display_order === 'number' ? cert.display_order : index,
     }))
 
