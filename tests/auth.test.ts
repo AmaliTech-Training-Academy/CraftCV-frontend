@@ -372,6 +372,11 @@ describe('Authentication Flow', () => {
       )
     })
 
+    it('does not mask client-side runtime errors (TypeError, ReferenceError) as network connection failure', () => {
+      const typeErr = new TypeError('Cannot read properties of undefined')
+      expect(extractErrorMessage(typeErr)).toBe('Cannot read properties of undefined')
+    })
+
     it('returns detail, message, or error string when present in 4xx DRF payload', () => {
       expect(extractErrorMessage({ data: { detail: 'Custom error detail.' } })).toBe(
         'Custom error detail.',

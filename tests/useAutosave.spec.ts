@@ -744,6 +744,41 @@ describe('useAutosave', () => {
         issuer: 'Google',
         issueDate: null,
         expirationDate: null,
+        credentialUrl: '',
+      }),
+    })
+  })
+
+  it('sends credentialUrl as empty string rather than null for API schema compliance', async () => {
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-cert-url',
+      title: 'Cert CV',
+      certifications: [],
+    })
+
+    const { loadCV, triggerAutosave } = useAutosave()
+    await loadCV('cv-cert-url')
+    await vi.runAllTimersAsync()
+
+    const state = useCVState()
+    mockApi.mockReset()
+    mockApi.mockResolvedValue({ id: 'real-cert-id' })
+
+    state.certifications.value.push({
+      id: 'cert_temp_url',
+      name: 'Certified Kubernetes Administrator',
+      issuer: 'Linux Foundation',
+      date: 'January 2024',
+      credentialUrl: '',
+    })
+
+    triggerAutosave()
+    await flushMicrotasks()
+
+    expect(mockApi).toHaveBeenCalledWith('/cvs/certifications/', {
+      method: 'POST',
+      body: expect.objectContaining({
+        credentialUrl: '',
       }),
     })
   })
@@ -860,5 +895,37 @@ describe('useAutosave', () => {
         skills: ['uuid-backend-skill-456'],
       }),
     })
+  })
+
+  it('safely handles CV with string UUID section arrays without throwing or erroring autosave', async () => {
+    mockApi.mockResolvedValueOnce({
+      cvId: 'cv-uuid-array-test',
+      title: 'UUID Sections CV',
+      educations: ['edu-uuid-1', 'edu-uuid-2'],
+      experiences: ['exp-uuid-1'],
+      skills: ['skill-uuid-1'],
+      certifications: ['cert-uuid-1'],
+    })
+
+    const { loadCV, triggerAutosave } = useAutosave()
+    await loadCV('cv-uuid-array-test')
+    await flushMicrotasks()
+
+    const state = useCVState()
+    expect(state.saveErrorMessage.value).toBeNull()
+    expect(state.education.value).toHaveLength(2)
+    expect(state.education.value[0]?.id).toBe('edu-uuid-1')
+    expect(state.experience.value).toHaveLength(1)
+    expect(state.experience.value[0]?.id).toBe('exp-uuid-1')
+    expect(state.skills.value[0]?.id).toBe('skill-uuid-1')
+    expect(state.certifications.value[0]?.id).toBe('cert-uuid-1')
+
+    // Subsequent autosave should run without crashing or throwing TypeError
+    mockApi.mockReset()
+    triggerAutosave()
+    await flushMicrotasks()
+
+    expect(state.saveState.value).toBe('saved')
+    expect(state.saveErrorMessage.value).toBeNull()
   })
 })

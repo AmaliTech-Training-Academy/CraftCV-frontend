@@ -190,38 +190,96 @@ export function useAutosave() {
       }
 
       // Load related sections, mapping backend fields back to frontend fields
-      education.value = (data.educations || []).map((e: any) => ({
-        ...e,
-        id: e.educationId || e.id,
-        school: e.school || e.institution || '',
-        degree: e.degree || '',
-        fieldOfStudy: e.fieldOfStudy || e.field_of_study || '',
-        startDate: formatMonthYear(e.startDate || e.start_date),
-        endDate: (e.endDate || e.end_date) ? formatMonthYear(e.endDate || e.end_date) : null,
-      }))
-      experience.value = (data.experiences || []).map((e: any) => ({
-        ...e,
-        id: e.experienceId || e.id,
-        title: e.title || e.role || '',
-        company: e.company || '',
-        startDate: formatMonthYear(e.startDate || e.start_date),
-        endDate: (e.endDate || e.end_date) ? formatMonthYear(e.endDate || e.end_date) : null,
-      }))
-      skills.value = (data.skills || []).map((s: any) => ({
-        ...s,
-        id: s.skillId || s.id,
-        level: s.level || s.proficiency || 'Intermediate',
-      }))
-      certifications.value = (data.certifications || []).map((c: any) => ({
-        ...c,
-        id: c.certificationId || c.id,
-        date: formatMonthYear(c.date || c.issueDate || c.issue_date),
-        expirationDate: formatMonthYear(c.expirationDate || c.expiration_date),
-        doesNotExpire: c.doesNotExpire ?? false,
-        credentialId: c.credentialId || '',
-        credentialUrl: c.credentialUrl || '',
-        description: c.description || '',
-      }))
+      education.value = (data.educations || []).map((e: any) => {
+        if (typeof e === 'string') {
+          return {
+            id: e,
+            school: '',
+            degree: '',
+            fieldOfStudy: '',
+            location: '',
+            startDate: '',
+            endDate: null,
+            description: '',
+          }
+        }
+        return {
+          ...e,
+          id: String(e.educationId || e.education_id || e.id || ''),
+          school: e.school || e.institution || '',
+          degree: e.degree || '',
+          fieldOfStudy: e.fieldOfStudy || e.field_of_study || '',
+          location: e.location || '',
+          startDate: formatMonthYear(e.startDate || e.start_date),
+          endDate: (e.endDate || e.end_date) ? formatMonthYear(e.endDate || e.end_date) : null,
+          description: e.description || '',
+        }
+      })
+      experience.value = (data.experiences || []).map((e: any) => {
+        if (typeof e === 'string') {
+          return {
+            id: e,
+            title: '',
+            company: '',
+            location: '',
+            startDate: '',
+            endDate: null,
+            description: '',
+          }
+        }
+        return {
+          ...e,
+          id: String(e.experienceId || e.experience_id || e.id || ''),
+          title: e.title || e.role || '',
+          company: e.company || '',
+          location: e.location || '',
+          startDate: formatMonthYear(e.startDate || e.start_date),
+          endDate: (e.endDate || e.end_date) ? formatMonthYear(e.endDate || e.end_date) : null,
+          description: e.description || '',
+        }
+      })
+      skills.value = (data.skills || []).map((s: any) => {
+        if (typeof s === 'string') {
+          return {
+            id: s,
+            name: '',
+            level: 'Intermediate',
+          }
+        }
+        return {
+          ...s,
+          id: String(s.skillId || s.skill_id || s.id || ''),
+          name: s.name || '',
+          level: s.level || s.proficiency || 'Intermediate',
+        }
+      })
+      certifications.value = (data.certifications || []).map((c: any) => {
+        if (typeof c === 'string') {
+          return {
+            id: c,
+            name: '',
+            issuer: '',
+            date: '',
+            expirationDate: '',
+            doesNotExpire: false,
+            credentialId: '',
+            credentialUrl: '',
+            description: '',
+          }
+        }
+        return {
+          ...c,
+          id: String(c.certificationId || c.certification_id || c.id || ''),
+          name: c.name || '',
+          issuer: c.issuer || '',
+          date: formatMonthYear(c.date || c.issueDate || c.issue_date),
+          expirationDate: formatMonthYear(c.expirationDate || c.expiration_date),
+          doesNotExpire: c.doesNotExpire ?? false,
+          credentialId: c.credentialId || '',
+          credentialUrl: c.credentialUrl || '',
+          description: c.description || '',
+        }
+      })
 
       // Store clone of data for diffing directly from loaded state
       lastSavedData.value = clone({
@@ -247,10 +305,23 @@ export function useAutosave() {
   // Deep clone helper
   const clone = (obj: any) => JSON.parse(JSON.stringify(obj))
 
+  const isTempId = (id: unknown): boolean => {
+    if (!id || typeof id !== 'string') return false
+    return id.startsWith('mock-') || id.startsWith('temp_') || id.startsWith('cert_') || id.startsWith('skill_')
+  }
+
+  const ensureUrl = (url?: unknown): string => {
+    if (typeof url !== 'string' || !url.trim()) return ''
+    const trimmed = url.trim()
+    if (/^https?:\/\//i.test(trimmed)) return trimmed
+    return `https://${trimmed}`
+  }
+
   // Capture the current state as the "last saved" baseline
   const captureSavedState = () => {
-    // Only treat certifications as saved on backend if they were already saved or have required fields filled
+    // Only treat certifications as saved on backend if they were already saved or have required fields filled and are not uncommitted drafts
     const savedCertifications = (certifications.value || []).filter((c: any) => {
+      if (c._isNew) return false
       const wasAlreadySaved = lastSavedData.value?.certifications?.some((lc: any) => lc.id === c.id)
       return wasAlreadySaved || Boolean(c.name?.trim() && c.issuer?.trim())
     })
@@ -400,9 +471,11 @@ export function useAutosave() {
       const currentPersonal = stateToSave.personal || {}
       const lastPersonal = lastSavedData.value?.personal || {}
 
+      const urlKeys = new Set(['websiteUrl', 'linkedinUrl', 'githubUrl', 'twitterUrl'])
       for (const [localKey, backendKey] of Object.entries(personalDetailKeys)) {
         if (currentPersonal[localKey] !== lastPersonal[localKey]) {
-          personalPatches[backendKey] = currentPersonal[localKey]
+          const val = currentPersonal[localKey]
+          personalPatches[backendKey] = urlKeys.has(backendKey) ? ensureUrl(val) : val
         }
       }
 
@@ -424,7 +497,8 @@ export function useAutosave() {
         // about goes — under the names the backend models.
         const fullPersonal: Record<string, any> = {}
         for (const [localKey, backendKey] of Object.entries(personalDetailKeys)) {
-          fullPersonal[backendKey] = currentPersonal[localKey] ?? ''
+          const val = currentPersonal[localKey] ?? ''
+          fullPersonal[backendKey] = urlKeys.has(backendKey) ? ensureUrl(val) : val
         }
 
         errorTarget = 'personal'
@@ -449,16 +523,18 @@ export function useAutosave() {
         const currentItems = stateToSave[localKey] || []
         const lastItems = lastSavedData.value?.[localKey] || []
 
-        const currentIds = new Set(currentItems.map((i: any) => i.id))
-        const lastIds = new Set(lastItems.map((i: any) => i.id))
+        const currentIds = new Set(currentItems.map((i: any) => String(i?.id || '')))
+        const lastIds = new Set(lastItems.map((i: any) => String(i?.id || '')))
 
         const finalIds: string[] = []
 
         // Deletions
-        const deletedIds = lastItems.filter((i: any) => !currentIds.has(i.id)).map((i: any) => i.id)
+        const deletedIds = lastItems
+          .filter((i: any) => i?.id && !currentIds.has(String(i.id)))
+          .map((i: any) => String(i.id))
         for (const id of deletedIds) {
           try {
-            if (!id.startsWith('mock-') && !id.startsWith('temp_') && !id.startsWith('cert_') && !id.startsWith('skill_')) {
+            if (id && !isTempId(id)) {
               await $api<any>(`/cvs/${endpoint}/${id}/`, { method: 'DELETE' })
             }
             sectionsChanged = true
@@ -469,23 +545,24 @@ export function useAutosave() {
         }
 
         // Check for reordering — if order changed, PATCH each moved item with its new displayOrder
-        const lastFinalIds = lastItems.map((i: any) => i.id).filter((id: string) => !deletedIds.includes(id))
-        const currentFinalIds = currentItems.map((i: any) => i.id)
+        const lastFinalIds = lastItems.map((i: any) => String(i?.id || '')).filter((id: string) => !deletedIds.includes(id))
+        const currentFinalIds = currentItems.map((i: any) => String(i?.id || ''))
         const orderChanged = JSON.stringify(lastFinalIds) !== JSON.stringify(currentFinalIds)
         if (orderChanged) {
           sectionsChanged = true
           for (let i = 0; i < currentItems.length; i++) {
             const item = currentItems[i]
-            const lastIndex = lastFinalIds.indexOf(item.id)
-            if (lastIndex !== -1 && lastIndex !== i && !item.id.startsWith('mock-') && !item.id.startsWith('temp_')) {
+            const itemId = String(item?.id || '')
+            const lastIndex = lastFinalIds.indexOf(itemId)
+            if (lastIndex !== -1 && lastIndex !== i && itemId && !isTempId(itemId)) {
               try {
-                await $api<any>(`/cvs/${endpoint}/${item.id}/`, {
+                await $api<any>(`/cvs/${endpoint}/${itemId}/`, {
                   method: 'PATCH',
                   body: { displayOrder: i },
                 })
               }
               catch (e) {
-                console.warn(`Failed to update displayOrder for ${item.id} in ${endpoint}`, e)
+                console.warn(`Failed to update displayOrder for ${itemId} in ${endpoint}`, e)
               }
             }
           }
@@ -494,16 +571,17 @@ export function useAutosave() {
         // Additions and Modifications
         for (let i = 0; i < currentItems.length; i++) {
           const item = currentItems[i]
-          const isNew = !lastIds.has(item.id) || item.id.startsWith('mock-') || item.id.startsWith('temp_')
-          const lastItem = lastItems.find((li: any) => li.id === item.id)
+          const itemId = String(item?.id || '')
+          const isNew = !itemId || !lastIds.has(itemId) || isTempId(itemId)
+          const lastItem = lastItems.find((li: any) => String(li?.id || '') === itemId)
 
-          // Only save new certifications once required fields are filled (avoids POSTing blank certifications on "Add Certification")
-          if (isNew && localKey === 'certifications' && (!item.name?.trim() || !item.issuer?.trim())) {
+          // Only save new certifications once committed via Done and required fields are filled
+          if (isNew && (item._isNew || (localKey === 'certifications' && (!item.name?.trim() || !item.issuer?.trim())))) {
             continue
           }
 
           // Always omit the frontend displayOrder, use array index, and remove local id for POST
-          const { id, displayOrder, ...fields } = item
+          const { id, displayOrder, _isNew, ...fields } = item
           fields.displayOrder = i
 
           // Hand the backend the field names it models (see sectionFieldNames).
@@ -529,7 +607,8 @@ export function useAutosave() {
             payload.issueDate = normalizeDate(payload.issueDate)
             payload.expirationDate = normalizeDate(payload.expirationDate)
             payload.doesNotExpire = Boolean(payload.doesNotExpire)
-            if (!payload.credentialUrl?.trim()) payload.credentialUrl = null
+            if (!payload.credentialUrl?.trim()) payload.credentialUrl = ''
+            else payload.credentialUrl = ensureUrl(payload.credentialUrl)
             if (!payload.credentialId?.trim()) payload.credentialId = ''
             if (!payload.description?.trim()) payload.description = ''
           }
@@ -537,7 +616,7 @@ export function useAutosave() {
           try {
             // Whichever of these two writes goes out is the one a rejection
             // will be about, so the messages land on this entry.
-            errorTarget = item.id
+            errorTarget = itemId || null
 
             if (isNew) {
               const res = await $api<any>(`/cvs/${endpoint}/`, {
@@ -547,8 +626,8 @@ export function useAutosave() {
 
               // Mutate the reactive state directly so the UI knows the real ID
               const stateRef = (useCVState() as any)[localKey]
-              const targetItem = stateRef.value?.find((s: any) => s.id === item.id)
-              const realId = res?.skillId || res?.educationId || res?.experienceId || res?.certificationId || res?.id || res?.uuid || id
+              const targetItem = stateRef.value?.find((s: any) => String(s?.id || '') === itemId)
+              const realId = String(res?.skillId || res?.educationId || res?.experienceId || res?.certificationId || res?.id || res?.uuid || itemId)
               if (targetItem) {
                 targetItem.id = realId
               }
@@ -558,20 +637,20 @@ export function useAutosave() {
               finalIds.push(realId)
               sectionsChanged = true
             }
-            else if (JSON.stringify(item) !== JSON.stringify(lastItem)) {
-              await $api<any>(`/cvs/${endpoint}/${id}/`, {
+            else if (itemId && JSON.stringify(item) !== JSON.stringify(lastItem)) {
+              await $api<any>(`/cvs/${endpoint}/${itemId}/`, {
                 method: 'PATCH',
                 body: payload,
               })
-              finalIds.push(id)
+              finalIds.push(itemId)
             }
-            else {
-              finalIds.push(id)
+            else if (itemId) {
+              finalIds.push(itemId)
             }
           }
           catch (e: any) {
-            console.warn(`Failed to save ${id} in ${endpoint}`, e)
-            finalIds.push(id) // keep the id so it doesn't get removed from CV
+            console.warn(`Failed to save ${itemId} in ${endpoint}`, e)
+            if (itemId) finalIds.push(itemId) // keep the id so it doesn't get removed from CV
             // If it's a 400 validation error, we just keep it dirty
             throw e
           }

@@ -10,7 +10,9 @@ import {
   ArrowUp,
   ArrowDown,
   Trash2,
+  HelpCircle,
 } from '@lucide/vue'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip'
 import { useCVState } from '~/composables/useCVState'
 import draggable from 'vuedraggable'
 
@@ -125,12 +127,37 @@ const handleNext = async () => {
 
     <!-- 1. Add Skill Card -->
     <div class="bg-white border border-gray-200/90 rounded-2xl p-6 shadow-xs mb-6">
-      <label
-        for="skill-input"
-        class="block text-sm font-bold text-gray-900 mb-3"
-      >
-        Add a skill or keyword
-      </label>
+      <div class="flex items-center gap-1.5 mb-3">
+        <label
+          for="skill-input"
+          class="block text-sm font-bold text-gray-900"
+        >
+          Add a skill or keyword
+        </label>
+        <TooltipProvider :delay-duration="150">
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <button
+                type="button"
+                aria-label="More info about adding skills"
+                class="text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22] transition-colors rounded-full p-0.5 inline-flex items-center justify-center cursor-help shrink-0"
+              >
+                <HelpCircle
+                  class="w-3.5 h-3.5"
+                  aria-hidden="true"
+                />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent
+              side="top"
+              align="start"
+              class="max-w-xs text-xs font-normal"
+            >
+              Add relevant technical abilities, tools, frameworks, and domain expertise for your target role.
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
 
       <form
         class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
@@ -365,10 +392,7 @@ const handleNext = async () => {
     </div>
 
     <!-- Clear All Confirmation Dialog -->
-    <Dialog
-      :open="isClearAllDialogOpen"
-      @update:open="(val: boolean) => { isClearAllDialogOpen = val }"
-    >
+    <Dialog v-model:open="isClearAllDialogOpen">
       <DialogContent
         :show-close-button="false"
         class="sm:max-w-95 p-6 sm:p-7 rounded-2xl flex flex-col items-center text-center gap-0 border-0 shadow-2xl"

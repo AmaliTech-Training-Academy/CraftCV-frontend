@@ -189,4 +189,49 @@ describe('useCVState', () => {
       expect(certifications.value.length).toBe(0)
     })
   })
+
+  describe('saveErrorFor mapping', () => {
+    it('maps local field names to backend model field names for error lookup', () => {
+      const { saveErrorDetail, saveErrorFor } = useCVState()
+
+      saveErrorDetail.value = {
+        target: 'personal',
+        fields: {
+          websiteUrl: 'Enter a valid URL.',
+          linkedinUrl: 'Invalid LinkedIn URL.',
+          githubUrl: 'Invalid GitHub URL.',
+          twitterUrl: 'Invalid Twitter URL.',
+        },
+      }
+
+      expect(saveErrorFor('personal', 'website')).toBe('Enter a valid URL.')
+      expect(saveErrorFor('personal', 'linkedin')).toBe('Invalid LinkedIn URL.')
+      expect(saveErrorFor('personal', 'github')).toBe('Invalid GitHub URL.')
+      expect(saveErrorFor('personal', 'twitter')).toBe('Invalid Twitter URL.')
+
+      saveErrorDetail.value = {
+        target: 'exp-1',
+        fields: {
+          role: 'Role is required.',
+        },
+      }
+      expect(saveErrorFor('exp-1', 'title')).toBe('Role is required.')
+
+      saveErrorDetail.value = {
+        target: 'edu-1',
+        fields: {
+          institution: 'Institution is required.',
+        },
+      }
+      expect(saveErrorFor('edu-1', 'school')).toBe('Institution is required.')
+
+      saveErrorDetail.value = {
+        target: 'cert-1',
+        fields: {
+          issueDate: 'Issue date is invalid.',
+        },
+      }
+      expect(saveErrorFor('cert-1', 'date')).toBe('Issue date is invalid.')
+    })
+  })
 })

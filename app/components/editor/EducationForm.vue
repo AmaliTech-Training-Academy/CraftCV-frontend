@@ -48,12 +48,14 @@ const toggleCurrent = (e: Event) => {
         :error="backendError('school') || (showErrors && !item.school.trim() ? 'Required' : '')"
         label="School / University"
         placeholder="e.g. KNUST"
+        tooltip="The college, university, high school, or training institution you attended."
         @update:model-value="onEdit"
       />
       <EditorFormField
         v-model="item.location"
         label="Location"
         placeholder="e.g. Kumasi, Ghana"
+        tooltip="City and state/country of the institution, or 'Online'."
         :error="backendError('location')"
         @update:model-value="onEdit"
       />
@@ -66,6 +68,7 @@ const toggleCurrent = (e: Event) => {
         :error="backendError('degree') || (showErrors && !item.degree.trim() ? 'Required' : '')"
         label="Degree / Certificate"
         placeholder="e.g. B.S."
+        tooltip="The type of degree or certificate earned (e.g. B.S., B.A., M.S., Ph.D., Diploma)."
         @update:model-value="onEdit"
       />
       <EditorFormField
@@ -73,6 +76,7 @@ const toggleCurrent = (e: Event) => {
         :required="true"
         label="Field of Study"
         placeholder="e.g. Computer Science"
+        tooltip="Your major, minor, or concentration (e.g. Computer Science, Business Administration)."
         :error="backendError('fieldOfStudy') || (showErrors && (!item.fieldOfStudy || !item.fieldOfStudy.trim()) ? 'Required' : '')"
         @update:model-value="onEdit"
       />

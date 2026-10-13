@@ -51,6 +51,7 @@ const toggleCurrent = (e: Event) => {
         label="Job Title"
         placeholder="e.g. Software Engineer"
         autocomplete="organization-title"
+        tooltip="Your official or primary role title during your employment, e.g. 'Software Engineer' or 'Product Manager'."
         @update:model-value="onEdit"
       />
 
@@ -61,6 +62,7 @@ const toggleCurrent = (e: Event) => {
         label="Company"
         placeholder="e.g. Google"
         autocomplete="organization"
+        tooltip="The name of the company, organization, or client you worked with."
         @update:model-value="onEdit"
       />
     </div>
@@ -70,6 +72,7 @@ const toggleCurrent = (e: Event) => {
       v-model="item.location"
       label="Location"
       placeholder="e.g. New York, NY"
+      tooltip="City and state/country or 'Remote' (e.g. 'New York, NY' or 'Remote')."
       :error="backendError('location')"
       @update:model-value="onEdit"
     />

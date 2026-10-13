@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import {
   Edit,
   Trash2,
@@ -8,7 +9,9 @@ import {
   GripVertical,
   Check,
   ExternalLink,
+  HelpCircle,
 } from '@lucide/vue'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip'
 import { useCVState, type CertificationItem } from '~/composables/useCVState'
 import { isValidDateString, useCVSectionEditor } from '~/composables/useCVSectionEditor'
 import draggable from 'vuedraggable'
@@ -39,6 +42,7 @@ const createEmptyCertification = (): CertificationItem => ({
   credentialId: '',
   credentialUrl: '',
   description: '',
+  _isNew: true,
 })
 
 const validateCertification = (item: CertificationItem) =>
@@ -52,7 +56,6 @@ const {
   activeId,
   itemToDeleteId,
   showErrors,
-  handleAddEntry,
   promptDelete,
   confirmDelete,
 } = useCVSectionEditor(
@@ -60,6 +63,97 @@ const {
   createEmptyCertification,
   validateCertification,
 )
+
+const isCertificationUntouched = (item: CertificationItem) =>
+  !item.name.trim()
+  && !item.issuer.trim()
+  && !item.date.trim()
+  && !item.expirationDate?.trim()
+  && !item.credentialId?.trim()
+  && !item.credentialUrl?.trim()
+  && !item.description?.trim()
+
+const draftNewItem = ref<CertificationItem | null>(null)
+const snapshots = new Map<string, CertificationItem>()
+
+watch(
+  activeId,
+  (newId) => {
+    if (newId) {
+      const draft = draftNewItem.value
+      if (draft && isCertificationUntouched(draft) && newId !== draft.id) {
+        certifications.value = certifications.value.filter(c => c !== draft && c.id !== draft.id)
+        draftNewItem.value = null
+      }
+      const item = certifications.value.find(c => c.id === newId)
+      if (item && !item._isNew && !snapshots.has(newId)) {
+        snapshots.set(newId, { ...item })
+      }
+    }
+  },
+  { immediate: true },
+)
+
+const handleAddCertification = () => {
+  const draft = draftNewItem.value
+  if (draft && isCertificationUntouched(draft)) {
+    certifications.value = certifications.value.filter(c => c !== draft && c.id !== draft.id)
+  }
+  const newItem = createEmptyCertification()
+  newItem._isNew = true
+  draftNewItem.value = newItem
+  certifications.value.push(newItem)
+  activeId.value = newItem.id
+  showErrors.value = false
+}
+
+const handleCancel = (item: CertificationItem) => {
+  const draft = draftNewItem.value
+  const isNew = Boolean(item._isNew)
+    || item === draft
+    || (draft && item.id === draft.id)
+    || isCertificationUntouched(item)
+
+  if (isNew) {
+    certifications.value = certifications.value.filter(c => c !== item && c.id !== item.id)
+    if (draft === item || (draft && draft.id === item.id)) {
+      draftNewItem.value = null
+    }
+    snapshots.delete(item.id)
+  }
+  else {
+    const snapshot = snapshots.get(item.id)
+    if (snapshot) {
+      const idx = certifications.value.findIndex(c => c.id === item.id)
+      if (idx !== -1) {
+        certifications.value[idx] = { ...snapshot }
+      }
+      snapshots.delete(item.id)
+    }
+  }
+  activeId.value = null
+}
+
+const handleDone = (item: CertificationItem) => {
+  delete item._isNew
+  const draft = draftNewItem.value
+  if (draft === item || (draft && draft.id === item.id)) {
+    draftNewItem.value = null
+  }
+  snapshots.delete(item.id)
+  activeId.value = null
+}
+
+const handleConfirmDelete = () => {
+  if (itemToDeleteId.value) {
+    const draft = draftNewItem.value
+    if (draft && draft.id === itemToDeleteId.value) {
+      draftNewItem.value = null
+    }
+    snapshots.delete(itemToDeleteId.value)
+  }
+  confirmDelete()
+}
 
 /**
  * The message a rejected save put on one of this entry's fields, or ''. Scoped
@@ -82,6 +176,11 @@ const handleFinish = async () => {
   certifications.value = certifications.value.filter(
     item => Boolean(item.name.trim() || item.issuer.trim() || item.date.trim() || item.description?.trim() || item.credentialId?.trim() || item.credentialUrl?.trim()),
   )
+
+  for (const item of certifications.value) {
+    delete item._isNew
+  }
+  draftNewItem.value = null
 
   const allValid = certifications.value.every(validateCertification)
   if (!allValid) {
@@ -154,16 +253,41 @@ const handleFinish = async () => {
                 <!-- Row 1: Name & Issuer -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label
-                      :for="'cert-name-' + item.id"
-                      class="block text-[13px] font-semibold text-gray-800 mb-2"
-                    >
-                      Certification Name <span
-                        class="text-[#C54A22]"
-                        aria-hidden="true"
-                      >*</span>
-                      <span class="sr-only">(required)</span>
-                    </label>
+                    <div class="flex items-center gap-1.5 mb-2">
+                      <label
+                        :for="'cert-name-' + item.id"
+                        class="block text-[13px] font-semibold text-gray-800"
+                      >
+                        Certification Name <span
+                          class="text-[#C54A22]"
+                          aria-hidden="true"
+                        >*</span>
+                        <span class="sr-only">(required)</span>
+                      </label>
+                      <TooltipProvider :delay-duration="150">
+                        <Tooltip>
+                          <TooltipTrigger as-child>
+                            <button
+                              type="button"
+                              aria-label="More info about Certification Name"
+                              class="text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22] transition-colors rounded-full p-0.5 inline-flex items-center justify-center cursor-help shrink-0"
+                            >
+                              <HelpCircle
+                                class="w-3.5 h-3.5"
+                                aria-hidden="true"
+                              />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="top"
+                            align="start"
+                            class="max-w-xs text-xs font-normal"
+                          >
+                            The full official name of your certificate, license, or credential.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                     <input
                       :id="'cert-name-' + item.id"
                       v-model="item.name"
@@ -175,8 +299,8 @@ const handleFinish = async () => {
                       class="w-full h-12 px-4 rounded-xl border text-[16px] transition-all focus:outline-none"
                       :class="[
                         nameError(item)
-                          ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-400/20'
-                          : 'border-gray-300 focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20',
+                          ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
+                          : 'border-gray-300 focus:ring-2 focus:ring-[#C54A22]/20',
                       ]"
                     >
                     <span
@@ -190,16 +314,41 @@ const handleFinish = async () => {
                   </div>
 
                   <div>
-                    <label
-                      :for="'cert-issuer-' + item.id"
-                      class="block text-[13px] font-semibold text-gray-800 mb-2"
-                    >
-                      Issuing Organization <span
-                        class="text-[#C54A22]"
-                        aria-hidden="true"
-                      >*</span>
-                      <span class="sr-only">(required)</span>
-                    </label>
+                    <div class="flex items-center gap-1.5 mb-2">
+                      <label
+                        :for="'cert-issuer-' + item.id"
+                        class="block text-[13px] font-semibold text-gray-800"
+                      >
+                        Issuing Organization <span
+                          class="text-[#C54A22]"
+                          aria-hidden="true"
+                        >*</span>
+                        <span class="sr-only">(required)</span>
+                      </label>
+                      <TooltipProvider :delay-duration="150">
+                        <Tooltip>
+                          <TooltipTrigger as-child>
+                            <button
+                              type="button"
+                              aria-label="More info about Issuing Organization"
+                              class="text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22] transition-colors rounded-full p-0.5 inline-flex items-center justify-center cursor-help shrink-0"
+                            >
+                              <HelpCircle
+                                class="w-3.5 h-3.5"
+                                aria-hidden="true"
+                              />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="top"
+                            align="start"
+                            class="max-w-xs text-xs font-normal"
+                          >
+                            The organization, institute, or vendor that issued the certificate (e.g. AWS, Scrum Alliance, Google).
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                     <input
                       :id="'cert-issuer-' + item.id"
                       v-model="item.issuer"
@@ -211,8 +360,8 @@ const handleFinish = async () => {
                       class="w-full h-12 px-4 rounded-xl border text-[16px] transition-all focus:outline-none"
                       :class="[
                         issuerError(item)
-                          ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-400/20'
-                          : 'border-gray-300 focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20',
+                          ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
+                          : 'border-gray-300 focus:ring-2 focus:ring-[#C54A22]/20',
                       ]"
                     >
                     <span
@@ -266,28 +415,78 @@ const handleFinish = async () => {
                 <!-- Row 3: Credential ID & URL -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label
-                      :for="'cert-id-' + item.id"
-                      class="block text-[13px] font-semibold text-gray-800 mb-2"
-                    >
-                      Credential ID
-                    </label>
+                    <div class="flex items-center gap-1.5 mb-2">
+                      <label
+                        :for="'cert-id-' + item.id"
+                        class="block text-[13px] font-semibold text-gray-800"
+                      >
+                        Credential ID
+                      </label>
+                      <TooltipProvider :delay-duration="150">
+                        <Tooltip>
+                          <TooltipTrigger as-child>
+                            <button
+                              type="button"
+                              aria-label="More info about Credential ID"
+                              class="text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22] transition-colors rounded-full p-0.5 inline-flex items-center justify-center cursor-help shrink-0"
+                            >
+                              <HelpCircle
+                                class="w-3.5 h-3.5"
+                                aria-hidden="true"
+                              />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="top"
+                            align="start"
+                            class="max-w-xs text-xs font-normal"
+                          >
+                            The unique license number or certificate identifier, if applicable.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                     <input
                       :id="'cert-id-' + item.id"
                       v-model="item.credentialId"
                       type="text"
                       placeholder="e.g. NNG-1049281"
-                      class="w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-[16px] text-gray-900 focus:outline-none focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 transition-all"
+                      class="w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-[16px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20 transition-all"
                     >
                   </div>
 
                   <div>
-                    <label
-                      :for="'cert-url-' + item.id"
-                      class="block text-[13px] font-semibold text-gray-800 mb-2"
-                    >
-                      Credential URL
-                    </label>
+                    <div class="flex items-center gap-1.5 mb-2">
+                      <label
+                        :for="'cert-url-' + item.id"
+                        class="block text-[13px] font-semibold text-gray-800"
+                      >
+                        Credential URL
+                      </label>
+                      <TooltipProvider :delay-duration="150">
+                        <Tooltip>
+                          <TooltipTrigger as-child>
+                            <button
+                              type="button"
+                              aria-label="More info about Credential URL"
+                              class="text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22] transition-colors rounded-full p-0.5 inline-flex items-center justify-center cursor-help shrink-0"
+                            >
+                              <HelpCircle
+                                class="w-3.5 h-3.5"
+                                aria-hidden="true"
+                              />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="top"
+                            align="start"
+                            class="max-w-xs text-xs font-normal"
+                          >
+                            Direct verification link where recruiters or employers can verify the credential online.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                     <div class="relative">
                       <input
                         :id="'cert-url-' + item.id"
@@ -300,9 +499,11 @@ const handleFinish = async () => {
                         class="w-full h-12 pl-4 pr-10 rounded-xl border bg-white text-[16px] text-gray-900 focus:outline-none focus:ring-2 transition-all"
                         :class="[
                           backendError(item.id, 'credentialUrl')
-                            ? 'border-red-400 focus:border-red-500 focus:ring-red-400/20'
-                            : 'border-gray-300 focus:border-[#C54A22] focus:ring-[#C54A22]/20',
+                            ? 'border-red-400 focus:ring-red-400/20'
+                            : 'border-gray-300 focus:ring-[#C54A22]/20',
                         ]"
+                        @keydown="(e: KeyboardEvent) => { if (e.key === ' ') e.preventDefault() }"
+                        @input="(e: Event) => { item.credentialUrl = (e.target as HTMLInputElement).value.replace(/\s/g, '') }"
                       >
                       <ExternalLink
                         class="w-4 h-4 text-gray-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
@@ -336,7 +537,7 @@ const handleFinish = async () => {
                     rows="4"
                     aria-label="Description & Key Competencies"
                     placeholder="• Key skills, domains, or competencies demonstrated by this credential..."
-                    class="w-full p-4 text-[16px] text-gray-900 border border-gray-300 rounded-xl bg-white focus:outline-none focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 transition resize-y min-h-[110px]"
+                    class="w-full p-4 text-[16px] text-gray-900 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20 transition resize-y min-h-27.5"
                   />
                 </div>
               </div>
@@ -346,14 +547,14 @@ const handleFinish = async () => {
                 <button
                   type="button"
                   class="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:underline"
-                  @click="activeId = null"
+                  @click="handleCancel(item)"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   class="px-6 py-2.5 bg-[#C54A22] hover:bg-[#A83D1B] active:scale-95 text-white font-bold text-sm rounded-xl flex items-center gap-1.5 shadow-xs transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/40"
-                  @click="activeId = null"
+                  @click="handleDone(item)"
                 >
                   <Check
                     class="w-4 h-4"
@@ -438,7 +639,7 @@ const handleFinish = async () => {
         class="w-full py-5 border-2 border-dashed border-gray-200 hover:border-[#C54A22]/50 hover:bg-[#C54A22]/5 rounded-xl flex items-center justify-center gap-2 text-sm font-medium text-[#C54A22] transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/40"
         type="button"
         variant="outline"
-        @click="handleAddEntry"
+        @click="handleAddCertification"
       >
         <Plus
           class="w-4 h-4"
@@ -505,7 +706,7 @@ const handleFinish = async () => {
           <Button
             class="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-medium text-sm shadow-xs h-auto cursor-pointer"
             type="button"
-            @click="confirmDelete"
+            @click="handleConfirmDelete"
           >
             Delete certification
           </Button>

@@ -27,6 +27,12 @@ export function extractErrorMessage(
     return fallbackMessage
   }
 
+  // If this is a client runtime programming error (TypeError, ReferenceError, etc.), do NOT mask as network failure!
+  if (err instanceof TypeError || err instanceof ReferenceError || err instanceof RangeError || err instanceof SyntaxError) {
+    console.error('[Client Runtime Error]:', err)
+    return (err as Error).message || fallbackMessage
+  }
+
   const e = err as {
     data?: unknown
     status?: number

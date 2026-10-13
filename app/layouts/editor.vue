@@ -43,6 +43,7 @@ import CVTemplateMeridian from '~/components/templates/CVTemplateMeridian.vue'
 import ExportModal from '~/components/export/ExportModal.vue'
 import type { ExportPayload } from '~/types/export'
 import { generatePDF, generatePlainText, printDocument } from '~/utils/pdfExport'
+import { formatMonthYear } from '~/utils/cvText'
 
 const {
   cvId,
@@ -180,15 +181,11 @@ const resolvedPreviewData = computed<ResolvedCvData>(() => {
       display_order: i,
     })),
     certifications: (previewData.value.certifications ?? []).map((c, i) => {
-      const parts = []
-      if (c.credentialId) parts.push(`Credential ID: ${c.credentialId}`)
-      if (c.credentialUrl) parts.push(`URL: ${c.credentialUrl}`)
-      const extraDesc = parts.length > 0 ? parts.join(' | ') : ''
-      const finalDesc = [extraDesc, c.description].filter(Boolean).join('\n\n')
-
-      let dateLabel = c.date || ''
-      if (c.expirationDate && !c.doesNotExpire) {
-        dateLabel = dateLabel ? `${dateLabel} – Expires ${c.expirationDate}` : `Expires ${c.expirationDate}`
+      const issueFormatted = c.date ? formatMonthYear(c.date) : ''
+      const expFormatted = c.expirationDate ? formatMonthYear(c.expirationDate) : ''
+      let dateLabel = issueFormatted
+      if (expFormatted && !c.doesNotExpire) {
+        dateLabel = dateLabel ? `${dateLabel} – Expires ${expFormatted}` : `Expires ${expFormatted}`
       }
 
       return {
@@ -200,7 +197,7 @@ const resolvedPreviewData = computed<ResolvedCvData>(() => {
         does_not_expire: c.doesNotExpire ?? false,
         credential_id: c.credentialId || undefined,
         credential_url: c.credentialUrl || undefined,
-        description: finalDesc || undefined,
+        description: c.description || undefined,
         display_order: i,
       }
     }),
@@ -406,7 +403,7 @@ useResizeObserver(previewPage, (entries) => {
           <div class="flex items-center gap-1.5 text-gray-900 group min-w-0 max-w-56 flex-1">
             <input
               v-model="cvTitle"
-              class="text-[13px] font-semibold bg-white border border-gray-300 shadow-sm hover:border-gray-400 hover:shadow focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 focus:outline-none rounded-md px-3 py-1.5 w-full min-w-0 transition-all truncate placeholder-gray-400"
+              class="text-[13px] font-semibold bg-white border border-gray-300 shadow-sm hover:border-gray-400 hover:shadow focus:ring-2 focus:ring-[#C54A22]/20 focus:outline-none rounded-md px-3 py-1.5 w-full min-w-0 transition-all truncate placeholder-gray-400"
               placeholder="Resume Name"
               title="Resume Name"
             >
@@ -595,7 +592,7 @@ useResizeObserver(previewPage, (entries) => {
       class="bg-red-50 border-b border-red-200 px-4 sm:px-6 py-3 flex items-start sm:items-center gap-3 shrink-0 animate-in slide-in-from-top-4 duration-300"
     >
       <AlertCircle class="w-5 h-5 text-red-500 shrink-0 mt-0.5 sm:mt-0" />
-      <p class="text-sm text-red-700 font-medium leading-snug break-words">
+      <p class="text-sm text-red-700 font-medium leading-snug wrap-break-word">
         {{ saveErrorMessage || 'An error occurred while saving your changes. We will keep trying.' }}
       </p>
     </div>

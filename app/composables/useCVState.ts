@@ -54,6 +54,7 @@ export interface CertificationItem {
   credentialId?: string
   credentialUrl?: string
   description?: string
+  _isNew?: boolean
 }
 
 export type StepStatus = 'empty' | 'incomplete' | 'complete'
@@ -81,7 +82,10 @@ export interface SaveErrorDetail {
  * a field of any record an error is shown against.
  */
 const backendFieldNames: Record<string, string> = {
-  website: 'website',
+  website: 'websiteUrl',
+  linkedin: 'linkedinUrl',
+  github: 'githubUrl',
+  twitter: 'twitterUrl',
   title: 'role',
   school: 'institution',
   date: 'issueDate',

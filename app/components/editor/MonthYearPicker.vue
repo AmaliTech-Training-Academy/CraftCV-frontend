@@ -233,8 +233,8 @@ const onYearPicked = (value: unknown) => {
 
 const triggerClass = computed(() => {
   if (props.disabled) return 'bg-gray-50/80 text-gray-400 border-gray-200'
-  if (props.error) return 'bg-white border-red-400 focus:border-red-500 focus:ring-red-400/20'
-  return 'bg-white border-gray-300 focus:border-[#C54A22] focus:ring-[#C54A22]/20'
+  if (props.error) return 'bg-white border-red-400 focus-visible:border-red-500 focus-visible:ring-red-400/20'
+  return 'bg-white border-gray-300 focus-visible:border-[#C54A22] focus-visible:ring-[#C54A22]/20'
 })
 
 const navButtonClass

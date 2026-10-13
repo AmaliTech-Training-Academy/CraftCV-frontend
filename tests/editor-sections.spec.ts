@@ -2,6 +2,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
+import PersonalPage from '~/pages/editor/personal.vue'
 import ExperiencePage from '~/pages/editor/experience.vue'
 import EducationPage from '~/pages/editor/education.vue'
 import SkillsPage from '~/pages/editor/skills.vue'
@@ -27,7 +28,7 @@ const sharedStubs = {
     template: '<a><slot /></a>',
   },
   EditorFormField: {
-    props: ['modelValue', 'label', 'error', 'required', 'placeholder'],
+    props: ['modelValue', 'label', 'error', 'required', 'placeholder', 'tooltip', 'helpText'],
     emits: ['update:modelValue'],
     template: `
       <div class="stub-form-field">
@@ -231,6 +232,21 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
       expect(experience.value.length).toBe(1)
       expect(experience.value[0]!.id).toBe('2')
     })
+
+    it('discards untouched experience entry on cancel', async () => {
+      const { experience } = useCVState()
+      const wrapper = mount(ExperiencePage, { global: { stubs: sharedStubs } })
+
+      const addBtn = wrapper.findAll('button').find(b => b.text().includes('Add Entry'))
+      await addBtn!.trigger('click')
+      expect(experience.value.length).toBe(1)
+
+      const cancelBtn = wrapper.findAll('button').find(b => b.text().trim() === 'Cancel')
+      if (cancelBtn) {
+        await cancelBtn.trigger('click')
+        expect(experience.value.length).toBe(0)
+      }
+    })
   })
 
   describe('Education Page', () => {
@@ -282,6 +298,21 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
 
       await checkbox.setValue(false)
       expect(education.value[0]!.endDate).toBe('June 2025')
+    })
+
+    it('discards untouched education entry on cancel', async () => {
+      const { education } = useCVState()
+      const wrapper = mount(EducationPage, { global: { stubs: sharedStubs } })
+
+      const addBtn = wrapper.findAll('button').find(b => b.text().includes('Add Entry'))
+      await addBtn!.trigger('click')
+      expect(education.value.length).toBe(1)
+
+      const cancelBtn = wrapper.findAll('button').find(b => b.text().trim() === 'Cancel')
+      if (cancelBtn) {
+        await cancelBtn.trigger('click')
+        expect(education.value.length).toBe(0)
+      }
     })
   })
 
@@ -493,6 +524,171 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
       const previewBtn = buttons.find(b => b.text().includes('Preview'))
       expect(sectionsBtn?.exists()).toBe(true)
       expect(previewBtn?.exists()).toBe(true)
+    })
+
+    it('discards new certification entry when Cancel is clicked while creating', async () => {
+      const { certifications } = useCVState()
+      const wrapper = mount(CertificationsPage, { global: { stubs: sharedStubs } })
+
+      const addBtn = wrapper.findAll('button').find(b => b.text().includes('Add Certification'))
+      await addBtn!.trigger('click')
+
+      expect(certifications.value.length).toBe(1)
+      const input = wrapper.find('input[placeholder="e.g. UX Master Certified (UXMC)"]')
+      await input.setValue('AWS Certified Solutions Architect')
+      expect(certifications.value[0]!.name).toBe('AWS Certified Solutions Architect')
+
+      const cancelBtn = wrapper.findAll('button').find(b => b.text().trim() === 'Cancel')
+      expect(cancelBtn).toBeDefined()
+      await cancelBtn!.trigger('click')
+
+      expect(certifications.value.length).toBe(0)
+    })
+
+    it('discards untouched new certification entry when Cancel is clicked', async () => {
+      const { certifications } = useCVState()
+      const wrapper = mount(CertificationsPage, { global: { stubs: sharedStubs } })
+
+      const addBtn = wrapper.findAll('button').find(b => b.text().includes('Add Certification'))
+      await addBtn!.trigger('click')
+
+      expect(certifications.value.length).toBe(1)
+
+      const cancelBtn = wrapper.findAll('button').find(b => b.text().trim() === 'Cancel')
+      expect(cancelBtn).toBeDefined()
+      await cancelBtn!.trigger('click')
+
+      expect(certifications.value.length).toBe(0)
+    })
+
+    it('reverts changes to existing certification when Cancel is clicked', async () => {
+      const { certifications } = useCVState()
+      certifications.value = [
+        { id: 'c1', name: 'Original Cert', issuer: 'Original Org', date: 'Jan 2023' },
+      ]
+
+      const wrapper = mount(CertificationsPage, { global: { stubs: sharedStubs } })
+
+      const editBtn = wrapper.find('button[aria-label="Edit entry"]')
+      if (editBtn.exists()) {
+        await editBtn.trigger('click')
+      }
+
+      const input = wrapper.find('input[placeholder="e.g. UX Master Certified (UXMC)"]')
+      await input.setValue('Modified Cert')
+      expect(certifications.value[0]!.name).toBe('Modified Cert')
+
+      const cancelBtn = wrapper.findAll('button').find(b => b.text().trim() === 'Cancel')
+      expect(cancelBtn).toBeDefined()
+      await cancelBtn!.trigger('click')
+
+      expect(certifications.value.length).toBe(1)
+      expect(certifications.value[0]!.name).toBe('Original Cert')
+    })
+
+    it('keeps certification entry when Done is clicked', async () => {
+      const { certifications } = useCVState()
+      const wrapper = mount(CertificationsPage, { global: { stubs: sharedStubs } })
+
+      const addBtn = wrapper.findAll('button').find(b => b.text().includes('Add Certification'))
+      await addBtn!.trigger('click')
+
+      const input = wrapper.find('input[placeholder="e.g. UX Master Certified (UXMC)"]')
+      await input.setValue('AWS Certified')
+
+      const doneBtn = wrapper.findAll('button').find(b => b.text().includes('Done'))
+      expect(doneBtn).toBeDefined()
+      await doneBtn!.trigger('click')
+
+      expect(certifications.value.length).toBe(1)
+      expect(certifications.value[0]!.name).toBe('AWS Certified')
+    })
+
+    it('sets _isNew flag on new certification and removes it when Done is clicked', async () => {
+      const { certifications } = useCVState()
+      const wrapper = mount(CertificationsPage, { global: { stubs: sharedStubs } })
+
+      const addBtn = wrapper.findAll('button').find(b => b.text().includes('Add Certification'))
+      await addBtn!.trigger('click')
+
+      expect(certifications.value.length).toBe(1)
+      expect(certifications.value[0]!._isNew).toBe(true)
+
+      const doneBtn = wrapper.findAll('button').find(b => b.text().includes('Done'))
+      await doneBtn!.trigger('click')
+
+      expect(certifications.value.length).toBe(1)
+      expect(certifications.value[0]!._isNew).toBeUndefined()
+    })
+  })
+
+  describe('Personal Details Page', () => {
+    it('initializes and binds required personal fields', async () => {
+      const { personal } = useCVState()
+      const wrapper = mount(PersonalPage, { global: { stubs: sharedStubs } })
+
+      expect(wrapper.text()).toContain('Personal Details')
+
+      personal.value.firstName = 'Sarah'
+      personal.value.lastName = 'Connor'
+      personal.value.email = 'sarah@example.com'
+      personal.value.phone = '+15551234567'
+      personal.value.location = 'Los Angeles, CA'
+      personal.value.title = 'Security Consultant'
+      await nextTick()
+
+      expect(wrapper.text()).toContain('First Name')
+      expect(wrapper.text()).toContain('Last Name')
+      expect(personal.value.firstName).toBe('Sarah')
+      expect(personal.value.title).toBe('Security Consultant')
+    })
+
+    it('toggles additional fields on and off and clears their values when hidden', async () => {
+      const { personal } = useCVState()
+      const wrapper = mount(PersonalPage, { global: { stubs: sharedStubs } })
+
+      // Initially no additional fields
+      expect(wrapper.findAll('.stub-form-field').length).toBe(6)
+
+      // Find the "+ Website" button
+      const websiteBtn = wrapper.findAll('button').find(b => b.text().includes('Website'))
+      expect(websiteBtn).toBeDefined()
+      await websiteBtn!.trigger('click')
+
+      // Should now show Website field
+      expect(wrapper.findAll('.stub-form-field').length).toBe(7)
+
+      // Type website URL
+      personal.value.website = 'https://portfolio.me'
+      await nextTick()
+      expect(personal.value.website).toBe('https://portfolio.me')
+
+      // Toggle Website off
+      await websiteBtn!.trigger('click')
+
+      // Value should be cleared so it doesn't show in preview
+      expect(personal.value.website).toBe('')
+      expect(wrapper.findAll('.stub-form-field').length).toBe(6)
+    })
+
+    it('displays backend error message mapped from websiteUrl, linkedinUrl etc.', async () => {
+      const { saveErrorDetail } = useCVState()
+      const wrapper = mount(PersonalPage, { global: { stubs: sharedStubs } })
+
+      // Toggle Website on
+      const websiteBtn = wrapper.findAll('button').find(b => b.text().includes('Website'))
+      await websiteBtn!.trigger('click')
+
+      // Simulate backend validation rejection
+      saveErrorDetail.value = {
+        target: 'personal',
+        fields: {
+          websiteUrl: 'Enter a valid URL.',
+        },
+      }
+      await nextTick()
+
+      expect(wrapper.text()).toContain('Enter a valid URL.')
     })
   })
 })

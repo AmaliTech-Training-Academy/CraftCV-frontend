@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { HelpCircle } from '@lucide/vue'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip'
 import { useCVState } from '~/composables/useCVState'
 
 useHead({ title: 'Professional Summary' })
@@ -29,19 +31,50 @@ const backendError = () => saveErrorFor('cv', 'professionalSummary')
 
     <div class="flex flex-col gap-8">
       <div class="flex flex-col gap-2.5">
-        <label class="text-[13px] font-semibold text-gray-700">Summary</label>
+        <div class="flex items-center gap-1.5">
+          <label
+            for="summary-textarea"
+            class="text-[13px] font-semibold text-gray-700"
+          >
+            Summary
+          </label>
+          <TooltipProvider :delay-duration="150">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <button
+                  type="button"
+                  aria-label="More info about Professional Summary"
+                  class="text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22] transition-colors rounded-full p-0.5 inline-flex items-center justify-center cursor-help shrink-0"
+                >
+                  <HelpCircle
+                    class="w-3.5 h-3.5"
+                    aria-hidden="true"
+                  />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                align="start"
+                class="max-w-xs text-xs font-normal"
+              >
+                A 2–4 sentence pitch highlighting your core expertise, top achievements, and career focus.
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <div class="relative">
           <textarea
+            id="summary-textarea"
             v-model="summary"
             rows="6"
             placeholder="e.g. Innovative Product Designer with 5+ years of experience..."
             :aria-invalid="Boolean(backendError())"
             :aria-describedby="backendError() ? 'summary-error' : undefined"
-            class="w-full rounded-xl border p-4 focus:outline-none focus:ring-2 transition-all text-[15px] resize-y"
+            class="w-full rounded-xl border p-4 focus-visible:outline-none focus-visible:ring-2 transition-all text-[15px] resize-y"
             :class="[
               backendError()
-                ? 'border-red-400 focus:ring-red-400/20 focus:border-red-500'
-                : 'border-gray-300 focus:ring-[#C54A22]/20 focus:border-[#C54A22]',
+                ? 'border-red-400 focus-visible:ring-red-400/20'
+                : 'border-gray-300 focus-visible:ring-[#C54A22]/20',
             ]"
           />
           <p

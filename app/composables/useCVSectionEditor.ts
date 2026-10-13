@@ -113,20 +113,16 @@ export function useCVSectionEditor<T extends { id: string }>(
   }
 
   const toggleCurrentStatus = (item: T & { endDate: string | null, isCurrent?: boolean }, isCurrent: boolean) => {
-    console.log('toggleCurrentStatus called for', item.id, 'with isCurrent=', isCurrent, 'item.endDate=', item.endDate)
     item.isCurrent = isCurrent
     if (isCurrent) {
       if (item.endDate) {
         savedEndDates.value[item.id] = item.endDate
-        console.log('saved', item.endDate, 'to savedEndDates for', item.id)
       }
       item.endDate = null
     }
     else {
-      console.log('restoring from savedEndDates for', item.id, 'which is', savedEndDates.value[item.id])
       item.endDate = savedEndDates.value[item.id] || ''
     }
-    console.log('after toggle, item.endDate=', item.endDate)
   }
 
   const isValid = computed(() => {

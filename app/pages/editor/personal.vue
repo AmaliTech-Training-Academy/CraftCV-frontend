@@ -24,6 +24,40 @@ const showErrors = ref(false)
  */
 const backendError = (key: string) => saveErrorFor('personal', key)
 
+const isValidEmail = (email: string) => {
+  const trimmed = email.trim()
+  if (!trimmed) return false
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)
+}
+
+const isValidPhone = (phone: string) => {
+  const digits = phone.replace(/\D/g, '')
+  return digits.length >= 7 && !/[a-zA-Z]/.test(phone)
+}
+
+const emailTouched = ref(false)
+const phoneTouched = ref(false)
+
+const emailError = computed(() => {
+  if (backendError('email')) return backendError('email')
+  if (!showErrors.value && !emailTouched.value) return ''
+  if (!personal.value.email.trim()) {
+    return showErrors.value ? 'Email address is required' : ''
+  }
+  if (!isValidEmail(personal.value.email)) return 'Please enter a valid email address'
+  return ''
+})
+
+const phoneError = computed(() => {
+  if (backendError('phone')) return backendError('phone')
+  if (!showErrors.value && !phoneTouched.value) return ''
+  if (!personal.value.phone.trim()) {
+    return showErrors.value ? 'Phone number is required' : ''
+  }
+  if (!isValidPhone(personal.value.phone)) return 'Please enter a valid phone number (at least 7 digits)'
+  return ''
+})
+
 // Phone and location are required by the backend, not optional extras: it
 // rejects either one blank with "This field may not be blank", so a save cannot
 // succeed without them and Next should not wave them through.
@@ -31,7 +65,9 @@ const isValid = computed(() => {
   return personal.value.firstName.trim() !== ''
     && personal.value.lastName.trim() !== ''
     && personal.value.email.trim() !== ''
+    && isValidEmail(personal.value.email)
     && personal.value.phone.trim() !== ''
+    && isValidPhone(personal.value.phone)
     && personal.value.location.trim() !== ''
 })
 
@@ -43,20 +79,22 @@ const handleNext = () => {
   router.push('/editor/summary')
 }
 
-const toggleAdditionalField = (fieldId: string) => {
-  additionalFields[fieldId] = !additionalFields[fieldId]
-  if (!additionalFields[fieldId]) {
-    // Clear the data when the field is hidden so it doesn't show in preview
-    personal.value[fieldId as keyof typeof personal.value] = ''
-  }
-}
+type AdditionalFieldKey = 'website' | 'linkedin' | 'github' | 'twitter'
 
-const additionalFields = reactive<Record<string, boolean>>({
+const additionalFields = reactive<Record<AdditionalFieldKey, boolean>>({
   website: false,
   linkedin: false,
   github: false,
   twitter: false,
 })
+
+const toggleAdditionalField = (fieldId: AdditionalFieldKey) => {
+  additionalFields[fieldId] = !additionalFields[fieldId]
+  if (!additionalFields[fieldId]) {
+    // Clear the data when the field is hidden so it doesn't show in preview
+    personal.value[fieldId] = ''
+  }
+}
 
 // Initialize toggles if data was loaded from backend
 watchEffect(() => {
@@ -66,12 +104,18 @@ watchEffect(() => {
   if (personal.value.twitter) additionalFields.twitter = true
 })
 
-const additionalFieldConfigs = [
-  { id: 'website', label: 'Website', placeholder: 'e.g. www.portfolio.com', kind: 'text' },
-  { id: 'linkedin', label: 'LinkedIn', placeholder: 'e.g. linkedin.com/in/username', kind: 'text' },
-  { id: 'github', label: 'GitHub', placeholder: 'e.g. github.com/username', kind: 'text' },
-  { id: 'twitter', label: 'Twitter / X', placeholder: 'e.g. twitter.com/username', kind: 'text' },
-] as const
+const additionalFieldConfigs: Array<{
+  id: AdditionalFieldKey
+  label: string
+  placeholder: string
+  tooltip: string
+  kind: 'text'
+}> = [
+  { id: 'website', label: 'Website', placeholder: 'e.g. www.portfolio.com', tooltip: 'Your personal website, blog, or online portfolio link', kind: 'text' },
+  { id: 'linkedin', label: 'LinkedIn', placeholder: 'e.g. linkedin.com/in/username', tooltip: 'Your public LinkedIn profile URL', kind: 'text' },
+  { id: 'github', label: 'GitHub', placeholder: 'e.g. github.com/username', tooltip: 'Your GitHub account or code repository link', kind: 'text' },
+  { id: 'twitter', label: 'Twitter / X', placeholder: 'e.g. twitter.com/username', tooltip: 'Your professional Twitter or X profile URL', kind: 'text' },
+]
 </script>
 
 <template>
@@ -89,20 +133,20 @@ const additionalFieldConfigs = [
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <EditorFormField
           v-model="personal.firstName"
-
           label="First Name"
           placeholder="e.g. Alexandra"
           autocomplete="given-name"
           required
+          tooltip="Your legal or preferred first name as it should appear to hiring managers."
           :error="backendError('firstName') || (showErrors && !personal.firstName.trim() ? 'First name is required' : '')"
         />
         <EditorFormField
           v-model="personal.lastName"
-
           label="Last Name"
           placeholder="e.g. Chen"
           autocomplete="family-name"
           required
+          tooltip="Your legal or preferred family name / surname."
           :error="backendError('lastName') || (showErrors && !personal.lastName.trim() ? 'Last name is required' : '')"
         />
       </div>
@@ -110,10 +154,10 @@ const additionalFieldConfigs = [
       <!-- Professional Title -->
       <EditorFormField
         v-model="personal.title"
-
         label="Professional Title"
         placeholder="e.g. Senior Product Designer"
         autocomplete="organization-title"
+        tooltip="A concise headline targeting your role, e.g. 'Senior Frontend Engineer' or 'UX Designer'."
         :error="saveErrorFor('cv', 'professionalTitle')"
       />
 
@@ -121,33 +165,35 @@ const additionalFieldConfigs = [
       <div class="flex flex-col gap-6 mt-2">
         <EditorFormField
           v-model="personal.email"
-
           label="Email Address"
           type="email"
           inputmode="email"
           autocomplete="email"
           placeholder="e.g. email@example.com"
           required
-          :error="backendError('email') || (showErrors && !personal.email.trim() ? 'Email address is required' : '')"
+          tooltip="Your primary professional email address for recruiter contact."
+          :error="emailError"
+          @blur="emailTouched = true"
         />
         <EditorFormField
           v-model="personal.phone"
-
           label="Phone Number"
           type="tel"
           inputmode="tel"
           autocomplete="tel"
           placeholder="e.g. +1 (555) 382-9014"
           required
-          :error="backendError('phone') || (showErrors && !personal.phone.trim() ? 'Phone number is required' : '')"
+          tooltip="Include your international country code (e.g. +1 for US, +44 for UK, +233 for Ghana)."
+          :error="phoneError"
+          @blur="phoneTouched = true"
         />
         <EditorFormField
           v-model="personal.location"
-
           label="Location"
           autocomplete="address-level2"
           placeholder="e.g. San Francisco, CA"
           required
+          tooltip="City and state/country or 'Remote' (e.g. 'San Francisco, CA' or 'London, UK')."
           :error="backendError('location') || (showErrors && !personal.location.trim() ? 'Location is required' : '')"
         />
       </div>
@@ -168,7 +214,10 @@ const additionalFieldConfigs = [
             <EditorFormField
               v-model="personal[field.id]"
               :label="field.label"
+              type="url"
+              inputmode="url"
               :placeholder="field.placeholder"
+              :tooltip="field.tooltip"
               :error="backendError(field.id)"
               @remove="toggleAdditionalField(field.id)"
             />
@@ -185,17 +234,22 @@ const additionalFieldConfigs = [
           <button
             v-for="field in additionalFieldConfigs"
             :key="field.id"
+            type="button"
+            :aria-pressed="additionalFields[field.id]"
+            :aria-label="additionalFields[field.id] ? `Remove ${field.label} field` : `Add ${field.label} field`"
             :class="additionalFields[field.id] ? 'bg-[#FCF1EC] border-[#C54A22] text-[#C54A22]' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'"
-            class="px-3 py-1.5 rounded-full border text-[13px] font-medium flex items-center gap-1.5 transition-colors"
+            class="px-3 py-1.5 rounded-full border text-[13px] font-medium flex items-center gap-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C54A22]/30 cursor-pointer"
             @click="toggleAdditionalField(field.id)"
           >
             <span
               v-if="!additionalFields[field.id]"
               class="text-[#C54A22] text-lg leading-none"
+              aria-hidden="true"
             >+</span>
             <span
               v-else
               class="text-[#C54A22] text-sm leading-none"
+              aria-hidden="true"
             ><Check class="w-3.5 h-3.5" /></span>
             {{ field.label }}
           </button>

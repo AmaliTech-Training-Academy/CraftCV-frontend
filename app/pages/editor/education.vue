@@ -116,6 +116,7 @@ const handleNext = () => {
               role="button"
               tabindex="0"
               aria-label="Expand education item"
+              :aria-expanded="activeId === item.id"
               class="flex items-center justify-between p-4 bg-white border rounded-xl shadow-xs hover:shadow-sm transition cursor-grab mb-4"
               :class="[
                 showErrors && !validateEducation(item)
@@ -223,7 +224,7 @@ const handleNext = () => {
     >
       <DialogContent
         :show-close-button="false"
-        class="sm:max-w-[380px] p-6 sm:p-7 rounded-2xl flex flex-col items-center text-center gap-0 border-0 shadow-2xl"
+        class="sm:max-w-95 p-6 sm:p-7 rounded-2xl flex flex-col items-center text-center gap-0 border-0 shadow-2xl"
       >
         <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mb-4">
           <Trash2 class="w-5 h-5 text-red-500" />
@@ -232,7 +233,7 @@ const handleNext = () => {
           <DialogTitle class="text-xl font-bold text-gray-900 mb-2">
             Delete entry?
           </DialogTitle>
-          <DialogDescription class="text-sm text-gray-500 text-center max-w-[260px] leading-relaxed mb-6">
+          <DialogDescription class="text-sm text-gray-500 text-center max-w-65 leading-relaxed mb-6">
             Are you sure you want to permanently remove this entry?
           </DialogDescription>
         </DialogHeader>

@@ -1,4 +1,4 @@
-export interface PersonalDetails {
+export interface ResolvedPersonalDetails {
   first_name?: string
   last_name?: string
   email?: string
@@ -83,7 +83,7 @@ export interface AdditionalInformation {
 export interface ResolvedCvData {
   title?: string
   professional_summary?: string
-  personal_details: PersonalDetails
+  personal_details: ResolvedPersonalDetails
   educations: Education[]
   experiences: Experience[]
   skills: Skill[]

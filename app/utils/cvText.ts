@@ -92,7 +92,7 @@ export const MONTH_NAMES = [
  * If the string doesn't match the format, it returns it as is.
  */
 export function formatMonthYear(dateString?: string | null): string {
-  if (!dateString) return ''
+  if (!dateString || typeof dateString !== 'string') return ''
 
   const parts = dateString.split('-')
   if (parts.length === 3 || parts.length === 2) {
@@ -123,7 +123,7 @@ export function dateRangeLabel(startDate?: string | null, endDate?: string | nul
  * Returns null if the string is empty or invalid.
  */
 export function normalizeDate(d?: string | null): string | null {
-  if (!d || !d.trim()) return null
+  if (!d || typeof d !== 'string' || !d.trim()) return null
   const trimmed = d.trim()
   if (trimmed.toLowerCase() === 'present') return null
   if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed
