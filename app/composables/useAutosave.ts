@@ -142,6 +142,11 @@ export function useAutosave() {
       const data = await $api<any>(`/cvs/${id}/`)
       const incomingId = data.cvId || data.id || data.uuid || id
 
+      // Sections are read before anything on screen is touched. A collection
+      // that cannot be read fails the load outright, and a half-loaded editor
+      // still showing the previous CV's sections would save them onto this one.
+      const sections = await fetchSections(data)
+
       // Opening a CV other than the one already open replaces the editor's
       // fields wholesale. The sections below are assigned outright, but the
       // personal record is merged, and its local-only fields have no backend
@@ -190,34 +195,10 @@ export function useAutosave() {
       }
 
       // Load related sections, mapping backend fields back to frontend fields
-      education.value = (data.educations || []).map((e: any) => ({
-        ...e,
-        id: e.educationId || e.id,
-        school: e.school || e.institution || '',
-        degree: e.degree || '',
-        fieldOfStudy: e.fieldOfStudy || e.field_of_study || '',
-      }))
-      experience.value = (data.experiences || []).map((e: any) => ({
-        ...e,
-        id: e.experienceId || e.id,
-        title: e.title || e.role || '',
-        company: e.company || '',
-      }))
-      skills.value = (data.skills || []).map((s: any) => ({
-        ...s,
-        id: s.skillId || s.id,
-        level: s.level || s.proficiency || 'Intermediate',
-      }))
-      certifications.value = (data.certifications || []).map((c: any) => ({
-        ...c,
-        id: c.certificationId || c.id,
-        date: formatMonthYear(c.date || c.issueDate || c.issue_date),
-        expirationDate: formatMonthYear(c.expirationDate || c.expiration_date),
-        doesNotExpire: c.doesNotExpire ?? false,
-        credentialId: c.credentialId || '',
-        credentialUrl: c.credentialUrl || '',
-        description: c.description || '',
-      }))
+      education.value = sections.education || []
+      experience.value = sections.experience || []
+      skills.value = sections.skills || []
+      certifications.value = sections.certifications || []
 
       // Store clone of data for diffing directly from loaded state
       lastSavedData.value = clone({
@@ -243,24 +224,67 @@ export function useAutosave() {
   // Deep clone helper
   const clone = (obj: any) => JSON.parse(JSON.stringify(obj))
 
+  /**
+   * Whether a brand-new entry carries everything the backend requires of it.
+   *
+   * "Add Entry" pushes a blank row straight into state, so without this the row
+   * is POSTed as soon as it appears, the backend rejects it, and the throw
+   * stops every section after it in the save.
+   */
+  const isEntryComplete = (localKey: string, item: any): boolean => {
+    if (localKey === 'certifications') return Boolean(item.name?.trim() && item.issuer?.trim())
+    if (localKey === 'skills') return Boolean(item.name?.trim())
+    if (localKey === 'education') {
+      return Boolean(
+        item.school?.trim() && item.degree?.trim() && item.fieldOfStudy?.trim() && item.startDate?.trim()
+        && (item.isCurrent || item.endDate?.trim()),
+      )
+    }
+    if (localKey === 'experience') {
+      return Boolean(
+        item.company?.trim() && item.title?.trim() && item.startDate?.trim()
+        && (item.isCurrent || item.endDate?.trim()),
+      )
+    }
+    return true
+  }
+
   // Capture the current state as the "last saved" baseline
   const captureSavedState = () => {
-    // Only treat certifications as saved on backend if they were already saved or have required fields filled
-    const savedCertifications = (certifications.value || []).filter((c: any) => {
-      const wasAlreadySaved = lastSavedData.value?.certifications?.some((lc: any) => lc.id === c.id)
-      return wasAlreadySaved || Boolean(c.name?.trim() && c.issuer?.trim())
-    })
+    // An entry that was never written is not on the backend, so recording it as
+    // saved would make the next cycle PATCH an id that does not exist.
+    const saved = (localKey: string, items: any[]) => (items || []).filter((item: any) =>
+      lastSavedData.value?.[localKey]?.some((last: any) => last.id === item.id) || isEntryComplete(localKey, item),
+    )
 
     lastSavedData.value = clone({
       title: cvTitle.value,
       summary: summary.value,
       template: selectedTemplateId.value,
       personal: personal.value,
-      education: education.value,
-      experience: experience.value,
-      skills: skills.value,
-      certifications: savedCertifications,
+      education: saved('education', education.value),
+      experience: saved('experience', experience.value),
+      skills: saved('skills', skills.value),
+      certifications: saved('certifications', certifications.value),
     })
+  }
+
+  /**
+   * Record a section entry as saved the moment its write succeeds.
+   *
+   * The baseline is otherwise only rewritten by `captureSavedState` once a save
+   * reaches the end. When a later write fails, the save stops before that, so an
+   * entry whose POST already succeeded still looks new on the next cycle and is
+   * created a second time — which is how the same details kept multiplying with
+   * a fresh id on every attempt.
+   */
+  const markSaved = (localKey: string, item: any, savedId: string) => {
+    if (!lastSavedData.value) lastSavedData.value = {}
+    const saved = lastSavedData.value[localKey] || (lastSavedData.value[localKey] = [])
+    const record = { ...item, id: savedId }
+    const at = saved.findIndex((entry: any) => entry.id === item.id || entry.id === savedId)
+    if (at === -1) saved.push(record)
+    else saved[at] = record
   }
 
   /**
@@ -287,6 +311,106 @@ export function useAutosave() {
     experiences: { title: 'role' },
     educations: { school: 'institution' },
     certifications: { date: 'issueDate' },
+  }
+
+  /** A section record's own id, whichever name its serializer gives it. */
+  const recordId = (record: any): string =>
+    record?.skillId || record?.educationId || record?.experienceId || record?.certificationId || record?.id || ''
+
+  /**
+   * A collection endpoint answers with a plain array; DRF's paginated envelope
+   * is unwrapped too, so either shape reads.
+   */
+  const asList = (payload: any): any[] => {
+    if (Array.isArray(payload)) return payload
+    if (!payload || typeof payload !== 'object') return []
+    for (const key of ['results', 'data', 'items']) {
+      if (Array.isArray(payload[key])) return payload[key]
+    }
+    return []
+  }
+
+  /**
+   * The editor's own shape for a section record, filled from the backend's.
+   *
+   * The backend models `institution`, `role` and `issueDate` where the forms
+   * bind `school`, `title` and `date` — the names `sectionFieldNames` translates
+   * on the way out — so merging a record in verbatim would leave those inputs
+   * blank on reload.
+   */
+  const sectionMappers: Record<string, (record: any) => any> = {
+    educations: (e: any) => ({
+      ...e,
+      id: e.educationId || e.id,
+      school: e.institution || e.school || '',
+      degree: e.degree || '',
+      fieldOfStudy: e.fieldOfStudy || e.field_of_study || '',
+      startDate: formatMonthYear(e.startDate),
+      endDate: e.endDate ? formatMonthYear(e.endDate) : null,
+    }),
+    experiences: (e: any) => ({
+      ...e,
+      id: e.experienceId || e.id,
+      title: e.role || e.title || '',
+      company: e.company || '',
+      startDate: formatMonthYear(e.startDate),
+      endDate: e.endDate ? formatMonthYear(e.endDate) : null,
+    }),
+    skills: (s: any) => ({
+      ...s,
+      id: s.skillId || s.id,
+      level: s.level || s.proficiency || 'Intermediate',
+    }),
+    certifications: (c: any) => ({
+      ...c,
+      id: c.certificationId || c.id,
+      date: formatMonthYear(c.issueDate || c.date || c.issue_date),
+      expirationDate: formatMonthYear(c.expirationDate || c.expiration_date),
+      doesNotExpire: c.doesNotExpire ?? false,
+      credentialId: c.credentialId || '',
+      credentialUrl: c.credentialUrl || '',
+      description: c.description || '',
+    }),
+  }
+
+  /**
+   * Read every section the open CV selects.
+   *
+   * The CV response carries ids, not records — "The section properties contain
+   * IDs, not full section objects. To populate section forms, fetch the user's
+   * section collection and select the records whose IDs appear on the CV"
+   * (Autosave Contract §3). Each section is therefore read from its own
+   * collection, and the CV's id array picks which records belong to it, in the
+   * order it lists them.
+   *
+   * Reading those ids as if they were records is what filled the editor with
+   * "Education 1" cards and blank forms: spreading a uuid string yields its
+   * characters, so every field mapped to undefined and fell back to ''. It is
+   * also what made autosave recreate records the CV already had — nothing was
+   * ever loaded, so nothing was ever recognised as already saved.
+   *
+   * A collection that cannot be read throws rather than resolving to an empty
+   * section. Empty is what the next save writes back as the CV's selection, so
+   * a silent failure here would detach every record the CV still holds.
+   */
+  const fetchSections = async (cv: any): Promise<Record<string, any[]>> => {
+    const fetched = await Promise.all(
+      Object.entries(sectionEndpoints).map(async ([localKey, endpoint]) => {
+        const selectedIds: string[] = Array.isArray(cv?.[endpoint]) ? cv[endpoint] : []
+        if (selectedIds.length === 0) return [localKey, []] as const
+
+        const records = asList(await $api<any>(`/cvs/${endpoint}/`))
+        const byId = new Map(records.map((record: any) => [recordId(record), record]))
+        const items = selectedIds
+          .map(selected => byId.get(selected))
+          .filter((record): record is any => Boolean(record))
+          .map(record => sectionMappers[endpoint]!(record))
+
+        return [localKey, items] as const
+      }),
+    )
+
+    return Object.fromEntries(fetched)
   }
 
   // The main save function
@@ -441,6 +565,26 @@ export function useAutosave() {
       let sectionsChanged = false
       const currentSectionIds: Record<string, string[]> = {}
 
+      /**
+       * Every section date is `format: date` to the backend, while the editor's
+       * picker holds what it shows — "May 2024" — so a date that went through
+       * the form has to be handed over as YYYY-MM-DD. A blank one becomes null
+       * rather than an invented month.
+       */
+      const normalizeDate = (d?: string | null) => {
+        if (!d || !d.trim()) return null
+        const trimmed = d.trim()
+        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed
+        if (/^\d{4}-\d{2}$/.test(trimmed)) return `${trimmed}-01`
+        if (/^\d{4}$/.test(trimmed)) return `${trimmed}-01-01`
+        const [month, year] = trimmed.split(/\s+/)
+        const monthIdx = month ? MONTH_NAMES.findIndex(m => m.toLowerCase() === month.toLowerCase() || m.toLowerCase().slice(0, 3) === month.toLowerCase()) : -1
+        if (monthIdx !== -1 && year && /^\d{4}$/.test(year)) {
+          return `${year}-${String(monthIdx + 1).padStart(2, '0')}-01`
+        }
+        return null
+      }
+
       for (const [localKey, endpoint] of Object.entries(sectionEndpoints)) {
         const currentItems = stateToSave[localKey] || []
         const lastItems = lastSavedData.value?.[localKey] || []
@@ -493,8 +637,9 @@ export function useAutosave() {
           const isNew = !lastIds.has(item.id) || item.id.startsWith('mock-') || item.id.startsWith('temp_')
           const lastItem = lastItems.find((li: any) => li.id === item.id)
 
-          // Only save new certifications once required fields are filled (avoids POSTing blank certifications on "Add Certification")
-          if (isNew && localKey === 'certifications' && (!item.name?.trim() || !item.issuer?.trim())) {
+          // Only save a new entry once its required fields are filled — see
+          // isEntryComplete.
+          if (isNew && !isEntryComplete(localKey, item)) {
             continue
           }
 
@@ -513,22 +658,15 @@ export function useAutosave() {
             payload[apiKey] = value
           }
 
+          // Education and experience dates arrive from the picker as "May 2024"
+          // and are stored as YYYY-MM-DD; a current role has no end date.
+          if (localKey === 'education' || localKey === 'experience') {
+            payload.startDate = normalizeDate(payload.startDate)
+            payload.endDate = payload.isCurrent ? null : normalizeDate(payload.endDate)
+          }
+
           // Special formatting for certifications payload according to ReDoc schema
           if (localKey === 'certifications') {
-            const normalizeDate = (d?: string | null) => {
-              if (!d || !d.trim()) return null
-              const trimmed = d.trim()
-              if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed
-              if (/^\d{4}-\d{2}$/.test(trimmed)) return `${trimmed}-01`
-              if (/^\d{4}$/.test(trimmed)) return `${trimmed}-01-01`
-              const [month, year] = trimmed.split(/\s+/)
-              const monthIdx = month ? MONTH_NAMES.findIndex(m => m.toLowerCase() === month.toLowerCase() || m.toLowerCase().slice(0, 3) === month.toLowerCase()) : -1
-              if (monthIdx !== -1 && year && /^\d{4}$/.test(year)) {
-                return `${year}-${String(monthIdx + 1).padStart(2, '0')}-01`
-              }
-              return null
-            }
-
             payload.issueDate = normalizeDate(payload.issueDate)
             payload.expirationDate = normalizeDate(payload.expirationDate)
             payload.doesNotExpire = Boolean(payload.doesNotExpire)
@@ -560,12 +698,16 @@ export function useAutosave() {
               }
               finalIds.push(realId)
               sectionsChanged = true
+              // The record exists now, so it must not look new to the next
+              // attempt (see markSaved).
+              markSaved(localKey, item, realId)
             }
             else if (JSON.stringify(item) !== JSON.stringify(lastItem)) {
               await $api<any>(`/cvs/${endpoint}/${id}/`, {
                 method: 'PATCH',
                 body: payload,
               })
+              markSaved(localKey, item, id)
               finalIds.push(id)
             }
             else {

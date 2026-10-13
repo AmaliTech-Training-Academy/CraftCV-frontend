@@ -85,11 +85,19 @@ describe('useAutosave', () => {
   })
 
   it('populates local state including sections on loadCV', async () => {
-    mockApi.mockResolvedValueOnce({
-      cvId: 'existing-cv',
-      title: 'Existing CV',
-      educations: [{ id: 'edu-1', school: 'MIT' }],
-      experiences: [{ id: 'exp-1', company: 'Google' }],
+    // The CV names its sections by id; the records come from their collections.
+    mockApi.mockImplementation(async (url: string) => {
+      if (url === '/cvs/existing-cv/') {
+        return {
+          cvId: 'existing-cv',
+          title: 'Existing CV',
+          educations: ['edu-1'],
+          experiences: ['exp-1'],
+        }
+      }
+      if (url === '/cvs/educations/') return [{ educationId: 'edu-1', institution: 'MIT' }]
+      if (url === '/cvs/experiences/') return [{ experienceId: 'exp-1', company: 'Google' }]
+      return {}
     })
 
     const { loadCV } = useAutosave()
@@ -106,11 +114,18 @@ describe('useAutosave', () => {
 
   it('correctly dispatches POST, PATCH, and DELETE for section changes', async () => {
     // 1. Load an existing CV with one education and one certification
-    mockApi.mockResolvedValueOnce({
-      cvId: 'cv-1',
-      title: 'My CV',
-      educations: [{ id: 'edu-1', school: 'MIT', degree: 'BS' }],
-      certifications: [{ id: 'cert-1', name: 'AWS' }],
+    mockApi.mockImplementation(async (url: string) => {
+      if (url === '/cvs/cv-1/') {
+        return {
+          cvId: 'cv-1',
+          title: 'My CV',
+          educations: ['edu-1'],
+          certifications: ['cert-1'],
+        }
+      }
+      if (url === '/cvs/educations/') return [{ educationId: 'edu-1', institution: 'MIT', degree: 'BS' }]
+      if (url === '/cvs/certifications/') return [{ certificationId: 'cert-1', name: 'AWS' }]
+      return {}
     })
 
     const { loadCV, triggerAutosave } = useAutosave()
@@ -136,7 +151,11 @@ describe('useAutosave', () => {
 
     state.experience.value.push({
       id: 'mock-exp-1',
+      title: 'Engineer',
       company: 'Amazon',
+      startDate: 'January 2024',
+      endDate: null,
+      isCurrent: true,
     } as ExperienceItem)
 
     // 3. Trigger autosave
@@ -227,11 +246,17 @@ describe('useAutosave', () => {
   })
 
   it('sends section fields under the names the backend models', async () => {
-    mockApi.mockResolvedValueOnce({
-      cvId: 'cv-1',
-      title: 'My CV',
-      educations: [{ id: 'edu-1', school: 'MIT' }],
-      experiences: [],
+    mockApi.mockImplementation(async (url: string) => {
+      if (url === '/cvs/cv-1/') {
+        return {
+          cvId: 'cv-1',
+          title: 'My CV',
+          educations: ['edu-1'],
+          experiences: [],
+        }
+      }
+      if (url === '/cvs/educations/') return [{ educationId: 'edu-1', institution: 'MIT' }]
+      return {}
     })
 
     const { loadCV, triggerAutosave } = useAutosave()
@@ -250,6 +275,9 @@ describe('useAutosave', () => {
       id: 'mock-exp-1',
       title: 'Staff Engineer',
       company: 'Amazon',
+      startDate: 'January 2024',
+      endDate: null,
+      isCurrent: true,
     } as ExperienceItem)
 
     triggerAutosave()
@@ -440,6 +468,9 @@ describe('useAutosave', () => {
       id: 'mock-exp-1',
       title: 'Staff Engineer',
       company: 'Amazon',
+      startDate: 'January 2024',
+      endDate: null,
+      isCurrent: true,
     } as ExperienceItem)
 
     triggerAutosave()
@@ -749,19 +780,27 @@ describe('useAutosave', () => {
   })
 
   it('converts certification dates from "2024-05-01" back to "May 2024" on load', async () => {
-    mockApi.mockResolvedValueOnce({
-      cvId: 'cv-cert-load',
-      title: 'Cert Load CV',
-      certifications: [
-        {
-          id: 'cert-1',
-          name: 'AWS Certified',
-          issuer: 'Amazon',
-          issueDate: '2024-05-01',
-          expirationDate: '2027-05-01',
-          doesNotExpire: false,
-        },
-      ],
+    mockApi.mockImplementation(async (url: string) => {
+      if (url === '/cvs/cv-cert-load/') {
+        return {
+          cvId: 'cv-cert-load',
+          title: 'Cert Load CV',
+          certifications: ['cert-1'],
+        }
+      }
+      if (url === '/cvs/certifications/') {
+        return [
+          {
+            certificationId: 'cert-1',
+            name: 'AWS Certified',
+            issuer: 'Amazon',
+            issueDate: '2024-05-01',
+            expirationDate: '2027-05-01',
+            doesNotExpire: false,
+          },
+        ]
+      }
+      return {}
     })
 
     const { loadCV } = useAutosave()
@@ -774,12 +813,18 @@ describe('useAutosave', () => {
   })
 
   it('does not send a displayOrder PATCH for newly added items before they are created', async () => {
-    mockApi.mockResolvedValueOnce({
-      cvId: 'cv-new-item-test',
-      title: 'New Item Test',
-      experiences: [
-        { id: 'exp-existing-1', role: 'Dev', company: 'Co', displayOrder: 0 },
-      ],
+    mockApi.mockImplementation(async (url: string) => {
+      if (url === '/cvs/cv-new-item-test/') {
+        return {
+          cvId: 'cv-new-item-test',
+          title: 'New Item Test',
+          experiences: ['exp-existing-1'],
+        }
+      }
+      if (url === '/cvs/experiences/') {
+        return [{ experienceId: 'exp-existing-1', role: 'Dev', company: 'Co', displayOrder: 0 }]
+      }
+      return {}
     })
 
     const { loadCV, triggerAutosave } = useAutosave()
@@ -796,8 +841,9 @@ describe('useAutosave', () => {
       title: 'Senior Dev',
       company: 'NewCo',
       location: '',
-      startDate: '',
+      startDate: '2024-01-01',
       endDate: '',
+      isCurrent: true,
       description: '',
     })
 
