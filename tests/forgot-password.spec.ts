@@ -157,43 +157,25 @@ describe('forgot-password.vue', () => {
       const submitBtn = wrapper.find('button[type="submit"]')
       expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
 
-      // Short input shows general tip
-      await wrapper.find('#new-password').setValue('A')
-      expect(wrapper.find('#password-guidance').text()).toBe(
-        'Tip: A strong password includes 8+ characters, uppercase, lowercase, numbers, and symbols.',
-      )
-
-      // Weak password should show suggestion and keep submit button disabled
-      await wrapper.find('#new-password').setValue('Short1!')
-      expect(wrapper.find('#password-guidance').text()).toBe(
-        'To make it stronger, add: at least 8 characters.',
-      )
-      await wrapper.find('#new-password').setValue('Password1!')
-      expect(wrapper.find('#password-guidance').text()).toBe(
-        'To make it stronger, avoid common sequences.',
-      )
-      await wrapper.find('#confirm-password').setValue('Short1!')
+      // Short input (<8 chars) triggers minimum length error on blur
+      await wrapper.find('#new-password').setValue('Short1')
+      await wrapper.find('#new-password').trigger('blur')
+      expect(wrapper.text()).toContain('Password must be at least 8 characters.')
       expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
-
-      // Submitting weak password shows 6 rules requirement error
-      await wrapper.find('form').trigger('submit.prevent')
-      await nextTick()
-      expect(wrapper.text()).toContain('Password must meet all 6 security requirements.')
 
       // Mismatch
       await wrapper.find('#new-password').setValue('P@ssw0rd2026!')
-      expect(wrapper.find('#password-guidance').text()).toBe('Password is strong.')
       await wrapper.find('#confirm-password').setValue('Mismatch123!')
       await wrapper.find('#confirm-password').trigger('blur')
       expect(wrapper.text()).toContain('Passwords do not match')
       expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
 
-      // Valid matching password enables submit button
+      // Valid matching password (>= 8 chars) enables submit button
       await wrapper.find('#confirm-password').setValue('P@ssw0rd2026!')
       expect((submitBtn.element as HTMLButtonElement).disabled).toBe(false)
     })
 
-    it('surfaces backend error message when user attempts to reuse a previous password', async () => {
+    it('displays backend validation error under password field', async () => {
       const wrapper = await mountPage()
 
       // Setup to be on step 3
@@ -213,13 +195,13 @@ describe('forgot-password.vue', () => {
       await nextTick()
       await flushPromises()
 
-      // Enter valid password that backend rejects as previously used
+      // Enter valid password that backend rejects as too common
       await wrapper.find('#new-password').setValue('P@ssw0rd2026!')
       await wrapper.find('#confirm-password').setValue('P@ssw0rd2026!')
 
       mockResetPassword.mockRejectedValueOnce({
         data: {
-          password: ['You cannot use a password you have already used for registration before.'],
+          newPassword: ['This password is too common.'],
         },
       })
 
@@ -227,8 +209,135 @@ describe('forgot-password.vue', () => {
       await nextTick()
       await flushPromises()
 
-      expect(wrapper.text()).toContain('You cannot use a password you have already used for registration before.')
+      const inlineError = wrapper.find('#password-error')
+      expect(inlineError.exists()).toBe(true)
+      expect(inlineError.text()).toContain('This password is too common.')
+
+      const alertBanner = wrapper.find('[role="alert"].bg-red-50')
+      expect(alertBanner.exists()).toBe(false)
+      expect(wrapper.text()).not.toContain('Reset failed')
       expect(document.body.innerHTML).not.toContain('Your password has been successfully reset.')
+    })
+
+    it('displays dynamic password strength feedback with corresponding colors for weak, medium, and strong inputs', async () => {
+      const wrapper = await mountPage()
+
+      // Setup to be on step 3
+      await wrapper.find('#email').setValue('test@example.com')
+      mockRequestReset.mockResolvedValueOnce(undefined)
+      await wrapper.find('form').trigger('submit.prevent')
+      await nextTick()
+      await flushPromises()
+
+      const otpInputs = wrapper.findAll('input[inputmode="numeric"]')
+      for (let i = 0; i < 6; i++) {
+        const input = otpInputs[i]
+        if (input) await input.setValue('1')
+      }
+      mockVerifyCode.mockResolvedValueOnce(undefined)
+      await wrapper.find('form').trigger('submit.prevent')
+      await nextTick()
+      await flushPromises()
+
+      const passwordInput = wrapper.find('#new-password')
+
+      // 1. Weak input (< 8 chars)
+      await passwordInput.setValue('weak')
+      await nextTick()
+      const weakGuidance = wrapper.find('#password-guidance')
+      expect(weakGuidance.exists()).toBe(true)
+      expect(weakGuidance.attributes('role')).toBe('status')
+      expect(weakGuidance.attributes('aria-live')).toBe('polite')
+      expect(weakGuidance.classes()).toContain('text-red-700')
+      expect(weakGuidance.text()).toContain('[Weak]')
+      expect(weakGuidance.text()).toContain('To make it stronger, add:')
+
+      // 2. Medium input (meets length, lowercase, number, but missing special and uppercase)
+      await passwordInput.setValue('password123')
+      await nextTick()
+      const medGuidance = wrapper.find('#password-guidance')
+      expect(medGuidance.exists()).toBe(true)
+      expect(medGuidance.classes()).toContain('text-amber-800')
+      expect(medGuidance.text()).toContain('[Fair]')
+      expect(medGuidance.text()).toContain('To make it stronger, add:')
+
+      // 3. Strong input (meets all criteria)
+      await passwordInput.setValue('P@ssw0rd2026!')
+      await nextTick()
+      const strongGuidance = wrapper.find('#password-guidance')
+      expect(strongGuidance.exists()).toBe(true)
+      expect(strongGuidance.classes()).toContain('text-emerald-800')
+      expect(strongGuidance.text()).toContain('[Strong]')
+      expect(strongGuidance.text()).toContain('Password is strong.')
+    })
+
+    it('shows inline error when confirm password field is blurred while empty', async () => {
+      const wrapper = await mountPage()
+
+      // Setup to be on step 3
+      await wrapper.find('#email').setValue('test@example.com')
+      mockRequestReset.mockResolvedValueOnce(undefined)
+      await wrapper.find('form').trigger('submit.prevent')
+      await nextTick()
+      await flushPromises()
+
+      const otpInputs = wrapper.findAll('input[inputmode="numeric"]')
+      for (let i = 0; i < 6; i++) {
+        const input = otpInputs[i]
+        if (input) await input.setValue('1')
+      }
+      mockVerifyCode.mockResolvedValueOnce(undefined)
+      await wrapper.find('form').trigger('submit.prevent')
+      await nextTick()
+      await flushPromises()
+
+      const confirmInput = wrapper.find('#confirm-password')
+      await confirmInput.trigger('blur')
+      expect(wrapper.find('#confirm-error').text()).toContain('Please confirm your password.')
+
+      // Typing in confirm password clears that empty error
+      await confirmInput.setValue('P@ssw0rd2026!')
+      await nextTick()
+      expect(wrapper.find('#confirm-error').text()).not.toContain('Please confirm your password.')
+    })
+
+    it('surfaces top-level error banner when session or code has expired', async () => {
+      const wrapper = await mountPage()
+
+      // Setup to be on step 3
+      await wrapper.find('#email').setValue('test@example.com')
+      mockRequestReset.mockResolvedValueOnce(undefined)
+      await wrapper.find('form').trigger('submit.prevent')
+      await nextTick()
+      await flushPromises()
+
+      const otpInputs = wrapper.findAll('input[inputmode="numeric"]')
+      for (let i = 0; i < 6; i++) {
+        const input = otpInputs[i]
+        if (input) await input.setValue('1')
+      }
+      mockVerifyCode.mockResolvedValueOnce(undefined)
+      await wrapper.find('form').trigger('submit.prevent')
+      await nextTick()
+      await flushPromises()
+
+      await wrapper.find('#new-password').setValue('P@ssw0rd2026!')
+      await wrapper.find('#confirm-password').setValue('P@ssw0rd2026!')
+
+      mockResetPassword.mockRejectedValueOnce({
+        data: {
+          detail: 'Reset token has expired',
+        },
+      })
+
+      await wrapper.find('form').trigger('submit.prevent')
+      await nextTick()
+      await flushPromises()
+
+      const alertBanner = wrapper.find('[role="alert"]')
+      expect(alertBanner.exists()).toBe(true)
+      expect(alertBanner.text()).toContain('Reset token has expired')
+      expect(wrapper.find('#password-error').exists()).toBe(false)
     })
   })
 

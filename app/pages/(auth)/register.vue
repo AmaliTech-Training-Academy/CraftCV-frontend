@@ -72,16 +72,16 @@
             :type="showPassword ? 'text' : 'password'"
             autocomplete="new-password"
             placeholder="Create a password"
-            :aria-invalid="Boolean(!isPasswordFocused && fieldError('password'))"
-            :aria-describedby="!isPasswordFocused && fieldError('password') ? 'password-error' : form.password.length > 0 ? 'password-guidance' : undefined"
+            :aria-invalid="Boolean(backendPasswordError || fieldError('password'))"
+            :aria-describedby="backendPasswordError || fieldError('password') ? 'password-error' : form.password.length > 0 ? 'password-guidance' : undefined"
             :class="[
               'h-11 pr-11',
-              !isPasswordFocused && fieldError('password')
+              backendPasswordError || fieldError('password')
                 ? 'border-destructive focus-visible:ring-destructive'
                 : 'focus-visible:ring-[#EA580C]',
             ]"
             @focus="isPasswordFocused = true"
-            @input="isPasswordFocused = true"
+            @input="isPasswordFocused = true; backendPasswordError = ''"
             @blur="handlePasswordBlur"
           />
           <button
@@ -133,22 +133,26 @@
             </svg>
           </button>
         </div>
-        <!-- Either Error Message (when blurred/another field engaged) OR Dynamic Guidance (when focused/typing) -->
+        <!-- Either Error Message OR Dynamic Guidance -->
         <p
-          v-if="!isPasswordFocused && fieldError('password')"
+          v-if="backendPasswordError || fieldError('password')"
           id="password-error"
-          class="text-xs text-destructive"
+          class="text-xs text-destructive mt-1 min-h-[1.25rem] flex items-start gap-1.5"
         >
-          {{ fieldError('password') }}
+          {{ backendPasswordError || fieldError('password') }}
         </p>
 
-        <!-- Inline Guidance (Standard text, zero layout expansion) -->
+        <!-- Dynamic Live Guidance with Dynamic Color & State -->
         <p
           v-else-if="form.password.length > 0"
           id="password-guidance"
-          class="mt-1 text-xs text-stone-500 transition-colors"
+          role="status"
+          aria-live="polite"
+          class="text-xs mt-1 transition-colors duration-200 min-h-[1.25rem] flex items-start gap-1.5"
+          :class="passwordStrength.colorClass"
         >
-          {{ passwordGuidance }}
+          <span class="font-semibold">[{{ passwordStrength.label }}]</span>
+          <span>{{ passwordStrength.message }}</span>
         </p>
       </div>
 
@@ -237,6 +241,7 @@
           <Checkbox
             id="agreeTerms"
             v-model="form.agreeTerms"
+            aria-label="I agree to the Terms and Privacy Policy"
             class="cursor-pointer"
           />
           <Label
@@ -363,68 +368,22 @@ function touch(field: Field) {
 }
 
 const isPasswordFocused = ref(false)
+const backendPasswordError = ref('')
+
+watch(() => form.password, () => {
+  backendPasswordError.value = ''
+  touched.password = false
+})
 
 function handlePasswordBlur() {
   isPasswordFocused.value = false
   touch('password')
 }
 
-const passwordCriteria = computed(() => {
-  const pw = form.password || ''
-  const commonPatterns = /(123|abc|qwerty|password|letmein|admin|iloveyou|welcome)/i
+const passwordStrength = usePasswordStrength(() => form.password)
 
-  return [
-    { key: 'length', hint: 'at least 8 characters', passed: pw.length >= 8 },
-    { key: 'uppercase', hint: 'an uppercase letter', passed: /[A-Z]/.test(pw) },
-    { key: 'lowercase', hint: 'a lowercase letter', passed: /[a-z]/.test(pw) },
-    { key: 'number', hint: 'a number', passed: /[0-9]/.test(pw) },
-    { key: 'special', hint: 'a special symbol', passed: /[^A-Za-z0-9]/.test(pw) },
-    {
-      key: 'unpredictable',
-      hint: 'avoid common sequences',
-      passed: pw.length > 0 && !commonPatterns.test(pw) && !/^(.+?)\1+$/.test(pw),
-    },
-  ]
-})
-
-// Returns true only when all 6 rules pass
-const isPasswordValid = computed(() => {
-  return passwordCriteria.value.every(rule => rule.passed)
-})
-
-function formatMissingPasswordGuidance(missing: { key: string, hint: string }[]) {
-  const toAdd = missing.filter(m => m.key !== 'unpredictable').map(m => m.hint)
-  const hasUnpredictable = missing.some(m => m.key === 'unpredictable')
-
-  if (toAdd.length > 0 && hasUnpredictable) {
-    return `To make it stronger, add: ${toAdd.join(', ')} and avoid common sequences.`
-  }
-  if (toAdd.length > 0) {
-    return `To make it stronger, add: ${toAdd.join(', ')}.`
-  }
-  if (hasUnpredictable) {
-    return 'To make it stronger, avoid common sequences.'
-  }
-  return ''
-}
-
-// Dynamic inline suggestion text
-const passwordGuidance = computed(() => {
-  if (!form.password) return ''
-
-  const missing = passwordCriteria.value.filter(c => !c.passed)
-
-  if (missing.length === 0) {
-    return 'Password is strong.'
-  }
-
-  // If password is just started (e.g. 1-2 characters), show general tip
-  if (form.password.length < 3) {
-    return 'Tip: A strong password includes 8+ characters, uppercase, lowercase, numbers, and symbols.'
-  }
-
-  // Specifically tell the user what to add to make it strong
-  return formatMissingPasswordGuidance(missing)
+const isPasswordLengthValid = computed(() => {
+  return form.password.length >= 8
 })
 
 const isEmailValid = computed(() => {
@@ -440,6 +399,9 @@ const confirmMismatch = computed(() => {
 })
 
 function fieldError(field: Field) {
+  if (field === 'password' && backendPasswordError.value) {
+    return backendPasswordError.value
+  }
   if (!touched[field]) return ''
   if (field === 'email') {
     if (!form.email.trim()) return 'Email is required.'
@@ -450,9 +412,6 @@ function fieldError(field: Field) {
   if (field === 'password') {
     if (!form.password) return 'Password is required.'
     if (form.password.length < 8) return 'Password must be at least 8 characters.'
-    if (!isPasswordValid.value) {
-      return formatMissingPasswordGuidance(passwordCriteria.value.filter(c => !c.passed))
-    }
   }
   if (field === 'confirmPassword') {
     if (!form.confirmPassword) return 'Please confirm your password.'
@@ -465,7 +424,7 @@ function fieldError(field: Field) {
 }
 
 const isFormValid = computed(() => {
-  return Boolean(isEmailValid.value && isPasswordValid.value && isConfirmValid.value && form.agreeTerms)
+  return Boolean(isEmailValid.value && isPasswordLengthValid.value && isConfirmValid.value && form.agreeTerms)
 })
 
 async function handleSubmit() {
@@ -478,20 +437,16 @@ async function handleSubmit() {
   touch('agreeTerms')
 
   if (!form.password) return
-
-  if (!isPasswordValid.value) {
-    serverError.value = 'Password must meet all 6 security requirements.'
-    return
-  }
+  if (form.password.length < 8) return
 
   if (form.password !== form.confirmPassword) {
-    serverError.value = 'Passwords do not match.'
     return
   }
 
   if (!isFormValid.value) return
 
   serverError.value = ''
+  backendPasswordError.value = ''
   successMessage.value = ''
   let isSuccess = false
 
@@ -513,9 +468,17 @@ async function handleSubmit() {
       : 'Account created! Please verify your email to continue.'
     isRedirecting.value = true
   }
-  catch {
+  catch (err: unknown) {
     isRedirecting.value = false
-    serverError.value = authError.value || 'Failed to create account. Please try again.'
+    const errData = (err as { data?: Record<string, unknown> })?.data
+    const pwError = errData?.password ?? errData?.new_password ?? errData?.newPassword
+    if (pwError) {
+      backendPasswordError.value = Array.isArray(pwError) ? String(pwError[0]) : String(pwError)
+      serverError.value = ''
+    }
+    else {
+      serverError.value = authError.value || 'Failed to create account. Please try again.'
+    }
   }
 
   if (isSuccess) {
