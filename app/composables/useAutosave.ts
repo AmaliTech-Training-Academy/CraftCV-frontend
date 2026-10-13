@@ -5,7 +5,7 @@ import { useCVState } from './useCVState'
 import { useCVs } from './useCVs'
 import { useTemplates } from './useTemplates'
 import { $api, extractErrorMessage, extractFieldErrors } from '../utils/api'
-import { formatMonthYear, normalizeDate } from '../utils/cvText'
+import { formatMonthYear } from '../utils/cvText'
 
 export function useAutosave() {
   const {
