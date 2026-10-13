@@ -60,6 +60,9 @@ export interface CvExportCertification {
   issue_date: string
   credentialUrl: string
   credential_url: string
+  credentialId: string
+  credential_id: string
+  description?: string
   display_order: number
 }
 
@@ -271,12 +274,6 @@ export function toExportData(source: unknown): CvExportData {
       const doesNotExpire = item.doesNotExpire ?? item.does_not_expire
       const rawDescription = firstString(item, 'description')
 
-      const parts = []
-      if (credentialId) parts.push(`Credential ID: ${credentialId}`)
-      if (credentialUrl) parts.push(`URL: ${credentialUrl}`)
-      const extraDesc = parts.length > 0 ? parts.join(' | ') : ''
-      const finalDesc = [extraDesc, rawDescription].filter(Boolean).join('\n\n')
-
       let dateLabel = date || ''
       if (expirationDate && !doesNotExpire) {
         dateLabel = dateLabel ? `${dateLabel} – Expires ${expirationDate}` : `Expires ${expirationDate}`
@@ -290,7 +287,9 @@ export function toExportData(source: unknown): CvExportData {
         issue_date: dateLabel,
         credentialUrl: isRealText(credentialUrl) ? credentialUrl : '',
         credential_url: isRealText(credentialUrl) ? credentialUrl : '',
-        description: finalDesc || undefined,
+        credentialId: isRealText(credentialId) ? credentialId : '',
+        credential_id: isRealText(credentialId) ? credentialId : '',
+        description: isRealText(rawDescription) ? rawDescription : undefined,
         display_order: typeof item.display_order === 'number' ? item.display_order : index,
       }
     })

@@ -232,7 +232,9 @@ export function useAutosave() {
    * stops every section after it in the save.
    */
   const isEntryComplete = (localKey: string, item: any): boolean => {
-    if (localKey === 'certifications') return Boolean(item.name?.trim() && item.issuer?.trim())
+    // `issueDate` is required by the backend, so a certification without one
+    // is refused outright rather than saved.
+    if (localKey === 'certifications') return Boolean(item.name?.trim() && item.issuer?.trim() && item.date?.trim())
     if (localKey === 'skills') return Boolean(item.name?.trim())
     if (localKey === 'education') {
       return Boolean(
@@ -670,7 +672,10 @@ export function useAutosave() {
             payload.issueDate = normalizeDate(payload.issueDate)
             payload.expirationDate = normalizeDate(payload.expirationDate)
             payload.doesNotExpire = Boolean(payload.doesNotExpire)
-            if (!payload.credentialUrl?.trim()) payload.credentialUrl = null
+            // Optional to the backend means it may be absent, not that it
+            // accepts a null: the field is not `allow_null`, so a blank URL is
+            // left out rather than sent as null and rejected.
+            if (!payload.credentialUrl?.trim()) delete payload.credentialUrl
             if (!payload.credentialId?.trim()) payload.credentialId = ''
             if (!payload.description?.trim()) payload.description = ''
           }

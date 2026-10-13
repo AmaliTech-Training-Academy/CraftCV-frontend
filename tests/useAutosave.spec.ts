@@ -1,9 +1,9 @@
-// @vitest-environment nuxt
-
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { useAutosave } from '../app/composables/useAutosave'
-import { type ExperienceItem, type PersonalDetails, useCVState } from '../app/composables/useCVState'
+import { useCVState, type ExperienceItem, type PersonalDetails } from '../app/composables/useCVState'
+
+// @vitest-environment nuxt
 
 const { mockApi } = vi.hoisted(() => ({
   mockApi: vi.fn(),
@@ -230,6 +230,7 @@ describe('useAutosave', () => {
     // Now fill in required fields
     state.certifications.value[0]!.name = 'AWS Certified Solutions Architect'
     state.certifications.value[0]!.issuer = 'Amazon Web Services'
+    state.certifications.value[0]!.date = 'May 2024'
 
     triggerAutosave()
     await flushMicrotasks()
@@ -240,6 +241,7 @@ describe('useAutosave', () => {
       body: expect.objectContaining({
         name: 'AWS Certified Solutions Architect',
         issuer: 'Amazon Web Services',
+        issueDate: '2024-05-01',
         displayOrder: 0,
       }),
     })
@@ -752,7 +754,9 @@ describe('useAutosave', () => {
       }),
     })
 
-    // Now test with a blank date — should NOT invent '2024-01-01'
+    // Now test with a blank date — `issueDate` is required by the backend, so
+    // the entry is held back rather than POSTed with a null that would be
+    // refused, and no date is invented for it either.
     mockApi.mockReset()
     mockApi.mockResolvedValue({ id: 'real-cert-id-2' })
 
@@ -768,15 +772,7 @@ describe('useAutosave', () => {
     triggerAutosave()
     await flushMicrotasks()
 
-    expect(mockApi).toHaveBeenCalledWith('/cvs/certifications/', {
-      method: 'POST',
-      body: expect.objectContaining({
-        name: 'Google Cloud Professional',
-        issuer: 'Google',
-        issueDate: null,
-        expirationDate: null,
-      }),
-    })
+    expect(mockApi.mock.calls.filter(call => call[0] === '/cvs/certifications/')).toHaveLength(0)
   })
 
   it('converts certification dates from "2024-05-01" back to "May 2024" on load', async () => {

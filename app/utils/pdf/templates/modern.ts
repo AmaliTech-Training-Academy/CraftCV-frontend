@@ -207,6 +207,9 @@ export function buildModernPdf(
         },
         { text: cert.issuer, style: 'meta', margin: [0, 1, 0, 2] },
       ]
+      if (cert.credentialId) {
+        certStack.push({ text: `Credential ID: ${cert.credentialId}`, fontSize: 9, color: '#4B5563' })
+      }
       if (cert.credentialUrl) {
         certStack.push({
           text: 'View credential',

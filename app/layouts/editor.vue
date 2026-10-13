@@ -180,12 +180,6 @@ const resolvedPreviewData = computed<ResolvedCvData>(() => {
       display_order: i,
     })),
     certifications: (previewData.value.certifications ?? []).map((c, i) => {
-      const parts = []
-      if (c.credentialId) parts.push(`Credential ID: ${c.credentialId}`)
-      if (c.credentialUrl) parts.push(`URL: ${c.credentialUrl}`)
-      const extraDesc = parts.length > 0 ? parts.join(' | ') : ''
-      const finalDesc = [extraDesc, c.description].filter(Boolean).join('\n\n')
-
       let dateLabel = c.date || ''
       if (c.expirationDate && !c.doesNotExpire) {
         dateLabel = dateLabel ? `${dateLabel} – Expires ${c.expirationDate}` : `Expires ${c.expirationDate}`
@@ -200,7 +194,7 @@ const resolvedPreviewData = computed<ResolvedCvData>(() => {
         does_not_expire: c.doesNotExpire ?? false,
         credential_id: c.credentialId || undefined,
         credential_url: c.credentialUrl || undefined,
-        description: finalDesc || undefined,
+        description: c.description || undefined,
         display_order: i,
       }
     }),
