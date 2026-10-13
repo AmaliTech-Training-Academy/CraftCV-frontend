@@ -5,7 +5,7 @@ import { useCVState } from './useCVState'
 import { useCVs } from './useCVs'
 import { useTemplates } from './useTemplates'
 import { $api, extractErrorMessage, extractFieldErrors } from '../utils/api'
-import { MONTH_NAMES, formatMonthYear } from '../utils/cvText'
+import { formatMonthYear, normalizeDate } from '../utils/cvText'
 
 export function useAutosave() {
   const {
@@ -196,12 +196,16 @@ export function useAutosave() {
         school: e.school || e.institution || '',
         degree: e.degree || '',
         fieldOfStudy: e.fieldOfStudy || e.field_of_study || '',
+        startDate: formatMonthYear(e.startDate || e.start_date),
+        endDate: (e.endDate || e.end_date) ? formatMonthYear(e.endDate || e.end_date) : null,
       }))
       experience.value = (data.experiences || []).map((e: any) => ({
         ...e,
         id: e.experienceId || e.id,
         title: e.title || e.role || '',
         company: e.company || '',
+        startDate: formatMonthYear(e.startDate || e.start_date),
+        endDate: (e.endDate || e.end_date) ? formatMonthYear(e.endDate || e.end_date) : null,
       }))
       skills.value = (data.skills || []).map((s: any) => ({
         ...s,
@@ -513,22 +517,15 @@ export function useAutosave() {
             payload[apiKey] = value
           }
 
+          // Special formatting for experience and education payloads according to API schema
+          if (localKey === 'experience' || localKey === 'education') {
+            payload.startDate = normalizeDate(payload.startDate)
+            payload.endDate = payload.isCurrent ? null : normalizeDate(payload.endDate)
+            payload.isCurrent = Boolean(payload.isCurrent)
+          }
+
           // Special formatting for certifications payload according to ReDoc schema
           if (localKey === 'certifications') {
-            const normalizeDate = (d?: string | null) => {
-              if (!d || !d.trim()) return null
-              const trimmed = d.trim()
-              if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed
-              if (/^\d{4}-\d{2}$/.test(trimmed)) return `${trimmed}-01`
-              if (/^\d{4}$/.test(trimmed)) return `${trimmed}-01-01`
-              const [month, year] = trimmed.split(/\s+/)
-              const monthIdx = month ? MONTH_NAMES.findIndex(m => m.toLowerCase() === month.toLowerCase() || m.toLowerCase().slice(0, 3) === month.toLowerCase()) : -1
-              if (monthIdx !== -1 && year && /^\d{4}$/.test(year)) {
-                return `${year}-${String(monthIdx + 1).padStart(2, '0')}-01`
-              }
-              return null
-            }
-
             payload.issueDate = normalizeDate(payload.issueDate)
             payload.expirationDate = normalizeDate(payload.expirationDate)
             payload.doesNotExpire = Boolean(payload.doesNotExpire)
