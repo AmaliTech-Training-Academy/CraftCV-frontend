@@ -120,7 +120,7 @@ export function useCVSectionEditor<T extends { id: string }>(
       savedEndDates.value = rest
     }
     if (activeId.value === id) {
-      activeId.value = items.value.length > 0 ? (items.value[Math.max(0, idx - 1)]?.id ?? null) : null
+      activeId.value = null
     }
     itemToDeleteId.value = null
   }
