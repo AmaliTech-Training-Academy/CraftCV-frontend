@@ -1,8 +1,8 @@
-import type { Column, Content, TDocumentDefinitions } from 'pdfmake/build/pdfmake'
-import type { CvExportData } from '../exportData'
-import type { PdfTemplateOptions } from './classic'
-import { formatDateRange, normalizeBullets } from '../formatters'
-import { TEMPLATE_ACCENT_DEFAULTS, accentTint } from '../../templateAccents'
+import { type Column, type Content, type TDocumentDefinitions } from 'pdfmake/build/pdfmake';
+import { type CvExportData } from '../exportData';
+import { type PdfTemplateOptions } from './classic';
+import { formatDateRange, normalizeBullets } from '../formatters';
+import { TEMPLATE_ACCENT_DEFAULTS, accentTint } from '../../templateAccents';
 
 function toUrl(value: string): string {
   return value.startsWith('http://') || value.startsWith('https://')
@@ -139,7 +139,7 @@ export function buildCampusPdf(
     data.experiences.forEach((exp, idx) => {
       const isLast = idx === data.experiences!.length - 1
       expStack.push({ text: exp.role || '', style: 'itemTitle' })
-      expStack.push({ text: `${exp.company || ''} • ${formatDateRange(exp.startDate, exp.endDate)}`, style: 'itemMeta' })
+      expStack.push({ text: `${[exp.company, exp.location].filter(Boolean).join(', ')} • ${formatDateRange(exp.startDate, exp.endDate)}`, style: 'itemMeta' })
 
       const bullets = normalizeBullets(exp.description)
       if (bullets.length > 0) {

@@ -79,8 +79,8 @@ const getMeterWidth = (level?: string) => {
                 {{ exp.role }}
               </h4>
               <div class="text-sm text-gray-500 font-medium mb-2">
-                {{ exp.company }}
-                <span v-if="exp.company && (exp.start_date || exp.end_date)">&nbsp;|&nbsp;</span>
+                {{ [exp.company, exp.location].filter(Boolean).join(', ') }}
+                <span v-if="(exp.company || exp.location) && (exp.start_date || exp.end_date)">&nbsp;|&nbsp;</span>
                 {{ dateRangeLabel(exp.start_date, exp.end_date, exp.is_current) }}
               </div>
 
@@ -225,6 +225,33 @@ const getMeterWidth = (level?: string) => {
               <span class="text-[10px] text-gray-400 uppercase font-semibold tracking-wider">
                 {{ dateRangeLabel(edu.start_date, edu.end_date, edu.is_current) }}
               </span>
+              <template
+                v-for="(blk, idx) in parseDescription(edu.description)"
+                :key="idx"
+              >
+                <p
+                  v-if="blk.type === 'p'"
+                  class="mt-1.5 text-[11px] text-gray-600 leading-snug"
+                >
+                  {{ blk.text }}
+                </p>
+                <ul
+                  v-else
+                  class="mt-1.5 text-[11px] text-gray-600 space-y-1"
+                >
+                  <li
+                    v-for="(bullet, bIdx) in blk.items"
+                    :key="bIdx"
+                    class="flex gap-1.5"
+                  >
+                    <span
+                      class="text-[9px] mt-0.5 shrink-0"
+                      :style="{ color: accentColor }"
+                    >&bull;</span>
+                    <span class="flex-1 min-w-0 break-words">{{ bullet }}</span>
+                  </li>
+                </ul>
+              </template>
             </div>
           </div>
         </section>

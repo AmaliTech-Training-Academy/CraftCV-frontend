@@ -1,8 +1,8 @@
-import type { Content, TDocumentDefinitions } from 'pdfmake/build/pdfmake'
-import type { CvExportData } from '../exportData'
-import type { PdfTemplateOptions } from './classic'
-import { formatDateRange, normalizeBullets } from '../formatters'
-import { TEMPLATE_ACCENT_DEFAULTS } from '../../templateAccents'
+import { type Content, type TDocumentDefinitions } from 'pdfmake/build/pdfmake';
+import { type CvExportData } from '../exportData';
+import { type PdfTemplateOptions } from './classic';
+import { formatDateRange, normalizeBullets } from '../formatters';
+import { TEMPLATE_ACCENT_DEFAULTS } from '../../templateAccents';
 
 function toUrl(value: string): string {
   return value.startsWith('http://') || value.startsWith('https://')
@@ -114,7 +114,7 @@ export function buildInkwellPdf(
         style: 'jobTitle',
       })
       content.push({
-        text: `${exp.company || ''} • ${formatDateRange(exp.startDate, exp.endDate)}`,
+        text: `${[exp.company, exp.location].filter(Boolean).join(', ')} • ${formatDateRange(exp.startDate, exp.endDate)}`,
         style: 'jobMeta',
       })
 

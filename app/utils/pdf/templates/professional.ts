@@ -1,8 +1,8 @@
-import type { Content, TDocumentDefinitions } from 'pdfmake/build/pdfmake'
-import type { CvExportData } from '../exportData'
-import type { PdfTemplateOptions } from './classic'
-import { formatDateRange, normalizeBullets } from '../formatters'
-import { TEMPLATE_ACCENT_DEFAULTS } from '../../templateAccents'
+import { type Content, type TDocumentDefinitions } from 'pdfmake/build/pdfmake';
+import { type CvExportData } from '../exportData';
+import { type PdfTemplateOptions } from './classic';
+import { formatDateRange, normalizeBullets } from '../formatters';
+import { TEMPLATE_ACCENT_DEFAULTS } from '../../templateAccents';
 
 function toUrl(value: string): string {
   return value.startsWith('http://') || value.startsWith('https://')
@@ -161,11 +161,20 @@ export function buildProfessionalPdf(
     sidebarStack.push(sidebarSectionHeader('Education'))
     educations.forEach((edu) => {
       const dates = formatDateRange(edu.startDate || edu.start_date, edu.endDate || edu.end_date)
+      const eduBullets = normalizeBullets(edu.description)
       sidebarStack.push({
         stack: [
           { text: edu.school || edu.institution, style: 'sidebarEduSchool' },
           { text: [edu.degree, edu.fieldOfStudy || edu.field_of_study].filter(Boolean).join(', '), style: 'sidebarEduDegree' },
           ...(dates ? [{ text: dates, style: 'sidebarEduDate' }] : []),
+          ...(eduBullets.length > 0
+            ? [{
+                ul: eduBullets.map(text => ({ text, fontSize: 7.5, lineHeight: 1.25, color: '#CBD5E1' })),
+                color: '#CBD5E1',
+                markerColor: '#CBD5E1',
+                margin: [0, 3, 0, 0] as [number, number, number, number],
+              }]
+            : []),
         ],
         margin: [0, 0, 0, 6],
         unbreakable: true,

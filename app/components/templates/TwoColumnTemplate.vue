@@ -223,6 +223,30 @@ const p = computed(() => props.data.personal_details ?? {})
             <p class="text-white/40 mt-0.5 text-[10px]">
               {{ formatDate(edu.start_date) }} – {{ formatDate(edu.end_date) }}
             </p>
+            <template
+              v-for="(blk, i) in parseDescription(edu.description)"
+              :key="i"
+            >
+              <p
+                v-if="blk.type === 'p'"
+                class="text-white/65 mt-1.5 text-[10px] leading-snug"
+              >
+                {{ blk.text }}
+              </p>
+              <ul
+                v-else
+                class="mt-1.5 space-y-1"
+              >
+                <li
+                  v-for="it in blk.items"
+                  :key="it"
+                  class="text-white/65 text-[10px] leading-snug flex items-start gap-1.5"
+                >
+                  <span class="mt-1 w-1 h-1 rounded-full bg-white/40 shrink-0" />
+                  {{ it }}
+                </li>
+              </ul>
+            </template>
           </div>
         </div>
       </div>

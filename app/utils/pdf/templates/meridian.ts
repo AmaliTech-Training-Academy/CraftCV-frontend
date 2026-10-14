@@ -1,8 +1,8 @@
-import type { Content, TDocumentDefinitions } from 'pdfmake/build/pdfmake'
-import type { CvExportData } from '../exportData'
-import type { PdfTemplateOptions } from './classic'
-import { formatDateRange, normalizeBullets } from '../formatters'
-import { TEMPLATE_ACCENT_DEFAULTS } from '../../templateAccents'
+import { type Content, type TDocumentDefinitions } from 'pdfmake/build/pdfmake';
+import { type CvExportData } from '../exportData';
+import { type PdfTemplateOptions } from './classic';
+import { formatDateRange, normalizeBullets } from '../formatters';
+import { TEMPLATE_ACCENT_DEFAULTS } from '../../templateAccents';
 
 function toUrl(value: string): string {
   return value.startsWith('http://') || value.startsWith('https://')
@@ -126,7 +126,7 @@ export function buildMeridianPdf(
     data.experiences.forEach((exp, idx) => {
       const isLast = idx === data.experiences!.length - 1
       content.push({ text: exp.role || '', style: 'itemTitle' })
-      content.push({ text: `${exp.company || ''} • ${formatDateRange(exp.startDate, exp.endDate)}`, style: 'itemMeta' })
+      content.push({ text: `${[exp.company, exp.location].filter(Boolean).join(', ')} • ${formatDateRange(exp.startDate, exp.endDate)}`, style: 'itemMeta' })
 
       const bullets = normalizeBullets(exp.description)
       if (bullets.length > 0) {
@@ -174,6 +174,10 @@ export function buildMeridianPdf(
 
       content.push({ text: degreeText, style: 'itemTitle' })
       content.push({ text: `${edu.institution || ''} • ${formatDateRange(edu.startDate, edu.endDate)}`, style: 'itemMeta' })
+      const bullets = normalizeBullets(edu.description)
+      if (bullets.length > 0) {
+        content.push({ ul: bullets, style: 'list' })
+      }
 
       if (!isLast) content.push({ text: '', margin: [0, 0, 0, 12] })
     })
