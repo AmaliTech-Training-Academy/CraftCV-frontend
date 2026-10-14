@@ -1,12 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref } from 'vue'
 import { watchDebounced } from '@vueuse/core'
 import { useCVState } from './useCVState'
 import { useCVs } from './useCVs'
 import { useTemplates } from './useTemplates'
 import { $api, extractErrorMessage, extractFieldErrors } from '../utils/api'
-import { formatMonthYear } from '../utils/cvText'
+import { formatMonthYear, normalizeDate } from '../utils/cvText'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function useAutosave() {
   const {
     cvId,
@@ -567,26 +567,6 @@ export function useAutosave() {
       let sectionsChanged = false
       const currentSectionIds: Record<string, string[]> = {}
 
-      /**
-       * Every section date is `format: date` to the backend, while the editor's
-       * picker holds what it shows — "May 2024" — so a date that went through
-       * the form has to be handed over as YYYY-MM-DD. A blank one becomes null
-       * rather than an invented month.
-       */
-      const normalizeDate = (d?: string | null) => {
-        if (!d || !d.trim()) return null
-        const trimmed = d.trim()
-        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed
-        if (/^\d{4}-\d{2}$/.test(trimmed)) return `${trimmed}-01`
-        if (/^\d{4}$/.test(trimmed)) return `${trimmed}-01-01`
-        const [month, year] = trimmed.split(/\s+/)
-        const monthIdx = month ? MONTH_NAMES.findIndex(m => m.toLowerCase() === month.toLowerCase() || m.toLowerCase().slice(0, 3) === month.toLowerCase()) : -1
-        if (monthIdx !== -1 && year && /^\d{4}$/.test(year)) {
-          return `${year}-${String(monthIdx + 1).padStart(2, '0')}-01`
-        }
-        return null
-      }
-
       for (const [localKey, endpoint] of Object.entries(sectionEndpoints)) {
         const currentItems = stateToSave[localKey] || []
         const lastItems = lastSavedData.value?.[localKey] || []
@@ -672,10 +652,11 @@ export function useAutosave() {
             payload.issueDate = normalizeDate(payload.issueDate)
             payload.expirationDate = normalizeDate(payload.expirationDate)
             payload.doesNotExpire = Boolean(payload.doesNotExpire)
-            // Optional to the backend means it may be absent, not that it
-            // accepts a null: the field is not `allow_null`, so a blank URL is
-            // left out rather than sent as null and rejected.
-            if (!payload.credentialUrl?.trim()) delete payload.credentialUrl
+            // A cleared URL has to be sent, not left out: a PATCH that omits the
+            // key keeps the stored link, which then comes back on reload. The
+            // backend field is `URLField(blank=True)`, so '' is accepted — only
+            // null is rejected.
+            if (!payload.credentialUrl?.trim()) payload.credentialUrl = ''
             if (!payload.credentialId?.trim()) payload.credentialId = ''
             if (!payload.description?.trim()) payload.description = ''
           }

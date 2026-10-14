@@ -808,6 +808,56 @@ describe('useAutosave', () => {
     expect(state.certifications.value[0]?.expirationDate).toBe('May 2027')
   })
 
+  it('sends an empty credentialUrl when the user clears it, so the stored link is removed', async () => {
+    mockApi.mockImplementation(async (url: string) => {
+      if (url === '/cvs/cv-cert-url/') {
+        return {
+          cvId: 'cv-cert-url',
+          title: 'Cert URL CV',
+          certifications: ['cert-1'],
+        }
+      }
+      if (url === '/cvs/certifications/') {
+        return [
+          {
+            certificationId: 'cert-1',
+            name: 'AWS Certified',
+            issuer: 'Amazon',
+            issueDate: '2024-05-01',
+            credentialUrl: 'https://example.com/verify/abc',
+          },
+        ]
+      }
+      return {}
+    })
+
+    const { loadCV, triggerAutosave } = useAutosave()
+    await loadCV('cv-cert-url')
+    await vi.runAllTimersAsync()
+
+    const state = useCVState()
+    expect(state.certifications.value[0]?.credentialUrl).toBe('https://example.com/verify/abc')
+
+    mockApi.mockReset()
+    mockApi.mockImplementation(async (url: string) => {
+      if (url === '/cvs/cv-cert-url/') return { lastSavedAt: 'new-time' }
+      return {}
+    })
+
+    // The user empties the field.
+    state.certifications.value[0]!.credentialUrl = ''
+
+    triggerAutosave()
+    await flushMicrotasks()
+
+    // The key must be present and blank — omitting it would leave the old link
+    // on the backend — and never null, which the backend refuses.
+    expect(mockApi).toHaveBeenCalledWith('/cvs/certifications/cert-1/', {
+      method: 'PATCH',
+      body: expect.objectContaining({ credentialUrl: '' }),
+    })
+  })
+
   it('does not send a displayOrder PATCH for newly added items before they are created', async () => {
     mockApi.mockImplementation(async (url: string) => {
       if (url === '/cvs/cv-new-item-test/') {
