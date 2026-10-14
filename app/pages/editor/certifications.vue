@@ -77,6 +77,26 @@ const nameError = (item: CertificationItem) =>
 const issuerError = (item: CertificationItem) =>
   backendError(item.id, 'issuer') || (showErrors.value && !item.issuer.trim() ? 'Issuing organization is required' : '')
 
+const isCertificationUntouched = (item: CertificationItem) =>
+  !item.name.trim()
+  && !item.issuer.trim()
+  && !item.date.trim()
+  && !item.description?.trim()
+  && !item.credentialId?.trim()
+  && !item.credentialUrl?.trim()
+
+const handleCertCancel = (item: CertificationItem) => {
+  if (isCertificationUntouched(item)) {
+    // New blank entry — silently discard
+    certifications.value = certifications.value.filter(c => c.id !== item.id)
+    activeId.value = null
+  }
+  else {
+    // Has data — ask to confirm deletion
+    promptDelete(item.id)
+  }
+}
+
 const handleFinish = async () => {
   // Discard only entries that are completely untouched/blank
   certifications.value = certifications.value.filter(
@@ -301,7 +321,7 @@ const handleFinish = async () => {
                         :class="[
                           backendError(item.id, 'credentialUrl')
                             ? 'border-red-400 focus:border-red-500 focus:ring-red-400/20'
-                            : 'border-gray-300 focus:border-brand-600 focus:ring-brand-600/20',
+                            : 'border-gray-300 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20',
                         ]"
                       >
                       <ExternalLink
@@ -336,7 +356,7 @@ const handleFinish = async () => {
                     rows="4"
                     aria-label="Description & Key Competencies"
                     placeholder="• Key skills, domains, or competencies demonstrated by this credential..."
-                    class="w-full p-4 text-[16px] text-gray-900 border border-gray-300 rounded-xl bg-white focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 transition resize-y min-h-[110px]"
+                    class="w-full p-4 text-[16px] text-gray-900 border border-gray-300 rounded-xl bg-white focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 transition resize-y min-h-27.5"
                   />
                 </div>
               </div>
@@ -346,7 +366,7 @@ const handleFinish = async () => {
                 <button
                   type="button"
                   class="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:underline"
-                  @click="activeId = null"
+                  @click="handleCertCancel(item)"
                 >
                   Cancel
                 </button>
