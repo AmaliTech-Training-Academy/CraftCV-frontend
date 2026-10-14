@@ -97,7 +97,7 @@ const toggleCurrent = (e: Event) => {
             :id="'current-job-' + item.id"
             type="checkbox"
             :checked="item.isCurrent"
-            class="w-4 h-4 rounded border-gray-300 accent-[#C54A22] text-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 cursor-pointer transition"
+            class="w-4 h-4 rounded border-gray-300 accent-brand-600 text-brand-600 focus:ring-2 focus:ring-brand-600/20 cursor-pointer transition"
             @change="toggleCurrent"
           >
           <label

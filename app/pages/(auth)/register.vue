@@ -47,7 +47,7 @@
             'h-11',
             fieldError('email')
               ? 'border-destructive focus-visible:ring-destructive'
-              : 'focus-visible:ring-[#EA580C]',
+              : 'focus-visible:ring-brand-600',
           ]"
           @blur="touch('email')"
         />
@@ -78,7 +78,7 @@
               'h-11 pr-11',
               backendPasswordError || fieldError('password')
                 ? 'border-destructive focus-visible:ring-destructive'
-                : 'focus-visible:ring-[#EA580C]',
+                : 'focus-visible:ring-brand-600',
             ]"
             @focus="isPasswordFocused = true"
             @input="isPasswordFocused = true; backendPasswordError = ''"
@@ -174,7 +174,7 @@
               'h-11 pr-11',
               fieldError('confirmPassword') || confirmMismatch
                 ? 'border-destructive focus-visible:ring-destructive'
-                : 'focus-visible:ring-[#EA580C]',
+                : 'focus-visible:ring-brand-600',
             ]"
             @blur="touch('confirmPassword')"
           />
@@ -253,7 +253,7 @@
           <NuxtLink
             to="/terms"
             target="_blank"
-            class="text-[#EA580C] font-medium underline hover:text-[#c2410c] transition cursor-pointer"
+            class="text-brand-600 font-medium underline hover:text-brand-700 transition cursor-pointer"
           >Terms and Privacy Policy</NuxtLink>
         </div>
         <p

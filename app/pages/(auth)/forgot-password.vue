@@ -12,13 +12,13 @@
           <!-- Step 1: Email -->
           <li
             class="flex items-center gap-1.5 transition-colors duration-300"
-            :style="{ color: step > 1 ? '#17B26A' : step === 1 ? '#E2673D' : '#B5A695', fontWeight: step >= 1 ? '600' : '400' }"
+            :style="{ color: step > 1 ? '#17B26A' : step === 1 ? 'var(--color-brand-600)' : '#B5A695', fontWeight: step >= 1 ? '600' : '400' }"
             :aria-current="step === 1 ? 'step' : undefined"
           >
             <span
               class="w-5 h-5 rounded-full flex items-center justify-center leading-none transition-all duration-300"
               :style="{
-                backgroundColor: step > 1 ? '#17B26A' : step === 1 ? '#E2673D' : '#E5DDD1',
+                backgroundColor: step > 1 ? '#17B26A' : step === 1 ? 'var(--color-brand-600)' : '#E5DDD1',
                 color: step >= 1 ? '#fff' : '#78716C',
               }"
               aria-hidden="true"
@@ -38,13 +38,13 @@
           <!-- Step 2: Verification -->
           <li
             class="flex items-center gap-1.5 transition-colors duration-300"
-            :style="{ color: step > 2 ? '#17B26A' : step === 2 ? '#E2673D' : '#B5A695', fontWeight: step >= 2 ? '600' : '400' }"
+            :style="{ color: step > 2 ? '#17B26A' : step === 2 ? 'var(--color-brand-600)' : '#B5A695', fontWeight: step >= 2 ? '600' : '400' }"
             :aria-current="step === 2 ? 'step' : undefined"
           >
             <span
               class="w-5 h-5 rounded-full flex items-center justify-center leading-none transition-all duration-300"
               :style="{
-                backgroundColor: step > 2 ? '#17B26A' : step === 2 ? '#E2673D' : '#E5DDD1',
+                backgroundColor: step > 2 ? '#17B26A' : step === 2 ? 'var(--color-brand-600)' : '#E5DDD1',
                 color: step >= 2 ? '#fff' : '#78716C',
               }"
               aria-hidden="true"
@@ -64,13 +64,13 @@
           <!-- Step 3: New Password -->
           <li
             class="flex items-center gap-1.5 transition-colors duration-300"
-            :style="{ color: step > 3 ? '#17B26A' : step === 3 ? '#E2673D' : '#B5A695', fontWeight: step >= 3 ? '600' : '400' }"
+            :style="{ color: step > 3 ? '#17B26A' : step === 3 ? 'var(--color-brand-600)' : '#B5A695', fontWeight: step >= 3 ? '600' : '400' }"
             :aria-current="step === 3 ? 'step' : undefined"
           >
             <span
               class="w-5 h-5 rounded-full flex items-center justify-center leading-none transition-all duration-300"
               :style="{
-                backgroundColor: step > 3 ? '#17B26A' : step === 3 ? '#E2673D' : '#E5DDD1',
+                backgroundColor: step > 3 ? '#17B26A' : step === 3 ? 'var(--color-brand-600)' : '#E5DDD1',
                 color: step >= 3 ? '#fff' : '#78716C',
               }"
               aria-hidden="true"
@@ -94,15 +94,15 @@
         >
           <div
             class="h-1 rounded-full transition-colors duration-300"
-            :style="{ backgroundColor: step > 1 ? '#17B26A' : step === 1 ? '#E2673D' : '#E5DDD1' }"
+            :style="{ backgroundColor: step > 1 ? '#17B26A' : step === 1 ? 'var(--color-brand-600)' : '#E5DDD1' }"
           />
           <div
             class="h-1 rounded-full transition-colors duration-300"
-            :style="{ backgroundColor: step > 2 ? '#17B26A' : step === 2 ? '#E2673D' : '#E5DDD1' }"
+            :style="{ backgroundColor: step > 2 ? '#17B26A' : step === 2 ? 'var(--color-brand-600)' : '#E5DDD1' }"
           />
           <div
             class="h-1 rounded-full transition-colors duration-300"
-            :style="{ backgroundColor: step > 3 ? '#17B26A' : step === 3 ? '#E2673D' : '#E5DDD1' }"
+            :style="{ backgroundColor: step > 3 ? '#17B26A' : step === 3 ? 'var(--color-brand-600)' : '#E5DDD1' }"
           />
         </div>
       </nav>
@@ -115,7 +115,7 @@
         class="w-full flex flex-col items-center"
       >
         <!-- Envelope Badge -->
-        <div class="w-14 h-14 rounded-full bg-[#FBE4D9] flex items-center justify-center mb-6 text-[#E2673D] transition-transform duration-200 hover:scale-105">
+        <div class="w-14 h-14 rounded-full bg-[#FBE4D9] flex items-center justify-center mb-6 text-brand-600 transition-transform duration-200 hover:scale-105">
           <Mail class="w-7 h-7 stroke-[1.75]" />
         </div>
 
@@ -158,8 +158,8 @@
               :class="[
                 'w-full h-11 rounded-[10px] border bg-white text-[14px] text-[#2B2622] placeholder:text-[#B5A695] focus-visible:ring-[3px] focus-visible:ring-offset-0 px-3.5 transition-colors',
                 emailError
-                  ? 'border-[#E2673D] focus-visible:border-[#E2673D] focus-visible:ring-[#FBE4D9]'
-                  : 'border-[#E5DDD1] focus-visible:border-[#E2673D] focus-visible:ring-[#FBE4D9]',
+                  ? 'border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20'
+                  : 'border-[#E5DDD1] focus-visible:border-brand-600 focus-visible:ring-brand-600/20',
               ]"
               @blur="onEmailBlur"
               @input="onEmailInput"
@@ -173,7 +173,7 @@
               <p
                 v-if="emailError"
                 role="alert"
-                class="text-[12px] text-[#E2673D] flex items-center gap-1 mt-0.5"
+                class="text-[12px] text-destructive flex items-center gap-1 mt-0.5"
               >
                 <AlertCircle style="width:13px; height:13px; flex-shrink:0;" />
                 {{ emailError }}
@@ -191,7 +191,7 @@
             <Button
               type="submit"
               :disabled="isLoading"
-              class="w-full h-[46px] bg-[#E2673D] hover:bg-[#C9552F] active:scale-[0.98] text-white font-semibold text-sm rounded-[10px] shadow-sm transition-all duration-150 flex items-center justify-center tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
+              class="w-full h-[46px] bg-brand-600 hover:bg-brand-700 active:scale-[0.98] text-white font-semibold text-sm rounded-[10px] shadow-sm transition-all duration-150 flex items-center justify-center tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Send code
             </Button>
@@ -200,7 +200,7 @@
           <div class="text-center pt-2">
             <NuxtLink
               to="/login"
-              class="inline-block text-[14px] font-medium text-[#E2673D] hover:text-[#C9552F] underline underline-offset-4 decoration-[#F5C7AE] hover:decoration-[#E2673D] transition-colors duration-150"
+              class="inline-block text-[14px] font-medium text-brand-600 hover:text-brand-700 underline underline-offset-4 decoration-brand-600/30 hover:decoration-brand-600 transition-colors duration-150"
             >
               Back to login
             </NuxtLink>
@@ -216,7 +216,7 @@
         class="w-full flex flex-col items-center animate-in fade-in zoom-in-95 duration-300"
       >
         <!-- Key / Shield Badge -->
-        <div class="w-14 h-14 rounded-full bg-[#FBE4D9] flex items-center justify-center mb-6 text-[#E2673D] transition-transform duration-200 hover:scale-105">
+        <div class="w-14 h-14 rounded-full bg-[#FBE4D9] flex items-center justify-center mb-6 text-brand-600 transition-transform duration-200 hover:scale-105">
           <KeyRound class="w-7 h-7 stroke-[1.75]" />
         </div>
 
@@ -231,7 +231,7 @@
           </h1>
           <p class="text-[#78716C] text-[14px] leading-relaxed max-w-[340px] mx-auto font-normal mt-2">
             We sent a 6-digit verification code to
-            <span class="inline-flex items-center gap-1 mt-1.5 mx-auto px-2.5 py-0.5 rounded-full bg-[#FBE4D9] text-[#C9552F] font-medium text-[13px] font-mono tracking-tight">
+            <span class="inline-flex items-center gap-1 mt-1.5 mx-auto px-2.5 py-0.5 rounded-full bg-[#FBE4D9] text-brand-600 font-medium text-[13px] font-mono tracking-tight">
               <svg
                 class="w-3 h-3 shrink-0"
                 viewBox="0 0 24 24"
@@ -277,7 +277,7 @@
                 pattern="[0-9]*"
                 autocomplete="one-time-code"
                 :aria-label="`Digit ${index + 1} of 6`"
-                class="w-[48px] h-[56px] rounded-[10px] border-[1.5px] border-[#E5DDD1] bg-white text-[24px] font-bold text-center text-[#2B2622] focus:outline-none focus:ring-[3px] focus:ring-[#FBE4D9] focus:border-[#E2673D] transition-shadow shadow-sm"
+                class="w-[48px] h-[56px] rounded-[10px] border-[1.5px] border-[#E5DDD1] bg-white text-[24px] font-bold text-center text-[#2B2622] focus:outline-none focus:ring-[3px] focus:ring-[#FBE4D9] focus:border-brand-600 transition-shadow shadow-sm"
                 @input="handleOtpInput($event, index)"
                 @keydown="handleOtpKeydown($event, index)"
                 @paste="handleOtpPaste"
@@ -301,7 +301,7 @@
             <Button
               type="submit"
               :disabled="!isOtpComplete || isLoading"
-              class="w-full h-[46px] bg-[#E2673D] hover:bg-[#C9552F] active:scale-[0.98] text-white font-semibold text-sm rounded-[10px] shadow-sm transition-all duration-150 flex items-center justify-center tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
+              class="w-full h-[46px] bg-brand-600 hover:bg-brand-700 active:scale-[0.98] text-white font-semibold text-sm rounded-[10px] shadow-sm transition-all duration-150 flex items-center justify-center tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Verify code
             </Button>
@@ -359,7 +359,7 @@
                 @click="onResendCode"
               >
                 Didn't receive a code?
-                <span class="text-[#E2673D] hover:text-[#C9552F] underline underline-offset-4 decoration-[#F5C7AE]">Resend</span>
+                <span class="text-brand-600 hover:text-brand-700 underline underline-offset-4 decoration-brand-600/30">Resend</span>
               </button>
             </template>
 
@@ -487,10 +487,10 @@
                 autocomplete="new-password"
                 required
                 :aria-invalid="Boolean(confirmError || confirmMismatch) ? 'true' : 'false'"
-                aria-describedby="confirmError || confirmMismatch ? 'confirm-error' : undefined"
+                :aria-describedby="confirmError || confirmMismatch ? 'confirm-error' : undefined"
                 aria-required="true"
                 class="block w-full h-[44px] rounded-[10px] bg-white text-[14px] text-[#2B2622] px-3.5 pr-11 border outline-none transition-all"
-                :class="[confirmError || confirmMismatch ? 'border-destructive focus:border-destructive focus:ring-4 focus:ring-[#FBE4D9]' : 'border-[#E5DDD1] focus:border-[#E2673D] focus:ring-4 focus:ring-[#FBE4D9]']"
+                :class="[confirmError || confirmMismatch ? 'border-destructive focus:border-destructive focus:ring-4 focus:ring-[#FBE4D9]' : 'border-[#E5DDD1] focus:border-brand-600 focus:ring-4 focus:ring-[#FBE4D9]']"
                 @blur="onConfirmPasswordBlur"
               >
               <button
@@ -530,7 +530,7 @@
             <Button
               type="submit"
               :disabled="!isResetFormValid || isLoading"
-              class="w-full h-[46px] bg-[#E2673D] hover:bg-[#C9552F] active:scale-[0.98] text-white font-semibold text-sm rounded-[10px] shadow-sm transition-all duration-150 flex items-center justify-center tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
+              class="w-full h-[46px] bg-brand-600 hover:bg-brand-700 active:scale-[0.98] text-white font-semibold text-sm rounded-[10px] shadow-sm transition-all duration-150 flex items-center justify-center tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Reset password
             </Button>
@@ -603,7 +603,7 @@
               <button
                 ref="loginBtn"
                 type="button"
-                class="w-full h-[46px] rounded-[10px] font-semibold text-sm tracking-wide text-white transition-all duration-150 active:scale-[0.98] bg-[#E2673D] hover:bg-[#C9552F] focus-visible:ring-2 focus-visible:ring-offset-2"
+                class="w-full h-[46px] rounded-[10px] font-semibold text-sm tracking-wide text-white transition-all duration-150 active:scale-[0.98] bg-brand-600 hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-offset-2"
                 @click="goToLoginNow"
               >
                 Go to login

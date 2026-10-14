@@ -2,7 +2,7 @@
   <div class="w-full max-w-[420px] mx-auto">
     <div class="w-full flex flex-col items-center animate-in fade-in zoom-in-95 duration-300">
       <!-- Mail Badge Icon -->
-      <div class="w-14 h-14 rounded-full bg-[#FBE4D9] flex items-center justify-center mb-6 text-[#C5512B] transition-transform duration-200 hover:scale-105">
+      <div class="w-14 h-14 rounded-full bg-[#FBE4D9] flex items-center justify-center mb-6 text-brand-600 transition-transform duration-200 hover:scale-105">
         <Mail class="w-7 h-7 stroke-[1.75]" />
       </div>
 
@@ -19,7 +19,7 @@
           We sent a 6-digit verification code to
           <span
             id="email-pill"
-            class="inline-flex items-center gap-1 mt-1.5 mx-auto px-2.5 py-0.5 rounded-full bg-[#FBE4D9] text-[#C5512B] font-medium text-[13px] font-mono tracking-tight"
+            class="inline-flex items-center gap-1 mt-1.5 mx-auto px-2.5 py-0.5 rounded-full bg-[#FBE4D9] text-brand-600 font-medium text-[13px] font-mono tracking-tight"
           >
             <svg
               class="w-3 h-3 shrink-0"
@@ -85,7 +85,7 @@
               pattern="[0-9]*"
               autocomplete="one-time-code"
               :aria-label="`Digit ${index + 1} of 6`"
-              class="w-[48px] h-[56px] rounded-[10px] border-[1.5px] border-[#E5DDD1] bg-white text-[24px] font-bold text-center text-[#2B2622] focus:outline-none focus:ring-[3px] focus:ring-[#FBE4D9] focus:border-[#C5512B] transition-shadow shadow-sm"
+              class="w-[48px] h-[56px] rounded-[10px] border-[1.5px] border-[#E5DDD1] bg-white text-[24px] font-bold text-center text-[#2B2622] focus:outline-none focus:ring-[3px] focus:ring-[#FBE4D9] focus:border-brand-600 transition-shadow shadow-sm"
               @input="handleOtpInput($event, index)"
               @keydown="handleOtpKeydown($event, index)"
               @paste="handleOtpPaste"
@@ -125,7 +125,7 @@
           <Button
             type="submit"
             :disabled="!isCodeComplete || isLoading"
-            class="w-full h-[46px] bg-[#C5512B] hover:bg-[#A8431F] active:scale-[0.98] text-white font-semibold text-sm rounded-[10px] shadow-sm transition-all duration-150 flex items-center justify-center tracking-wide disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            class="w-full h-[46px] bg-brand-600 hover:bg-brand-700 active:scale-[0.98] text-white font-semibold text-sm rounded-[10px] shadow-sm transition-all duration-150 flex items-center justify-center tracking-wide disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             <svg
               v-if="isLoading"
@@ -206,7 +206,7 @@
               @click="handleResend"
             >
               Didn't receive a code?
-              <span class="text-[#C5512B] hover:text-[#A8431F] underline underline-offset-4 decoration-[#F5C7AE]">Resend</span>
+              <span class="text-brand-600 hover:text-brand-700 underline underline-offset-4 decoration-brand-600/30">Resend</span>
             </button>
           </template>
 
