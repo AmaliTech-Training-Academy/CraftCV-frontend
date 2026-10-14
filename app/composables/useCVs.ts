@@ -2,6 +2,7 @@
 import { useState } from '#imports'
 import { $api, extractErrorMessage } from '../utils/api'
 import { useCVState } from './useCVState'
+import { useTemplates } from './useTemplates'
 
 /** A CV as the collection endpoint describes it — enough to render a card and open it. */
 export interface CVSummary {
@@ -40,13 +41,21 @@ export const useCVs = () => {
     return []
   }
 
+  const resolveRawTemplate = (cv: any): string | undefined => {
+    const raw = cv.template ?? cv.templateId ?? cv.template_id ?? cv.templateSlug ?? cv.template_slug
+    if (typeof raw === 'object' && raw !== null) {
+      return raw.slug ?? raw.templateId ?? raw.id ?? raw.name
+    }
+    return raw ? String(raw) : undefined
+  }
+
   /** The key that identifies a CV has appeared as `cvId` on write paths; accept the usual aliases. */
   const toSummary = (cv: any): CVSummary => ({
     cvId: String(cv.cvId ?? cv.id ?? cv.uuid ?? ''),
     title: cv.title || 'Untitled',
-    professionalTitle: cv.professionalTitle ?? undefined,
-    template: cv.template ?? undefined,
-    lastSavedAt: cv.lastSavedAt ?? undefined,
+    professionalTitle: cv.professionalTitle ?? cv.professional_title ?? undefined,
+    template: resolveRawTemplate(cv),
+    lastSavedAt: cv.lastSavedAt ?? cv.last_saved_at ?? cv.updatedAt ?? cv.updated_at ?? cv.modifiedAt ?? cv.modified_at ?? undefined,
   })
 
   const fetchCVs = async () => {
@@ -129,7 +138,20 @@ export const useCVs = () => {
     state.hasActiveCV.value = true
     state.cvTitle.value = cv.title
     state.lastSavedAt.value = cv.lastSavedAt ?? null
-
+    if (cv.template) {
+      state.selectedTemplateId.value = cv.template
+      const { templates } = useTemplates()
+      const clean = cv.template === 'modern' ? 'single-column' : cv.template.toLowerCase()
+      const matched = templates.value.find(
+        t => t.templateId === cv.template || t.slug.toLowerCase() === clean,
+      )
+      if (matched) {
+        state.selectedTemplateSlug.value = matched.slug
+      }
+      else if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cv.template)) {
+        state.selectedTemplateSlug.value = clean
+      }
+    }
     await navigateTo('/editor/personal')
   }
 

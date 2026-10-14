@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { AlertCircle, Edit, Loader2, MoreVertical, Plus, Trash2, Copy } from '@lucide/vue'
+import { AlertCircle, Clock, Copy, Edit, FileText, Loader2, MoreVertical, Plus, Trash2 } from '@lucide/vue'
 import { useCVs, type CVSummary } from '~/composables/useCVs'
+import { useTemplates } from '~/composables/useTemplates'
 
 useHead({ title: 'Dashboard' })
 
@@ -11,8 +12,15 @@ definePageMeta({
 })
 
 const { cvs, loading, loaded, error, fetchCVs, deleteCV, duplicateCV, selectCV } = useCVs()
+const { templates, fetchTemplates } = useTemplates()
 
-onMounted(fetchCVs)
+onMounted(async () => {
+  const promises: Promise<unknown>[] = [fetchCVs()]
+  if (templates.value.length === 0) {
+    promises.push(fetchTemplates().catch(() => {}))
+  }
+  await Promise.all(promises)
+})
 
 const showMenuFor = ref<string | null>(null)
 const pendingDelete = ref<CVSummary | null>(null)
@@ -23,13 +31,45 @@ const pendingDuplicate = ref<CVSummary | null>(null)
 const duplicating = ref(false)
 const duplicateError = ref<string | null>(null)
 
+const failedImageMap = ref<Record<string, boolean>>({})
+
+const onImageError = (cvId: string) => {
+  failedImageMap.value[cvId] = true
+}
+
+const isUuid = (val?: string) => Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val.trim()))
+
+const getTemplateMeta = (identifier?: string) => {
+  if (!identifier) return null
+  let clean = String(identifier).toLowerCase().trim()
+  if (clean === 'modern') clean = 'single-column'
+  return (
+    templates.value.find(
+      t => t.slug?.toLowerCase() === clean
+        || t.templateId?.toLowerCase() === clean
+        || t.name?.toLowerCase() === clean,
+    ) || null
+  )
+}
+
+const getTemplateDisplayName = (identifier?: string) => {
+  const meta = getTemplateMeta(identifier)
+  if (meta?.name) return meta.name
+  if (identifier && !isUuid(identifier) && !identifier.includes('[object')) {
+    return identifier.charAt(0).toUpperCase() + identifier.slice(1)
+  }
+  return 'Standard'
+}
+
 const isEmpty = computed(() => loaded.value && !error.value && cvs.value.length === 0)
 
-const formatSavedAt = (iso?: string) => {
-  if (!iso) return ''
+const formatLastEdited = (iso?: string): string | null => {
+  if (!iso) return null
   const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return ''
-  return date.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })
+  if (Number.isNaN(date.getTime())) return null
+  const dateStr = date.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })
+  const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return `${dateStr} · ${timeStr}`
 }
 
 const requestDelete = (cv: CVSummary) => {
@@ -87,19 +127,6 @@ const openCV = async (cv: CVSummary) => {
   }
   await selectCV(cv)
 }
-
-const handleCardClick = (e: MouseEvent, cv: CVSummary) => {
-  const target = e.target as HTMLElement
-  if (target.closest('.actions-menu-container')) return
-  openCV(cv)
-}
-
-const handleCardKeydown = (e: KeyboardEvent, cv: CVSummary) => {
-  const target = e.target as HTMLElement
-  if (target.closest('.actions-menu-container')) return
-  if (e.target !== e.currentTarget) return
-  openCV(cv)
-}
 </script>
 
 <template>
@@ -116,7 +143,7 @@ const handleCardKeydown = (e: KeyboardEvent, cv: CVSummary) => {
 
       <NuxtLink
         to="/templates"
-        class="px-4 py-2 bg-[#F26438] text-white rounded-lg text-sm font-semibold hover:bg-[#d95a30] transition-colors shadow-sm"
+        class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm"
       >
         Create New
       </NuxtLink>
@@ -154,7 +181,7 @@ const handleCardKeydown = (e: KeyboardEvent, cv: CVSummary) => {
         :key="n"
         class="rounded-xl bg-white border border-gray-200 shadow-sm overflow-hidden animate-pulse"
       >
-        <div class="aspect-[3/4] w-full bg-[#F9F8F6]" />
+        <div class="aspect-[3/4] w-full bg-stone-50" />
         <div class="px-4 py-3">
           <div class="h-4 w-2/3 rounded bg-gray-100" />
         </div>
@@ -170,91 +197,126 @@ const handleCardKeydown = (e: KeyboardEvent, cv: CVSummary) => {
       <article
         v-for="cv in cvs"
         :key="cv.cvId"
-        role="button"
-        tabindex="0"
-        :aria-label="`Open ${cv.title}`"
-        class="group relative flex flex-col cursor-pointer rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-lg hover:border-[#F26438]/40 transition-all duration-200 ease-out hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F26438]/40"
-        @click="handleCardClick($event, cv)"
-        @keydown.enter.prevent="handleCardKeydown($event, cv)"
-        @keydown.space.prevent="handleCardKeydown($event, cv)"
+        class="group relative flex flex-col cursor-pointer rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-lg hover:border-brand-600/40 transition-all duration-200 ease-out hover:-translate-y-1"
         @mouseleave="showMenuFor = null"
       >
-        <!-- Thumbnail Image -->
-        <div class="aspect-[3/4] w-full overflow-hidden rounded-t-xl bg-[#F9F8F6] relative flex flex-col items-center justify-center border-b border-gray-100">
-          <svg
-            class="w-16 h-16 text-gray-300 mb-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          ><path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="1.5"
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          /></svg>
-          <span class="text-xs font-semibold text-gray-400 uppercase tracking-widest">
-            {{ formatSavedAt(cv.lastSavedAt) || 'Not saved yet' }}
-          </span>
+        <button
+          type="button"
+          class="absolute inset-0 z-10 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600/40"
+          :aria-label="`Open ${cv.title}${getTemplateDisplayName(cv.template) ? ', ' + getTemplateDisplayName(cv.template) + ' template' : ''}${formatLastEdited(cv.lastSavedAt) ? ', last edited ' + formatLastEdited(cv.lastSavedAt) : ''}`"
+          @click="openCV(cv)"
+        />
+
+        <!-- Thumbnail / Template Preview -->
+        <div class="aspect-[3/4] w-full overflow-hidden rounded-t-xl bg-stone-50 relative flex flex-col items-center justify-center border-b border-gray-100">
+          <!-- Template Image Preview (when available and not errored) -->
+          <img
+            v-if="getTemplateMeta(cv.template)?.image && !failedImageMap[cv.cvId]"
+            :src="getTemplateMeta(cv.template)?.image"
+            :alt="`Preview of ${cv.title} using ${getTemplateDisplayName(cv.template)} template`"
+            class="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-105"
+            loading="lazy"
+            decoding="async"
+            @error="onImageError(cv.cvId)"
+          >
+
+          <!-- Fallback Preview when no image or image failed -->
+          <div
+            v-else
+            class="flex flex-col items-center justify-center text-center p-4 w-full h-full bg-gradient-to-b from-stone-50 to-stone-100"
+          >
+            <div class="w-14 h-14 rounded-xl bg-white shadow-xs border border-gray-200/80 flex items-center justify-center mb-3 text-gray-400 group-hover:text-brand-600 group-hover:border-brand-200 transition-colors">
+              <FileText class="w-7 h-7" />
+            </div>
+            <span class="text-xs font-semibold text-gray-700 tracking-wide line-clamp-1 px-2">
+              {{ getTemplateDisplayName(cv.template) }}
+            </span>
+          </div>
+
+          <!-- Template Pill Badge (top-left) -->
+          <div
+            v-if="getTemplateDisplayName(cv.template)"
+            class="absolute top-2.5 left-2.5 z-10 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur-xs text-[11px] font-semibold text-gray-700 shadow-xs border border-gray-200/60 uppercase tracking-wider"
+          >
+            {{ getTemplateDisplayName(cv.template) }}
+          </div>
 
           <!-- Hover overlay -->
-          <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200">
-            <span class="bg-white text-gray-900 text-xs font-bold px-4 py-2 rounded-full shadow-sm flex items-center gap-1.5">
-              <Edit class="w-3.5 h-3.5" />
+          <div class="pointer-events-none absolute inset-0 bg-black/0 group-hover:bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 z-10">
+            <span class="bg-white text-gray-900 text-xs font-bold px-4 py-2 rounded-full shadow-md flex items-center gap-1.5 transform translate-y-1 group-hover:translate-y-0 transition-transform">
+              <Edit class="w-3.5 h-3.5 text-brand-600" />
               Continue Editing
             </span>
           </div>
         </div>
 
         <!-- Card Footer -->
-        <div class="px-4 py-3 flex items-center justify-between relative">
-          <span class="text-sm font-semibold text-gray-900 truncate pr-2">
-            {{ cv.title }}
-          </span>
-
-          <!-- 3-dot Menu Button -->
-          <div
-            class="actions-menu-container relative"
-            @click.stop
-            @keydown.stop
-          >
-            <button
-              type="button"
-              :aria-label="`Actions for ${cv.title}`"
-              aria-haspopup="menu"
-              :aria-expanded="showMenuFor === cv.cvId"
-              class="p-1.5 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F26438]/40"
-              @click.stop="toggleMenu(cv.cvId)"
+        <div class="p-3.5 flex flex-col gap-1 relative">
+          <div class="flex items-center justify-between min-w-0">
+            <span
+              class="text-sm font-semibold text-gray-900 truncate pr-1"
+              :title="cv.title"
             >
-              <MoreVertical class="w-4 h-4" />
-            </button>
+              {{ cv.title }}
+            </span>
 
-            <!-- Menu Dropdown -->
+            <!-- 3-dot Menu Button -->
             <div
-              v-if="showMenuFor === cv.cvId"
-              role="menu"
-              class="absolute right-0 bottom-8 mb-2 w-32 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-20"
+              class="actions-menu-container relative z-20 shrink-0"
               @click.stop
               @keydown.stop
             >
               <button
                 type="button"
-                role="menuitem"
-                class="w-full text-left px-3 py-2 text-xs font-normal text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                @click.stop="requestDuplicate(cv)"
+                :aria-label="`Actions for ${cv.title}`"
+                aria-haspopup="menu"
+                :aria-expanded="showMenuFor === cv.cvId"
+                class="p-1.5 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600/40 cursor-pointer"
+                @click.stop="toggleMenu(cv.cvId)"
               >
-                <Copy class="w-3.5 h-3.5 text-gray-500" />
-                Duplicate
+                <MoreVertical class="w-4 h-4" />
               </button>
-              <button
-                type="button"
-                role="menuitem"
-                class="w-full text-left px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2"
-                @click.stop="requestDelete(cv)"
+
+              <!-- Menu Dropdown -->
+              <div
+                v-if="showMenuFor === cv.cvId"
+                role="menu"
+                class="absolute right-0 bottom-8 mb-2 w-32 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-20"
+                @click.stop
+                @keydown.stop
+                @keydown.esc.stop="showMenuFor = null"
               >
-                <Trash2 class="w-3.5 h-3.5" />
-                Delete
-              </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  class="w-full text-left px-3 py-2 text-xs font-normal text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
+                  @click.stop="requestDuplicate(cv)"
+                >
+                  <Copy class="w-3.5 h-3.5 text-gray-500" />
+                  Duplicate
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  class="w-full text-left px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer"
+                  @click.stop="requestDelete(cv)"
+                >
+                  <Trash2 class="w-3.5 h-3.5" />
+                  Delete
+                </button>
+              </div>
             </div>
+          </div>
+
+          <!-- Timestamp & Identifying Details -->
+          <div class="flex items-center gap-1.5 text-xs text-gray-500">
+            <Clock class="w-3.5 h-3.5 text-gray-400 shrink-0" />
+            <span
+              class="truncate"
+              :title="formatLastEdited(cv.lastSavedAt) ? `Saved ${formatLastEdited(cv.lastSavedAt)}` : 'Not saved yet'"
+            >
+              {{ formatLastEdited(cv.lastSavedAt) ? `Saved ${formatLastEdited(cv.lastSavedAt)}` : 'Not saved yet' }}
+            </span>
           </div>
         </div>
       </article>
@@ -286,7 +348,7 @@ const handleCardKeydown = (e: KeyboardEvent, cv: CVSummary) => {
       </p>
       <NuxtLink
         to="/templates"
-        class="px-5 py-2.5 rounded-xl bg-[#F26438] text-white text-sm font-semibold hover:bg-[#d95a30] transition-colors shadow-sm inline-flex items-center gap-2"
+        class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold transition-colors shadow-sm inline-flex items-center gap-2"
       >
         <Plus class="w-4 h-4" />
         Browse templates
