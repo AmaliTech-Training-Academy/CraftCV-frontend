@@ -2,7 +2,7 @@ import type { Content, TDocumentDefinitions } from 'pdfmake/build/pdfmake'
 import type { CvExportData } from '../exportData'
 import type { PdfTemplateOptions } from './classic'
 import { formatDateRange, normalizeBullets } from '../formatters'
-import { accentTint, TEMPLATE_ACCENT_DEFAULTS } from '../../templateAccents'
+import { TEMPLATE_ACCENT_DEFAULTS, accentTint } from '../../templateAccents'
 
 function toUrl(value: string): string {
   return value.startsWith('http://') || value.startsWith('https://')
@@ -112,6 +112,19 @@ export function buildPrismPdf(
     data.certifications.forEach((cert) => {
       sidebarContent.push({ text: cert.name, style: 'sidebarItemTitle' })
       if (cert.issuer) sidebarContent.push({ text: cert.issuer, style: 'sidebarItemSub' })
+      if (cert.credentialId) {
+        sidebarContent.push({ text: `Credential ID: ${cert.credentialId}`, style: 'sidebarItemSub' })
+      }
+      if (cert.credentialUrl) {
+        sidebarContent.push({
+          text: 'View credential',
+          style: 'sidebarItemSub',
+          ...(options.includeLinks ? { link: toUrl(cert.credentialUrl), color: '#2563EB' } : {}),
+        })
+      }
+      if (cert.description?.trim()) {
+        sidebarContent.push({ text: cert.description.trim(), style: 'sidebarNote', margin: [0, 3, 0, 0] })
+      }
       sidebarContent.push({ text: '', margin: [0, 0, 0, 8] })
     })
   }
@@ -236,6 +249,12 @@ export function buildPrismPdf(
       sidebarItemSub: {
         fontSize: 9,
         color: '#4B5563',
+        margin: [0, 0, 0, 2],
+      },
+      sidebarNote: {
+        fontSize: 8.5,
+        color: '#4B5563',
+        lineHeight: 1.3,
         margin: [0, 0, 0, 2],
       },
       sidebarDate: {

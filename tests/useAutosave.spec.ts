@@ -1,10 +1,10 @@
-// @vitest-environment nuxt
-
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { useAutosave } from '../app/composables/useAutosave'
 import { type ExperienceItem, useCVState } from '../app/composables/useCVState'
 import type { PersonalDetails } from '../app/types/cv'
+
+// @vitest-environment nuxt
 
 const { mockApi } = vi.hoisted(() => ({
   mockApi: vi.fn(),
@@ -86,11 +86,19 @@ describe('useAutosave', () => {
   })
 
   it('populates local state including sections on loadCV', async () => {
-    mockApi.mockResolvedValueOnce({
-      cvId: 'existing-cv',
-      title: 'Existing CV',
-      educations: [{ id: 'edu-1', school: 'MIT' }],
-      experiences: [{ id: 'exp-1', company: 'Google' }],
+    // The CV names its sections by id; the records come from their collections.
+    mockApi.mockImplementation(async (url: string) => {
+      if (url === '/cvs/existing-cv/') {
+        return {
+          cvId: 'existing-cv',
+          title: 'Existing CV',
+          educations: ['edu-1'],
+          experiences: ['exp-1'],
+        }
+      }
+      if (url === '/cvs/educations/') return [{ educationId: 'edu-1', institution: 'MIT' }]
+      if (url === '/cvs/experiences/') return [{ experienceId: 'exp-1', company: 'Google' }]
+      return {}
     })
 
     const { loadCV } = useAutosave()
@@ -107,11 +115,18 @@ describe('useAutosave', () => {
 
   it('correctly dispatches POST, PATCH, and DELETE for section changes', async () => {
     // 1. Load an existing CV with one education and one certification
-    mockApi.mockResolvedValueOnce({
-      cvId: 'cv-1',
-      title: 'My CV',
-      educations: [{ id: 'edu-1', school: 'MIT', degree: 'BS' }],
-      certifications: [{ id: 'cert-1', name: 'AWS' }],
+    mockApi.mockImplementation(async (url: string) => {
+      if (url === '/cvs/cv-1/') {
+        return {
+          cvId: 'cv-1',
+          title: 'My CV',
+          educations: ['edu-1'],
+          certifications: ['cert-1'],
+        }
+      }
+      if (url === '/cvs/educations/') return [{ educationId: 'edu-1', institution: 'MIT', degree: 'BS' }]
+      if (url === '/cvs/certifications/') return [{ certificationId: 'cert-1', name: 'AWS' }]
+      return {}
     })
 
     const { loadCV, triggerAutosave } = useAutosave()
@@ -137,7 +152,11 @@ describe('useAutosave', () => {
 
     state.experience.value.push({
       id: 'mock-exp-1',
+      title: 'Engineer',
       company: 'Amazon',
+      startDate: 'January 2024',
+      endDate: null,
+      isCurrent: true,
     } as ExperienceItem)
 
     // 3. Trigger autosave
@@ -212,6 +231,7 @@ describe('useAutosave', () => {
     // Now fill in required fields
     state.certifications.value[0]!.name = 'AWS Certified Solutions Architect'
     state.certifications.value[0]!.issuer = 'Amazon Web Services'
+    state.certifications.value[0]!.date = 'May 2024'
 
     triggerAutosave()
     await flushMicrotasks()
@@ -222,17 +242,24 @@ describe('useAutosave', () => {
       body: expect.objectContaining({
         name: 'AWS Certified Solutions Architect',
         issuer: 'Amazon Web Services',
+        issueDate: '2024-05-01',
         displayOrder: 0,
       }),
     })
   })
 
   it('sends section fields under the names the backend models', async () => {
-    mockApi.mockResolvedValueOnce({
-      cvId: 'cv-1',
-      title: 'My CV',
-      educations: [{ id: 'edu-1', school: 'MIT' }],
-      experiences: [],
+    mockApi.mockImplementation(async (url: string) => {
+      if (url === '/cvs/cv-1/') {
+        return {
+          cvId: 'cv-1',
+          title: 'My CV',
+          educations: ['edu-1'],
+          experiences: [],
+        }
+      }
+      if (url === '/cvs/educations/') return [{ educationId: 'edu-1', institution: 'MIT' }]
+      return {}
     })
 
     const { loadCV, triggerAutosave } = useAutosave()
@@ -251,6 +278,9 @@ describe('useAutosave', () => {
       id: 'mock-exp-1',
       title: 'Staff Engineer',
       company: 'Amazon',
+      startDate: 'January 2024',
+      endDate: null,
+      isCurrent: true,
     } as ExperienceItem)
 
     triggerAutosave()
@@ -441,6 +471,9 @@ describe('useAutosave', () => {
       id: 'mock-exp-1',
       title: 'Staff Engineer',
       company: 'Amazon',
+      startDate: 'January 2024',
+      endDate: null,
+      isCurrent: true,
     } as ExperienceItem)
 
     triggerAutosave()
@@ -722,7 +755,9 @@ describe('useAutosave', () => {
       }),
     })
 
-    // Now test with a blank date — should NOT invent '2024-01-01'
+    // Now test with a blank date — `issueDate` is required by the backend, so
+    // the entry is held back rather than POSTed with a null that would be
+    // refused, and no date is invented for it either.
     mockApi.mockReset()
     mockApi.mockResolvedValue({ id: 'real-cert-id-2' })
 
@@ -738,31 +773,31 @@ describe('useAutosave', () => {
     triggerAutosave()
     await flushMicrotasks()
 
-    expect(mockApi).toHaveBeenCalledWith('/cvs/certifications/', {
-      method: 'POST',
-      body: expect.objectContaining({
-        name: 'Google Cloud Professional',
-        issuer: 'Google',
-        issueDate: null,
-        expirationDate: null,
-      }),
-    })
+    expect(mockApi.mock.calls.filter(call => call[0] === '/cvs/certifications/')).toHaveLength(0)
   })
 
   it('converts certification dates from "2024-05-01" back to "May 2024" on load', async () => {
-    mockApi.mockResolvedValueOnce({
-      cvId: 'cv-cert-load',
-      title: 'Cert Load CV',
-      certifications: [
-        {
-          id: 'cert-1',
-          name: 'AWS Certified',
-          issuer: 'Amazon',
-          issueDate: '2024-05-01',
-          expirationDate: '2027-05-01',
-          doesNotExpire: false,
-        },
-      ],
+    mockApi.mockImplementation(async (url: string) => {
+      if (url === '/cvs/cv-cert-load/') {
+        return {
+          cvId: 'cv-cert-load',
+          title: 'Cert Load CV',
+          certifications: ['cert-1'],
+        }
+      }
+      if (url === '/cvs/certifications/') {
+        return [
+          {
+            certificationId: 'cert-1',
+            name: 'AWS Certified',
+            issuer: 'Amazon',
+            issueDate: '2024-05-01',
+            expirationDate: '2027-05-01',
+            doesNotExpire: false,
+          },
+        ]
+      }
+      return {}
     })
 
     const { loadCV } = useAutosave()
@@ -774,13 +809,69 @@ describe('useAutosave', () => {
     expect(state.certifications.value[0]?.expirationDate).toBe('May 2027')
   })
 
+  it('sends an empty credentialUrl when the user clears it, so the stored link is removed', async () => {
+    mockApi.mockImplementation(async (url: string) => {
+      if (url === '/cvs/cv-cert-url/') {
+        return {
+          cvId: 'cv-cert-url',
+          title: 'Cert URL CV',
+          certifications: ['cert-1'],
+        }
+      }
+      if (url === '/cvs/certifications/') {
+        return [
+          {
+            certificationId: 'cert-1',
+            name: 'AWS Certified',
+            issuer: 'Amazon',
+            issueDate: '2024-05-01',
+            credentialUrl: 'https://example.com/verify/abc',
+          },
+        ]
+      }
+      return {}
+    })
+
+    const { loadCV, triggerAutosave } = useAutosave()
+    await loadCV('cv-cert-url')
+    await vi.runAllTimersAsync()
+
+    const state = useCVState()
+    expect(state.certifications.value[0]?.credentialUrl).toBe('https://example.com/verify/abc')
+
+    mockApi.mockReset()
+    mockApi.mockImplementation(async (url: string) => {
+      if (url === '/cvs/cv-cert-url/') return { lastSavedAt: 'new-time' }
+      return {}
+    })
+
+    // The user empties the field.
+    state.certifications.value[0]!.credentialUrl = ''
+
+    triggerAutosave()
+    await flushMicrotasks()
+
+    // The key must be present and blank — omitting it would leave the old link
+    // on the backend — and never null, which the backend refuses.
+    expect(mockApi).toHaveBeenCalledWith('/cvs/certifications/cert-1/', {
+      method: 'PATCH',
+      body: expect.objectContaining({ credentialUrl: '' }),
+    })
+  })
+
   it('does not send a displayOrder PATCH for newly added items before they are created', async () => {
-    mockApi.mockResolvedValueOnce({
-      cvId: 'cv-new-item-test',
-      title: 'New Item Test',
-      experiences: [
-        { id: 'exp-existing-1', role: 'Dev', company: 'Co', displayOrder: 0 },
-      ],
+    mockApi.mockImplementation(async (url: string) => {
+      if (url === '/cvs/cv-new-item-test/') {
+        return {
+          cvId: 'cv-new-item-test',
+          title: 'New Item Test',
+          experiences: ['exp-existing-1'],
+        }
+      }
+      if (url === '/cvs/experiences/') {
+        return [{ experienceId: 'exp-existing-1', role: 'Dev', company: 'Co', displayOrder: 0 }]
+      }
+      return {}
     })
 
     const { loadCV, triggerAutosave } = useAutosave()
@@ -797,8 +888,9 @@ describe('useAutosave', () => {
       title: 'Senior Dev',
       company: 'NewCo',
       location: '',
-      startDate: '',
+      startDate: '2024-01-01',
       endDate: '',
+      isCurrent: true,
       description: '',
     })
 

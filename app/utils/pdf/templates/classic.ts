@@ -208,6 +208,9 @@ export function buildClassicPdf(
         { text: item.name, style: 'itemTitle' },
         { text: [item.issuer, item.date].filter(Boolean).join(' | '), style: 'accent' },
       ]
+      if (item.credentialId) {
+        certificationStack.push({ text: `Credential ID: ${item.credentialId}`, fontSize: 9, color: '#4B5563' })
+      }
       if (item.credentialUrl) {
         certificationStack.push({
           text: 'View credential',
