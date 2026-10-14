@@ -11,7 +11,7 @@ definePageMeta({
   middleware: ['auth'],
 })
 
-const { personal, saveErrorFor } = useCVState()
+const { personal, saveErrorFor, sectionError } = useCVState()
 
 const router = useRouter()
 const showErrors = ref(false)
@@ -74,8 +74,17 @@ const isValid = computed(() => {
 const handleNext = () => {
   if (!isValid.value) {
     showErrors.value = true
+    sectionError.value = 'Please complete all required fields before proceeding to the next section.'
     return
   }
+  sectionError.value = null
+  showErrors.value = false
+  router.push('/editor/summary')
+}
+
+const handleSkip = () => {
+  sectionError.value = null
+  showErrors.value = false
   router.push('/editor/summary')
 }
 
@@ -261,7 +270,8 @@ const additionalFieldConfigs: Array<{
     <div class="mt-14 pt-8 border-t border-gray-100 flex items-center justify-between pb-12">
       <NuxtLink
         to="/editor/summary"
-        class="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-2"
+        class="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-2 cursor-pointer"
+        @click="handleSkip"
       >
         Skip for now
         <svg

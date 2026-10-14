@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useResizeObserver, useWindowSize } from '@vueuse/core'
 import { DialogRoot, DialogPortal, DialogOverlay, DialogContent, DialogClose } from 'reka-ui'
 import {
@@ -61,7 +61,13 @@ const {
   lastSavedAt,
   saveErrorMessage,
   accentColor,
+  sectionError,
 } = useCVState()
+
+const route = useRoute()
+watch(() => route.path, () => {
+  sectionError.value = null
+})
 
 const { loadCV } = useAutosave()
 
@@ -586,15 +592,26 @@ useResizeObserver(previewPage, (entries) => {
       </div>
     </header>
 
-    <!-- Global Error Banner (Option 4) -->
+    <!-- Top Error Banner: Appears when user clicks Next and section validation fails -->
     <div
-      v-if="saveState === 'error'"
-      class="bg-red-50 border-b border-red-200 px-4 sm:px-6 py-3 flex items-start sm:items-center gap-3 shrink-0 animate-in slide-in-from-top-4 duration-300"
+      v-if="sectionError"
+      role="alert"
+      class="bg-red-50 border-b border-red-200 px-4 sm:px-6 py-3 flex items-start sm:items-center justify-between gap-3 shrink-0 animate-in slide-in-from-top-4 duration-300"
     >
-      <AlertCircle class="w-5 h-5 text-red-500 shrink-0 mt-0.5 sm:mt-0" />
-      <p class="text-sm text-red-700 font-medium leading-snug wrap-break-word">
-        {{ saveErrorMessage || 'An error occurred while saving your changes. We will keep trying.' }}
-      </p>
+      <div class="flex items-center gap-2.5 min-w-0">
+        <AlertCircle class="w-5 h-5 text-red-500 shrink-0 mt-0.5 sm:mt-0" />
+        <p class="text-sm text-red-700 font-medium leading-snug wrap-break-word">
+          {{ sectionError }}
+        </p>
+      </div>
+      <button
+        type="button"
+        class="text-red-400 hover:text-red-700 p-1 rounded-md transition-colors shrink-0 cursor-pointer focus:outline-none focus:ring-1 focus:ring-red-400"
+        aria-label="Dismiss alert"
+        @click="sectionError = null"
+      >
+        <X class="w-4 h-4" />
+      </button>
     </div>
 
     <!-- Loading state: the workspace is held back until the CV has arrived, so

@@ -23,7 +23,7 @@ definePageMeta({
   middleware: ['auth'],
 })
 
-const { skills } = useCVState()
+const { skills, sectionError } = useCVState()
 
 const skillLevels = ['Beginner', 'Intermediate', 'Advanced'] as const
 type SkillLevel = (typeof skillLevels)[number]
@@ -111,7 +111,12 @@ const getLevelBadgeClass = (level?: string) => {
 }
 
 const handleNext = async () => {
+  sectionError.value = null
   await navigateTo('/editor/certifications')
+}
+
+const handleSkip = () => {
+  sectionError.value = null
 }
 </script>
 
@@ -369,8 +374,9 @@ const handleNext = async () => {
     <!-- Bottom Action Bar -->
     <div class="mt-14 pt-8 border-t border-gray-100 flex items-center justify-between pb-12">
       <NuxtLink
-        class="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1.5 focus-visible:outline-none focus-visible:underline"
+        class="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1.5 focus-visible:outline-none focus-visible:underline cursor-pointer"
         to="/editor/certifications"
+        @click="handleSkip"
       >
         Skip for now
         <ChevronRight

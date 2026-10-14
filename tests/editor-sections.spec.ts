@@ -690,5 +690,30 @@ describe('Editor Sections: Experience, Education, Skills, and Certifications', (
 
       expect(wrapper.text()).toContain('Enter a valid URL.')
     })
+
+    it('shows section error at top only when Next is clicked on invalid fields, and clears on Skip', async () => {
+      const { personal, sectionError } = useCVState()
+      personal.value.firstName = ''
+      personal.value.lastName = ''
+      sectionError.value = null
+
+      const wrapper = mount(PersonalPage, { global: { stubs: sharedStubs } })
+
+      // Initially no section error
+      expect(sectionError.value).toBeNull()
+
+      // Click Next
+      const nextBtn = wrapper.findAll('button').find(b => b.text().includes('Next'))
+      await nextBtn!.trigger('click')
+
+      expect(sectionError.value).toContain('Please complete all required fields')
+
+      // Click Skip for now
+      const skipLink = wrapper.findAll('a').find(a => a.text().includes('Skip for now'))
+      if (skipLink) {
+        await skipLink.trigger('click')
+        expect(sectionError.value).toBeNull()
+      }
+    })
   })
 })

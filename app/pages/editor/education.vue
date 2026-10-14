@@ -15,7 +15,7 @@ definePageMeta({
   middleware: ['auth'],
 })
 
-const { education } = useCVState()
+const { education, sectionError } = useCVState()
 
 const generateId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -86,9 +86,14 @@ const handleFormCancel = (item: EducationItem) => {
 }
 
 const handleNext = () => {
+  sectionError.value = null
   validateAndProceed(async () => {
     await navigateTo('/editor/skills')
   })
+}
+
+const handleSkip = () => {
+  sectionError.value = null
 }
 </script>
 
@@ -202,8 +207,9 @@ const handleNext = () => {
 
     <div class="mt-14 pt-8 border-t border-gray-100 flex items-center justify-between pb-12">
       <NuxtLink
-        class="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1.5"
+        class="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1.5 cursor-pointer"
         to="/editor/skills"
+        @click="handleSkip"
       >
         Skip for now
         <ChevronRight class="w-4 h-4" />

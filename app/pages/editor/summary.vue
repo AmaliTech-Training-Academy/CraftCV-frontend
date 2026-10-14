@@ -10,13 +10,29 @@ definePageMeta({
   middleware: ['auth'],
 })
 
-const { summary, saveErrorFor } = useCVState()
+const router = useRouter()
+const { summary, saveErrorFor, sectionError } = useCVState()
 
 /**
  * The summary is a field of the CV record itself, not of a section entry, which
  * is why it is looked up under 'cv'.
  */
 const backendError = () => saveErrorFor('cv', 'professionalSummary')
+
+const handleNext = () => {
+  const err = backendError()
+  if (err) {
+    sectionError.value = err
+    return
+  }
+  sectionError.value = null
+  router.push('/editor/experience')
+}
+
+const handleSkip = () => {
+  sectionError.value = null
+  router.push('/editor/experience')
+}
 </script>
 
 <template>
@@ -93,7 +109,8 @@ const backendError = () => saveErrorFor('cv', 'professionalSummary')
     <div class="mt-14 pt-8 border-t border-gray-100 flex items-center justify-between pb-12">
       <NuxtLink
         to="/editor/experience"
-        class="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-2"
+        class="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-2 cursor-pointer"
+        @click="handleSkip"
       >
         Skip for now
         <svg
@@ -108,9 +125,10 @@ const backendError = () => saveErrorFor('cv', 'professionalSummary')
           d="M9 5l7 7-7 7"
         /></svg>
       </NuxtLink>
-      <NuxtLink
-        to="/editor/experience"
-        class="inline-flex items-center gap-2 px-8 py-3 bg-[#C54A22] hover:bg-[#A83D1B] text-white rounded-[10px] text-sm font-bold transition-colors shadow-sm active:scale-95"
+      <button
+        type="button"
+        class="inline-flex items-center gap-2 px-8 py-3 bg-[#C54A22] hover:bg-[#A83D1B] text-white rounded-[10px] text-sm font-bold transition-colors shadow-sm active:scale-95 cursor-pointer"
+        @click="handleNext"
       >
         Next
         <svg
@@ -124,7 +142,7 @@ const backendError = () => saveErrorFor('cv', 'professionalSummary')
           stroke-width="2"
           d="M5 12h14m-7-7l7 7-7 7"
         /></svg>
-      </NuxtLink>
+      </button>
     </div>
   </div>
 </template>

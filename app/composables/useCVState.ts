@@ -100,6 +100,7 @@ export const useCVState = () => {
   const lastSavedAt = useState<string | null>('cv-last-saved-at', () => null)
   const saveState = useState<'saving' | 'saved' | 'error' | 'idle'>('cv-save-state', () => 'idle')
   const saveErrorMessage = useState<string | null>('cv-save-error', () => null)
+  const sectionError = useState<string | null>('cv-section-error', () => null)
   /**
    * The accent colour of every CV that has had one chosen, keyed by CV id.
    *
@@ -361,6 +362,7 @@ export const useCVState = () => {
     education.value = []
     skills.value = []
     certifications.value = []
+    sectionError.value = null
   }
 
   return {
@@ -372,6 +374,7 @@ export const useCVState = () => {
     lastSavedAt,
     saveState,
     saveErrorMessage,
+    sectionError,
     saveErrorDetail,
     saveErrorFor,
     accentColor,

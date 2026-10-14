@@ -34,6 +34,7 @@ describe('useAutosave', () => {
     state.certifications.value = []
     state.saveState.value = 'idle'
     state.saveErrorMessage.value = null
+    state.sectionError.value = null
     state.saveErrorDetail.value = { target: null, fields: {} }
     // The template now travels with the CV, so it has to start clean or it
     // leaks between cases.
