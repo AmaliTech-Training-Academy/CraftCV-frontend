@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { type CVSummary, useCVs } from '../app/composables/useCVs'
 import { useCVState } from '../app/composables/useCVState'
+import { useTemplates } from '../app/composables/useTemplates'
 
 const { mockApi } = vi.hoisted(() => ({
   mockApi: vi.fn(),
@@ -63,6 +64,44 @@ describe('useCVs', () => {
 
       // A row we cannot open is worse than no row, so it is filtered out.
       expect(cvs.value.map(c => c.cvId)).toEqual(['cv-3', 'cv-4'])
+    })
+
+    it('normalizes field aliases for professionalTitle, template, and lastSavedAt', async () => {
+      mockApi.mockResolvedValueOnce([
+        {
+          id: 'cv-alias-1',
+          title: 'Aliased CV',
+          professional_title: 'Full Stack Engineer',
+          template_slug: 'modern',
+          updated_at: '2024-05-10T12:00:00Z',
+        },
+      ])
+
+      const { cvs, fetchCVs } = useCVs()
+      await fetchCVs()
+
+      expect(cvs.value[0]).toEqual({
+        cvId: 'cv-alias-1',
+        title: 'Aliased CV',
+        professionalTitle: 'Full Stack Engineer',
+        template: 'modern',
+        lastSavedAt: '2024-05-10T12:00:00Z',
+      })
+    })
+
+    it('unwraps nested template objects', async () => {
+      mockApi.mockResolvedValueOnce([
+        {
+          id: 'cv-nested-tpl',
+          title: 'Nested Template CV',
+          template: { slug: 'single-column', name: 'Single Column' },
+        },
+      ])
+
+      const { cvs, fetchCVs } = useCVs()
+      await fetchCVs()
+
+      expect(cvs.value[0]!.template).toBe('single-column')
     })
 
     it('falls back to "Untitled" when a CV has no title', async () => {
@@ -222,6 +261,32 @@ describe('useCVs', () => {
       expect(state.hasActiveCV.value).toBe(true)
       expect(state.cvTitle.value).toBe('Ninth')
       expect(state.lastSavedAt.value).toBe('2024-02-03T10:00:00Z')
+    })
+
+    it('updates template state when selecting a CV with template', async () => {
+      const { selectCV } = useCVs()
+      const { templates } = useTemplates()
+      templates.value = [
+        {
+          templateId: 'tpl-sc',
+          name: 'Single Column',
+          slug: 'single-column',
+          description: 'Clean single column',
+        },
+      ]
+
+      const cv: CVSummary = {
+        cvId: 'cv-10',
+        title: 'Tenth',
+        template: 'single-column',
+      }
+
+      await selectCV(cv).catch(() => {})
+      await nextTick()
+
+      const state = useCVState()
+      expect(state.selectedTemplateId.value).toBe('single-column')
+      expect(state.selectedTemplateSlug.value).toBe('single-column')
     })
   })
 })
