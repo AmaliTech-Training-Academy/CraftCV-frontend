@@ -187,6 +187,19 @@ export function buildInkwellPdf(
       if (cert.issuer) {
         content.push({ text: cert.issuer, style: 'jobMeta' })
       }
+      if (cert.credentialId) {
+        content.push({ text: `Credential ID: ${cert.credentialId}`, style: 'credentialText' })
+      }
+      if (cert.credentialUrl) {
+        content.push({
+          text: 'View credential',
+          style: 'credentialText',
+          ...(options.includeLinks ? { link: toUrl(cert.credentialUrl), color: '#2563EB' } : {}),
+        })
+      }
+      if (cert.description?.trim()) {
+        content.push({ text: cert.description.trim(), style: 'summary', margin: [0, 3, 0, 0] })
+      }
       if (!isLast) {
         content.push({ text: '', margin: [0, 0, 0, 8] })
       }
@@ -239,6 +252,11 @@ export function buildInkwellPdf(
       fontSize: 9.5,
       color: '#6B7280',
       margin: [0, 2, 0, 4],
+    },
+    credentialText: {
+      fontSize: 9.5,
+      color: '#6B7280',
+      margin: [0, 0, 0, 2],
     },
     certDate: {
       fontSize: 9.5,

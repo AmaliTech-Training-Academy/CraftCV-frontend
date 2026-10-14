@@ -192,6 +192,19 @@ export function buildMeridianPdf(
       const isLast = idx === data.certifications!.length - 1
       content.push({ text: cert.name || '', style: 'itemTitle' })
       content.push({ text: `${cert.issuer || ''} • ${cert.date || ''}`, style: 'itemMeta' })
+      if (cert.credentialId) {
+        content.push({ text: `Credential ID: ${cert.credentialId}`, style: 'credentialText' })
+      }
+      if (cert.credentialUrl) {
+        content.push({
+          text: 'View credential',
+          style: 'credentialText',
+          ...(options.includeLinks ? { link: toUrl(cert.credentialUrl), color: '#2563EB' } : {}),
+        })
+      }
+      if (cert.description?.trim()) {
+        content.push({ text: cert.description.trim(), style: 'bodyText', margin: [0, 3, 0, 0] })
+      }
       if (!isLast) content.push({ text: '', margin: [0, 0, 0, 10] })
     })
   }
@@ -244,6 +257,12 @@ export function buildMeridianPdf(
       color: '#374151',
       lineHeight: 1.4,
       markerColor: PRIMARY_COLOR,
+    },
+    credentialText: {
+      font: 'Times',
+      fontSize: 10.5,
+      color: '#6B7280',
+      margin: [0, 0, 0, 2],
     },
     bulletPoint: {
       font: 'Times',

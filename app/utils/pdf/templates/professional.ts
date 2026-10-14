@@ -228,6 +228,9 @@ export function buildProfessionalPdf(
         },
         { text: cert.issuer, style: 'mainMeta', margin: [0, 1, 0, 2] },
       ]
+      if (cert.credentialId) {
+        certStack.push({ text: `Credential ID: ${cert.credentialId}`, fontSize: 8.5, color: '#4B5563' })
+      }
       if (cert.credentialUrl) {
         certStack.push({
           text: 'View credential',

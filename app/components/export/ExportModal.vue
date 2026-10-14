@@ -480,7 +480,10 @@ const submitExport = () => {
 
           <div
             ref="previewContainer"
-            class="relative min-h-0 min-w-0 flex-1 overflow-auto [scrollbar-gutter:stable] bg-stone-200/60 p-4"
+            tabindex="0"
+            role="region"
+            aria-label="Export document preview"
+            class="relative min-h-0 min-w-0 flex-1 overflow-auto [scrollbar-gutter:stable] bg-stone-200/60 p-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-stone-400"
             @scroll="handlePreviewScroll"
           >
             <div
@@ -649,9 +652,14 @@ const submitExport = () => {
               <legend class="text-xs font-semibold text-stone-800">
                 Document Options
               </legend>
-              <label class="flex cursor-pointer items-start gap-2.5">
+              <label
+                for="include-links"
+                class="flex cursor-pointer items-start gap-2.5"
+              >
                 <Checkbox
+                  id="include-links"
                   v-model="includeLinks"
+                  aria-label="Include clickable hyperlinks"
                   class="mt-0.5"
                 />
                 <span>
