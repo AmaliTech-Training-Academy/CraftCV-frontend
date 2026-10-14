@@ -1,5 +1,5 @@
-import { ref, computed, watch, type Ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { computed, ref, watch, type Ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useMediaQuery } from '@vueuse/core'
 
 export const isValidDateString = (dateStr?: string | null): boolean => {
@@ -78,6 +78,19 @@ export function useCVSectionEditor<T extends { id: string }>(
   // Watch for external back-button presses on mobile to sync local state
   watch(() => route?.query?.edit, (newEdit) => {
     if (isMobile.value) localActiveId.value = (newEdit as string) || null
+  })
+
+  // Autosave swaps a new entry's temporary id for the backend's id. Follow it so the
+  // open card stays open. On mobile the open card lives in ?edit=, so replace the URL
+  // instead of pushing: otherwise Done's router.back() lands on the old, dead id.
+  watch(() => items.value.map(item => item.id), (ids, oldIds) => {
+    const current = activeId.value
+    if (!current) return
+    const i = oldIds.indexOf(current)
+    if (i === -1 || ids.length !== oldIds.length || ids.includes(current)) return
+    const newId = ids[i] ?? null
+    localActiveId.value = newId
+    if (isMobile.value && newId) router?.replace({ query: { ...route?.query, edit: newId } })
   })
 
   const itemToDeleteId = ref<string | null>(null)

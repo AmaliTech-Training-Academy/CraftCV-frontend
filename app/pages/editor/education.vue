@@ -65,14 +65,6 @@ const {
 
 const itemShowErrors = ref<Record<string, boolean>>({})
 
-// Autosave swaps a new entry's temporary id for the backend's id; keep the open card open.
-watch(() => education.value.map(e => e.id), (ids, oldIds) => {
-  const i = oldIds.indexOf(activeId.value as string)
-  if (i !== -1 && ids.length === oldIds.length && !ids.includes(activeId.value as string)) {
-    activeId.value = ids[i] ?? null
-  }
-})
-
 const handleFormDone = (item: EducationItem) => {
   if (validateEducation(item)) {
     activeId.value = null
