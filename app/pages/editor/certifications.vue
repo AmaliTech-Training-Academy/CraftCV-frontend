@@ -192,11 +192,11 @@ const handleFinish = async () => {
                       :aria-required="true"
                       :aria-invalid="Boolean(nameError(item))"
                       :aria-describedby="nameError(item) ? 'cert-name-error-' + item.id : undefined"
-                      class="w-full h-12 px-4 rounded-xl border border-gray-300 text-[16px] transition-all focus:outline-none"
+                      class="w-full h-12 px-4 rounded-xl border text-[16px] transition-all focus:outline-none"
                       :class="[
                         nameError(item)
-                          ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
-                          : 'focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20',
+                          ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-400/20'
+                          : 'border-gray-300 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20',
                       ]"
                     >
                     <span
@@ -228,11 +228,11 @@ const handleFinish = async () => {
                       :aria-required="true"
                       :aria-invalid="Boolean(issuerError(item))"
                       :aria-describedby="issuerError(item) ? 'cert-issuer-error-' + item.id : undefined"
-                      class="w-full h-12 px-4 rounded-xl border border-gray-300 text-[16px] transition-all focus:outline-none"
+                      class="w-full h-12 px-4 rounded-xl border text-[16px] transition-all focus:outline-none"
                       :class="[
                         issuerError(item)
-                          ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
-                          : 'focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20',
+                          ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-400/20'
+                          : 'border-gray-300 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20',
                       ]"
                     >
                     <span
@@ -297,8 +297,7 @@ const handleFinish = async () => {
                       v-model="item.credentialId"
                       type="text"
                       placeholder="e.g. NNG-1049281"
-                      class="w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-[16px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20 transition-all"
-                      :class="{ 'focus:border-[#C54A22]': true }"
+                      class="w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-[16px] text-gray-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 transition-all"
                     >
                   </div>
 
@@ -318,11 +317,11 @@ const handleFinish = async () => {
                         placeholder="https://www.nngroup.com/verify/1049281"
                         :aria-invalid="Boolean(backendError(item.id, 'credentialUrl'))"
                         :aria-describedby="backendError(item.id, 'credentialUrl') ? 'cert-url-error-' + item.id : undefined"
-                        class="w-full h-12 pl-4 pr-10 rounded-xl border border-gray-300 bg-white text-[16px] text-gray-900 focus:outline-none focus:ring-2 transition-all"
+                        class="w-full h-12 pl-4 pr-10 rounded-xl border bg-white text-[16px] text-gray-900 focus:outline-none focus:ring-2 transition-all"
                         :class="[
                           backendError(item.id, 'credentialUrl')
-                            ? 'border-red-400 focus:ring-red-400/20'
-                            : 'focus:border-[#C54A22] focus:ring-[#C54A22]/20',
+                            ? 'border-red-400 focus:border-red-500 focus:ring-red-400/20'
+                            : 'border-gray-300 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20',
                         ]"
                       >
                       <ExternalLink
@@ -357,8 +356,7 @@ const handleFinish = async () => {
                     rows="4"
                     aria-label="Description & Key Competencies"
                     placeholder="• Key skills, domains, or competencies demonstrated by this credential..."
-                    class="w-full p-4 text-[16px] text-gray-900 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20 transition resize-y min-h-27.5"
-                    :class="{ 'focus:border-[#C54A22]': true }"
+                    class="w-full p-4 text-[16px] text-gray-900 border border-gray-300 rounded-xl bg-white focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 transition resize-y min-h-27.5"
                   />
                 </div>
               </div>
