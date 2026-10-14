@@ -77,6 +77,7 @@ describe('register.vue', () => {
       expect(wrapper.find('input#password').exists()).toBe(true)
       expect(wrapper.find('input#confirmPassword').exists()).toBe(true)
       expect(wrapper.find('#agreeTerms').exists()).toBe(true)
+      expect(wrapper.find('#agreeTerms').attributes('aria-label')).toBe('I agree to the Terms and Privacy Policy')
 
       const termsLink = wrapper.findAll('a').find(link => link.text().includes('Terms and Privacy Policy'))
       expect(termsLink).toBeDefined()
@@ -196,6 +197,20 @@ describe('register.vue', () => {
 
       await confirmPasswordInput.setValue('P@ssw0rd2026!')
       expect(wrapper.text()).not.toContain('Passwords do not match.')
+    })
+
+    it('surfaces mismatch error inline under confirmPassword on submit and does not display top server alert', async () => {
+      const wrapper = await mountRegisterPage()
+      await wrapper.find('#email').setValue('user@example.com')
+      await wrapper.find('#password').setValue('P@ssw0rd2026!')
+      await wrapper.find('#confirmPassword').setValue('DifferentPass123!')
+      await checkTerms(wrapper)
+
+      await wrapper.find('form').trigger('submit')
+      await nextTick()
+
+      expect(wrapper.find('#confirm-password-error').text()).toBe('Passwords do not match.')
+      expect(wrapper.find('[role="alert"]').exists()).toBe(false)
     })
   })
 
@@ -341,100 +356,29 @@ describe('register.vue', () => {
     })
   })
 
-  describe('Lightweight Inline Password Guidance (CRF-74)', () => {
-    it('reveals inline guidance tip when password is typed and hides it when empty', async () => {
-      const wrapper = await mountRegisterPage()
-      const passwordInput = wrapper.find('#password')
-
-      expect(wrapper.find('#password-guidance').exists()).toBe(false)
-
-      await passwordInput.setValue('A')
-      expect(wrapper.find('#password-guidance').exists()).toBe(true)
-      expect(wrapper.find('#password-guidance').text()).toBe(
-        'Tip: A strong password includes 8+ characters, uppercase, lowercase, numbers, and symbols.',
-      )
-
-      await passwordInput.setValue('')
-      expect(wrapper.find('#password-guidance').exists()).toBe(false)
-    })
-
-    it('shows specific suggestions to make weak password stronger while typing, and shows error only on blur', async () => {
-      const wrapper = await mountRegisterPage()
-      const passwordInput = wrapper.find('#password')
-
-      await passwordInput.setValue('AAAAAAAA')
-      // While typing (focused), dynamic guidance shows and error does not
-      expect(wrapper.find('#password-guidance').exists()).toBe(true)
-      expect(wrapper.find('#password-error').exists()).toBe(false)
-      expect(wrapper.find('#password-guidance').text()).toBe(
-        'To make it stronger, add: a lowercase letter, a number, a special symbol and avoid common sequences.',
-      )
-
-      // When blurred (engaging another field), guidance hides and error only shows what to add
-      await passwordInput.trigger('blur')
-      expect(wrapper.find('#password-guidance').exists()).toBe(false)
-      expect(wrapper.find('#password-error').exists()).toBe(true)
-      expect(wrapper.find('#password-error').text()).toBe(
-        'To make it stronger, add: a lowercase letter, a number, a special symbol and avoid common sequences.',
-      )
-
-      // When user starts typing / focuses again, guidance returns and error hides
-      await passwordInput.trigger('focus')
-      expect(wrapper.find('#password-guidance').exists()).toBe(true)
-      expect(wrapper.find('#password-error').exists()).toBe(false)
-
-      // When password has all required character types but fails only unpredictable check
-      await passwordInput.setValue('Password1!')
-      expect(wrapper.find('#password-guidance').text()).toBe(
-        'To make it stronger, avoid common sequences.',
-      )
-
-      // Submit button must remain disabled
-      const submitBtn = wrapper.find('button[type="submit"]')
-      expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
-    })
-
-    it('shows minimum length error only on blur when under 8 characters, and hides guidance', async () => {
+  describe('Hybrid Password Validation', () => {
+    it('shows minimum length error on blur when under 8 characters', async () => {
       const wrapper = await mountRegisterPage()
       const passwordInput = wrapper.find('#password')
 
       await passwordInput.setValue('short')
-      expect(wrapper.find('#password-guidance').exists()).toBe(true)
-      expect(wrapper.find('#password-error').exists()).toBe(false)
-
       await passwordInput.trigger('blur')
-      expect(wrapper.find('#password-guidance').exists()).toBe(false)
+
       expect(wrapper.find('#password-error').exists()).toBe(true)
       expect(wrapper.find('#password-error').text()).toBe('Password must be at least 8 characters.')
     })
 
-    it('blocks account creation with error if password fails 6 rules on submission', async () => {
-      const wrapper = await mountRegisterPage()
-
-      await wrapper.find('#email').setValue('user@example.com')
-      await wrapper.find('#password').setValue('AAAAAAAA')
-      await wrapper.find('#confirmPassword').setValue('AAAAAAAA')
-      await checkTerms(wrapper)
-
-      await wrapper.find('form').trigger('submit')
-      await nextTick()
-
-      expect(wrapper.text()).toContain('Password must meet all 6 security requirements.')
-      expect(mockApi).not.toHaveBeenCalled()
-    })
-
-    it('marks strong password P@ssw0rd2026! as strong and enables submit button when confirmed', async () => {
+    it('enables submit button when password is at least 8 characters, confirmed, and terms accepted', async () => {
       const wrapper = await mountRegisterPage()
       const submitBtn = wrapper.find('button[type="submit"]')
 
       await wrapper.find('#email').setValue('user@example.com')
-      await wrapper.find('#password').setValue('P@ssw0rd2026!')
-      expect(wrapper.find('#password-guidance').text()).toBe('Password is strong.')
+      await wrapper.find('#password').setValue('password123')
 
       // Still disabled without matching confirm password
       expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
 
-      await wrapper.find('#confirmPassword').setValue('P@ssw0rd2026!')
+      await wrapper.find('#confirmPassword').setValue('password123')
       // Still disabled without terms
       expect((submitBtn.element as HTMLButtonElement).disabled).toBe(true)
 
@@ -442,6 +386,114 @@ describe('register.vue', () => {
       // Now enabled
       expect((submitBtn.element as HTMLButtonElement).disabled).toBe(false)
       expect(submitBtn.classes()).not.toContain('opacity-50')
+    })
+
+    it('displays backend password rejection inline beneath password input instead of top alert', async () => {
+      mockApi.mockRejectedValueOnce({
+        data: { password: ['This password is too common and easily guessed.'] },
+      })
+
+      const wrapper = await mountRegisterPage()
+
+      await wrapper.find('#email').setValue('user@example.com')
+      await wrapper.find('#password').setValue('password123')
+      await wrapper.find('#confirmPassword').setValue('password123')
+      await checkTerms(wrapper)
+
+      await wrapper.find('form').trigger('submit')
+      await nextTick()
+      await nextTick()
+
+      // Top level alert should not be shown
+      expect(wrapper.find('[role="alert"]').exists()).toBe(false)
+
+      // Password error should be shown inline
+      const pwError = wrapper.find('#password-error')
+      expect(pwError.exists()).toBe(true)
+      expect(pwError.text()).toBe('This password is too common and easily guessed.')
+    })
+
+    it('clears inline backend password error as soon as user edits password field', async () => {
+      mockApi.mockRejectedValueOnce({
+        data: { password: ['This password is too common and easily guessed.'] },
+      })
+
+      const wrapper = await mountRegisterPage()
+
+      await wrapper.find('#email').setValue('user@example.com')
+      const passwordInput = wrapper.find('#password')
+      await passwordInput.setValue('password123')
+      await wrapper.find('#confirmPassword').setValue('password123')
+      await checkTerms(wrapper)
+
+      await wrapper.find('form').trigger('submit')
+      await nextTick()
+      await nextTick()
+
+      expect(wrapper.find('#password-error').text()).toBe('This password is too common and easily guessed.')
+
+      // User starts editing password
+      await passwordInput.setValue('password1234')
+      await passwordInput.trigger('input')
+      await nextTick()
+
+      expect(wrapper.find('#password-error').exists()).toBe(false)
+    })
+
+    it('displays dynamic password strength feedback with corresponding colors for weak, medium, and strong inputs', async () => {
+      const wrapper = await mountRegisterPage()
+      const passwordInput = wrapper.find('#password')
+
+      // 1. Weak input (< 8 chars)
+      await passwordInput.setValue('weak')
+      await nextTick()
+      const weakGuidance = wrapper.find('#password-guidance')
+      expect(weakGuidance.exists()).toBe(true)
+      expect(weakGuidance.attributes('role')).toBe('status')
+      expect(weakGuidance.attributes('aria-live')).toBe('polite')
+      expect(weakGuidance.classes()).toContain('text-red-700')
+      expect(weakGuidance.text()).toContain('[Weak]')
+      expect(weakGuidance.text()).toContain('To make it stronger, add:')
+
+      // 2. Medium input (meets length, lowercase, number, but missing special and uppercase)
+      await passwordInput.setValue('password123')
+      await nextTick()
+      const medGuidance = wrapper.find('#password-guidance')
+      expect(medGuidance.exists()).toBe(true)
+      expect(medGuidance.classes()).toContain('text-amber-800')
+      expect(medGuidance.text()).toContain('[Fair]')
+      expect(medGuidance.text()).toContain('To make it stronger, add:')
+
+      // 3. Strong input (meets all criteria)
+      await passwordInput.setValue('P@ssw0rd2026!')
+      await nextTick()
+      const strongGuidance = wrapper.find('#password-guidance')
+      expect(strongGuidance.exists()).toBe(true)
+      expect(strongGuidance.classes()).toContain('text-emerald-800')
+      expect(strongGuidance.text()).toContain('[Strong]')
+      expect(strongGuidance.text()).toContain('Password is strong.')
+    })
+
+    it('keeps password field error visible on focus and clears it when input changes', async () => {
+      const wrapper = await mountRegisterPage()
+      const passwordInput = wrapper.find('#password')
+
+      await passwordInput.setValue('short')
+      await passwordInput.trigger('blur')
+      expect(wrapper.find('#password-error').exists()).toBe(true)
+      expect(wrapper.find('#password-error').text()).toBe('Password must be at least 8 characters.')
+
+      // User focuses input to fix it - error must NOT disappear
+      await passwordInput.trigger('focus')
+      await nextTick()
+      expect(wrapper.find('#password-error').exists()).toBe(true)
+
+      // User edits password - error clears
+      await passwordInput.setValue('short2')
+      await passwordInput.trigger('input')
+      await nextTick()
+      expect(wrapper.find('#password-error').exists()).toBe(false)
+      expect(wrapper.find('#password-guidance').exists()).toBe(true)
     })
   })
 })

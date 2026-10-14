@@ -136,6 +136,7 @@
           <Checkbox
             id="rememberMe"
             v-model="form.rememberMe"
+            aria-label="Remember me"
             class="cursor-pointer"
           />
           <Label

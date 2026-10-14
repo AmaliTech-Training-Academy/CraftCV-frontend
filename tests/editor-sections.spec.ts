@@ -1,13 +1,75 @@
 // @vitest-environment nuxt
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
+import { routerKey, routeLocationKey } from 'vue-router'
 import ExperiencePage from '~/pages/editor/experience.vue'
 import EducationPage from '~/pages/editor/education.vue'
 import SkillsPage from '~/pages/editor/skills.vue'
 import CertificationsPage from '~/pages/editor/certifications.vue'
 import { isEndDateBeforeStartDate, isValidDateString } from '~/composables/useCVSectionEditor'
 import { useCVState } from '~/composables/useCVState'
+
+vi.mock('#app', () => ({
+  navigateTo: vi.fn().mockResolvedValue(true),
+  useRouter: () => ({
+    push: vi.fn().mockResolvedValue(true),
+    replace: vi.fn().mockResolvedValue(true),
+  }),
+  useRoute: () => ({
+    path: '/editor/experience',
+    query: {},
+    params: {},
+  }),
+}))
+
+vi.stubGlobal('navigateTo', vi.fn().mockResolvedValue(true))
+
+if (typeof window !== 'undefined' && !window.history) {
+  // @ts-expect-error history mock required for test environment
+  window.history = { pushState: vi.fn(), replaceState: vi.fn() }
+}
+if (typeof globalThis.history === 'undefined') {
+  // @ts-expect-error history mock required for test environment
+  globalThis.history = { pushState: vi.fn(), replaceState: vi.fn() }
+}
+
+const mockRouter = {
+  push: vi.fn().mockResolvedValue(true),
+  replace: vi.fn().mockResolvedValue(true),
+  back: vi.fn(),
+  forward: vi.fn(),
+  go: vi.fn(),
+  currentRoute: {
+    value: {
+      path: '/editor/experience',
+      query: {},
+      params: {},
+      hash: '',
+      fullPath: '/editor/experience',
+    },
+  },
+}
+
+const mockRoute = {
+  path: '/editor/experience',
+  query: {},
+  params: {},
+  hash: '',
+  fullPath: '/editor/experience',
+}
+
+config.global.provide = {
+  ...config.global.provide,
+  [routerKey as symbol]: mockRouter,
+  [routeLocationKey as symbol]: mockRoute,
+}
+
+config.global.mocks = {
+  ...config.global.mocks,
+  $router: mockRouter,
+  $route: mockRoute,
+}
 
 describe('Date validation', () => {
   it('requires both month and year unless the date is Present', () => {

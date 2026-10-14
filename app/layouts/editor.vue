@@ -700,7 +700,10 @@ useResizeObserver(previewPage, (entries) => {
 
       <!-- 3. Form Area (Middle Slot) -->
       <main
-        class="flex-1 lg:flex-[1.2] min-w-0 min-h-0 overflow-y-auto relative flex flex-col bg-[#F9F8F6]"
+        tabindex="0"
+        role="region"
+        aria-label="Resume editor form"
+        class="flex-1 lg:flex-[1.2] min-w-0 min-h-0 overflow-y-auto relative flex flex-col bg-[#F9F8F6] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-stone-400"
         :class="mobileView === 'preview' ? 'hidden lg:flex' : 'flex'"
       >
         <slot />
@@ -708,7 +711,10 @@ useResizeObserver(previewPage, (entries) => {
 
       <!-- 4. Live Preview Pane (Right) -->
       <aside
-        class="flex-1 lg:max-w-160 border-l border-gray-200 bg-[#F9F8F6] min-w-0 min-h-0 overflow-y-auto flex-col"
+        tabindex="0"
+        role="region"
+        aria-label="Resume live preview"
+        class="flex-1 lg:max-w-160 border-l border-gray-200 bg-[#F9F8F6] min-w-0 min-h-0 overflow-y-auto flex-col focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-stone-400"
         :class="mobileView === 'edit' ? 'hidden lg:flex' : 'flex'"
       >
         <!-- Preview Toolbar. Mobile only: export lives in the header now, and on

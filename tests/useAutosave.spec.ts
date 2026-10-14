@@ -1,9 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { useAutosave } from '../app/composables/useAutosave'
-import { useCVState, type ExperienceItem, type PersonalDetails } from '../app/composables/useCVState'
-
-// @vitest-environment nuxt
+import { type ExperienceItem, useCVState } from '../app/composables/useCVState'
+import type { PersonalDetails } from '../app/types/cv'
 
 const { mockApi } = vi.hoisted(() => ({
   mockApi: vi.fn(),

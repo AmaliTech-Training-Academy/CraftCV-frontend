@@ -1,6 +1,9 @@
 export interface PersonalDetails {
   first_name?: string
   last_name?: string
+  firstName?: string
+  lastName?: string
+  title?: string
   email?: string
   phone?: string
   location?: string
