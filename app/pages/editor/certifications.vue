@@ -77,6 +77,26 @@ const nameError = (item: CertificationItem) =>
 const issuerError = (item: CertificationItem) =>
   backendError(item.id, 'issuer') || (showErrors.value && !item.issuer.trim() ? 'Issuing organization is required' : '')
 
+const isCertificationUntouched = (item: CertificationItem) =>
+  !item.name.trim()
+  && !item.issuer.trim()
+  && !item.date.trim()
+  && !item.description?.trim()
+  && !item.credentialId?.trim()
+  && !item.credentialUrl?.trim()
+
+const handleCertCancel = (item: CertificationItem) => {
+  if (isCertificationUntouched(item)) {
+    // New blank entry — silently discard
+    certifications.value = certifications.value.filter(c => c.id !== item.id)
+    activeId.value = null
+  }
+  else {
+    // Has data — ask to confirm deletion
+    promptDelete(item.id)
+  }
+}
+
 const handleFinish = async () => {
   // Discard only entries that are completely untouched/blank
   certifications.value = certifications.value.filter(
@@ -172,11 +192,11 @@ const handleFinish = async () => {
                       :aria-required="true"
                       :aria-invalid="Boolean(nameError(item))"
                       :aria-describedby="nameError(item) ? 'cert-name-error-' + item.id : undefined"
-                      class="w-full h-12 px-4 rounded-xl border text-[16px] transition-all focus:outline-none"
+                      class="w-full h-12 px-4 rounded-xl border border-gray-300 text-[16px] transition-all focus:outline-none"
                       :class="[
                         nameError(item)
-                          ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-400/20'
-                          : 'border-gray-300 focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20',
+                          ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
+                          : 'focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20',
                       ]"
                     >
                     <span
@@ -208,11 +228,11 @@ const handleFinish = async () => {
                       :aria-required="true"
                       :aria-invalid="Boolean(issuerError(item))"
                       :aria-describedby="issuerError(item) ? 'cert-issuer-error-' + item.id : undefined"
-                      class="w-full h-12 px-4 rounded-xl border text-[16px] transition-all focus:outline-none"
+                      class="w-full h-12 px-4 rounded-xl border border-gray-300 text-[16px] transition-all focus:outline-none"
                       :class="[
                         issuerError(item)
-                          ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-400/20'
-                          : 'border-gray-300 focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20',
+                          ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
+                          : 'focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20',
                       ]"
                     >
                     <span
@@ -277,7 +297,8 @@ const handleFinish = async () => {
                       v-model="item.credentialId"
                       type="text"
                       placeholder="e.g. NNG-1049281"
-                      class="w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-[16px] text-gray-900 focus:outline-none focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 transition-all"
+                      class="w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-[16px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20 transition-all"
+                      :class="{ 'focus:border-[#C54A22]': true }"
                     >
                   </div>
 
@@ -297,11 +318,11 @@ const handleFinish = async () => {
                         placeholder="https://www.nngroup.com/verify/1049281"
                         :aria-invalid="Boolean(backendError(item.id, 'credentialUrl'))"
                         :aria-describedby="backendError(item.id, 'credentialUrl') ? 'cert-url-error-' + item.id : undefined"
-                        class="w-full h-12 pl-4 pr-10 rounded-xl border bg-white text-[16px] text-gray-900 focus:outline-none focus:ring-2 transition-all"
+                        class="w-full h-12 pl-4 pr-10 rounded-xl border border-gray-300 bg-white text-[16px] text-gray-900 focus:outline-none focus:ring-2 transition-all"
                         :class="[
                           backendError(item.id, 'credentialUrl')
-                            ? 'border-red-400 focus:border-red-500 focus:ring-red-400/20'
-                            : 'border-gray-300 focus:border-[#C54A22] focus:ring-[#C54A22]/20',
+                            ? 'border-red-400 focus:ring-red-400/20'
+                            : 'focus:border-[#C54A22] focus:ring-[#C54A22]/20',
                         ]"
                       >
                       <ExternalLink
@@ -336,7 +357,8 @@ const handleFinish = async () => {
                     rows="4"
                     aria-label="Description & Key Competencies"
                     placeholder="• Key skills, domains, or competencies demonstrated by this credential..."
-                    class="w-full p-4 text-[16px] text-gray-900 border border-gray-300 rounded-xl bg-white focus:outline-none focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 transition resize-y min-h-[110px]"
+                    class="w-full p-4 text-[16px] text-gray-900 border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#C54A22]/20 transition resize-y min-h-27.5"
+                    :class="{ 'focus:border-[#C54A22]': true }"
                   />
                 </div>
               </div>
@@ -346,7 +368,7 @@ const handleFinish = async () => {
                 <button
                   type="button"
                   class="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:underline"
-                  @click="activeId = null"
+                  @click="handleCertCancel(item)"
                 >
                   Cancel
                 </button>

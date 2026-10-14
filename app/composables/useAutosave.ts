@@ -189,32 +189,44 @@ export function useAutosave() {
         updateTimestamp(data.lastSavedAt)
       }
 
-      // Load related sections, mapping backend fields back to frontend fields
-      education.value = (data.educations || []).map((e: any) => ({
+      // Load related sections, mapping backend fields back to frontend fields.
+      // Guard: if the CV serializer returned raw UUID strings instead of nested
+      // objects (PrimaryKeyRelatedField), skip those items — they have no
+      // displayable fields and would crash the template on .trim().
+      education.value = (data.educations || []).filter((e: any) => e && typeof e === 'object').map((e: any) => ({
         ...e,
-        id: e.educationId || e.id,
+        id: e.educationId || e.education_id || e.id,
         school: e.school || e.institution || '',
         degree: e.degree || '',
         fieldOfStudy: e.fieldOfStudy || e.field_of_study || '',
+        location: e.location || '',
         startDate: formatMonthYear(e.startDate || e.start_date),
         endDate: (e.endDate || e.end_date) ? formatMonthYear(e.endDate || e.end_date) : null,
+        isCurrent: Boolean(e.isCurrent ?? e.is_current ?? false),
+        description: e.description || '',
       }))
-      experience.value = (data.experiences || []).map((e: any) => ({
+      experience.value = (data.experiences || []).filter((e: any) => e && typeof e === 'object').map((e: any) => ({
         ...e,
-        id: e.experienceId || e.id,
+        id: e.experienceId || e.experience_id || e.id,
         title: e.title || e.role || '',
         company: e.company || '',
+        location: e.location || '',
         startDate: formatMonthYear(e.startDate || e.start_date),
         endDate: (e.endDate || e.end_date) ? formatMonthYear(e.endDate || e.end_date) : null,
+        isCurrent: Boolean(e.isCurrent ?? e.is_current ?? false),
+        description: e.description || '',
       }))
-      skills.value = (data.skills || []).map((s: any) => ({
+      skills.value = (data.skills || []).filter((s: any) => s && typeof s === 'object').map((s: any) => ({
         ...s,
-        id: s.skillId || s.id,
+        id: s.skillId || s.skill_id || s.id,
+        name: s.name || '',
         level: s.level || s.proficiency || 'Intermediate',
       }))
-      certifications.value = (data.certifications || []).map((c: any) => ({
+      certifications.value = (data.certifications || []).filter((c: any) => c && typeof c === 'object').map((c: any) => ({
         ...c,
-        id: c.certificationId || c.id,
+        id: c.certificationId || c.certification_id || c.id,
+        name: c.name || '',
+        issuer: c.issuer || '',
         date: formatMonthYear(c.date || c.issueDate || c.issue_date),
         expirationDate: formatMonthYear(c.expirationDate || c.expiration_date),
         doesNotExpire: c.doesNotExpire ?? false,
