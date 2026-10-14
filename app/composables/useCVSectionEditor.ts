@@ -80,6 +80,30 @@ export function useCVSectionEditor<T extends { id: string }>(
     if (isMobile.value) localActiveId.value = (newEdit as string) || null
   })
 
+  // Watch for item ID transitions (e.g., temporary client ID -> real backend UUID from autosave)
+  watch(
+    () => items.value.map(i => i.id),
+    (newIds, oldIds) => {
+      const current = localActiveId.value
+      if (!current) return
+      if (newIds.includes(current)) return
+
+      const idx = oldIds ? oldIds.indexOf(current) : -1
+      if (idx !== -1 && newIds[idx]) {
+        const nextId = newIds[idx]
+        localActiveId.value = nextId
+        if (savedEndDates.value[current]) {
+          savedEndDates.value[nextId] = savedEndDates.value[current]
+          delete savedEndDates.value[current]
+        }
+        if (isMobile.value && route?.query?.edit) {
+          router?.replace({ query: { ...route.query, edit: nextId } })
+        }
+      }
+    },
+    { deep: true },
+  )
+
   const itemToDeleteId = ref<string | null>(null)
   const showErrors = ref(false)
   const savedEndDates = ref<Record<string, string>>({})

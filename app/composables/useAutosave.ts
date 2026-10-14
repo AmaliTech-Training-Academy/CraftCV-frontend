@@ -189,95 +189,79 @@ export function useAutosave() {
         updateTimestamp(data.lastSavedAt)
       }
 
-      // Load related sections, mapping backend fields back to frontend fields
+      // Load related sections, fetching full detail records when CV returns arrays of UUIDs
+      const isStringArray = (arr: any) => Array.isArray(arr) && arr.some((item: any) => typeof item === 'string')
+
+      const [expList, eduList, skillList, certList] = await Promise.all([
+        isStringArray(data.experiences) ? $api<any>('/cvs/experiences/').catch(() => []) : Promise.resolve(null),
+        isStringArray(data.educations) ? $api<any>('/cvs/educations/').catch(() => []) : Promise.resolve(null),
+        isStringArray(data.skills) ? $api<any>('/cvs/skills/').catch(() => []) : Promise.resolve(null),
+        isStringArray(data.certifications) ? $api<any>('/cvs/certifications/').catch(() => []) : Promise.resolve(null),
+      ])
+
+      const toArray = (res: any): any[] => {
+        if (!res) return []
+        if (Array.isArray(res)) return res
+        if (Array.isArray(res.data)) return res.data
+        return []
+      }
+
+      const expMap = new Map(toArray(expList).map((e: any) => [String(e.experience_id || e.experienceId || e.id), e]))
+      const eduMap = new Map(toArray(eduList).map((e: any) => [String(e.education_id || e.educationId || e.id), e]))
+      const skillMap = new Map(toArray(skillList).map((s: any) => [String(s.skill_id || s.skillId || s.id), s]))
+      const certMap = new Map(toArray(certList).map((c: any) => [String(c.certification_id || c.certificationId || c.id), c]))
+
       education.value = (data.educations || []).map((e: any) => {
-        if (typeof e === 'string') {
-          return {
-            id: e,
-            school: '',
-            degree: '',
-            fieldOfStudy: '',
-            location: '',
-            startDate: '',
-            endDate: null,
-            description: '',
-          }
-        }
+        const itemObj = typeof e === 'string' ? (eduMap.get(String(e)) || { id: e }) : e
         return {
-          ...e,
-          id: String(e.educationId || e.education_id || e.id || ''),
-          school: e.school || e.institution || '',
-          degree: e.degree || '',
-          fieldOfStudy: e.fieldOfStudy || e.field_of_study || '',
-          location: e.location || '',
-          startDate: formatMonthYear(e.startDate || e.start_date),
-          endDate: (e.endDate || e.end_date) ? formatMonthYear(e.endDate || e.end_date) : null,
-          description: e.description || '',
+          ...itemObj,
+          id: String(itemObj.educationId || itemObj.education_id || itemObj.id || ''),
+          school: itemObj.school || itemObj.institution || '',
+          degree: itemObj.degree || '',
+          fieldOfStudy: itemObj.fieldOfStudy || itemObj.field_of_study || '',
+          location: itemObj.location || '',
+          startDate: formatMonthYear(itemObj.startDate || itemObj.start_date),
+          endDate: (itemObj.endDate || itemObj.end_date) ? formatMonthYear(itemObj.endDate || itemObj.end_date) : null,
+          isCurrent: Boolean(itemObj.isCurrent ?? itemObj.is_current ?? false),
+          description: itemObj.description || '',
         }
       })
       experience.value = (data.experiences || []).map((e: any) => {
-        if (typeof e === 'string') {
-          return {
-            id: e,
-            title: '',
-            company: '',
-            location: '',
-            startDate: '',
-            endDate: null,
-            description: '',
-          }
-        }
+        const itemObj = typeof e === 'string' ? (expMap.get(String(e)) || { id: e }) : e
         return {
-          ...e,
-          id: String(e.experienceId || e.experience_id || e.id || ''),
-          title: e.title || e.role || '',
-          company: e.company || '',
-          location: e.location || '',
-          startDate: formatMonthYear(e.startDate || e.start_date),
-          endDate: (e.endDate || e.end_date) ? formatMonthYear(e.endDate || e.end_date) : null,
-          description: e.description || '',
+          ...itemObj,
+          id: String(itemObj.experienceId || itemObj.experience_id || itemObj.id || ''),
+          title: itemObj.title || itemObj.role || '',
+          company: itemObj.company || '',
+          location: itemObj.location || '',
+          startDate: formatMonthYear(itemObj.startDate || itemObj.start_date),
+          endDate: (itemObj.endDate || itemObj.end_date) ? formatMonthYear(itemObj.endDate || itemObj.end_date) : null,
+          isCurrent: Boolean(itemObj.isCurrent ?? itemObj.is_current ?? false),
+          description: itemObj.description || '',
         }
       })
       skills.value = (data.skills || []).map((s: any) => {
-        if (typeof s === 'string') {
-          return {
-            id: s,
-            name: '',
-            level: 'Intermediate',
-          }
-        }
+        const itemObj = typeof s === 'string' ? (skillMap.get(String(s)) || { id: s }) : s
         return {
-          ...s,
-          id: String(s.skillId || s.skill_id || s.id || ''),
-          name: s.name || '',
-          level: s.level || s.proficiency || 'Intermediate',
+          ...itemObj,
+          id: String(itemObj.skillId || itemObj.skill_id || itemObj.id || ''),
+          name: itemObj.name || '',
+          level: itemObj.level || itemObj.proficiency || 'Intermediate',
         }
       })
       certifications.value = (data.certifications || []).map((c: any) => {
-        if (typeof c === 'string') {
-          return {
-            id: c,
-            name: '',
-            issuer: '',
-            date: '',
-            expirationDate: '',
-            doesNotExpire: false,
-            credentialId: '',
-            credentialUrl: '',
-            description: '',
-          }
-        }
+        const itemObj = typeof c === 'string' ? (certMap.get(String(c)) || { id: c }) : c
         return {
-          ...c,
-          id: String(c.certificationId || c.certification_id || c.id || ''),
-          name: c.name || '',
-          issuer: c.issuer || '',
-          date: formatMonthYear(c.date || c.issueDate || c.issue_date),
-          expirationDate: formatMonthYear(c.expirationDate || c.expiration_date),
-          doesNotExpire: c.doesNotExpire ?? false,
-          credentialId: c.credentialId || '',
-          credentialUrl: c.credentialUrl || '',
-          description: c.description || '',
+          ...itemObj,
+          id: String(itemObj.certificationId || itemObj.certification_id || itemObj.id || ''),
+          name: itemObj.name || '',
+          issuer: itemObj.issuer || '',
+          date: formatMonthYear(itemObj.date || itemObj.issueDate || itemObj.issue_date),
+          expirationDate: formatMonthYear(itemObj.expirationDate || itemObj.expiration_date),
+          doesNotExpire: itemObj.doesNotExpire ?? false,
+          credentialId: itemObj.credentialId || '',
+          credentialUrl: itemObj.credentialUrl || '',
+          description: itemObj.description || '',
         }
       })
 
@@ -307,7 +291,14 @@ export function useAutosave() {
 
   const isTempId = (id: unknown): boolean => {
     if (!id || typeof id !== 'string') return false
-    return id.startsWith('mock-') || id.startsWith('temp_') || id.startsWith('cert_') || id.startsWith('skill_')
+    return (
+      id.startsWith('mock-')
+      || id.startsWith('temp_')
+      || id.startsWith('cert_')
+      || id.startsWith('skill_')
+      || id.startsWith('exp_')
+      || id.startsWith('edu_')
+    )
   }
 
   const ensureUrl = (url?: unknown): string => {
