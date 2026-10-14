@@ -122,7 +122,7 @@ const handleFinish = async () => {
             <!-- 1. Expanded Form Card (Active Item) -->
             <div
               v-if="activeId === item.id"
-              class="border-2 border-[#C54A22] rounded-2xl bg-white p-6 sm:p-7 shadow-sm transition-all"
+              class="border-2 border-brand-600 rounded-2xl bg-white p-6 sm:p-7 shadow-sm transition-all"
             >
               <!-- Card Header Bar -->
               <div class="flex items-center justify-between pb-4 border-b border-gray-100">
@@ -159,7 +159,7 @@ const handleFinish = async () => {
                       class="block text-[13px] font-semibold text-gray-800 mb-2"
                     >
                       Certification Name <span
-                        class="text-[#C54A22]"
+                        class="text-brand-600"
                         aria-hidden="true"
                       >*</span>
                       <span class="sr-only">(required)</span>
@@ -176,7 +176,7 @@ const handleFinish = async () => {
                       :class="[
                         nameError(item)
                           ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-400/20'
-                          : 'border-gray-300 focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20',
+                          : 'border-gray-300 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20',
                       ]"
                     >
                     <span
@@ -195,7 +195,7 @@ const handleFinish = async () => {
                       class="block text-[13px] font-semibold text-gray-800 mb-2"
                     >
                       Issuing Organization <span
-                        class="text-[#C54A22]"
+                        class="text-brand-600"
                         aria-hidden="true"
                       >*</span>
                       <span class="sr-only">(required)</span>
@@ -212,7 +212,7 @@ const handleFinish = async () => {
                       :class="[
                         issuerError(item)
                           ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-400/20'
-                          : 'border-gray-300 focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20',
+                          : 'border-gray-300 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20',
                       ]"
                     >
                     <span
@@ -251,7 +251,7 @@ const handleFinish = async () => {
                         :id="'no-expire-' + item.id"
                         v-model="item.doesNotExpire"
                         type="checkbox"
-                        class="w-4 h-4 rounded border-gray-300 accent-[#C54A22] text-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 cursor-pointer"
+                        class="w-4 h-4 rounded border-gray-300 accent-brand-600 text-brand-600 focus:ring-2 focus:ring-brand-600/20 cursor-pointer"
                       >
                       <label
                         :for="'no-expire-' + item.id"
@@ -277,7 +277,7 @@ const handleFinish = async () => {
                       v-model="item.credentialId"
                       type="text"
                       placeholder="e.g. NNG-1049281"
-                      class="w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-[16px] text-gray-900 focus:outline-none focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 transition-all"
+                      class="w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-[16px] text-gray-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 transition-all"
                     >
                   </div>
 
@@ -301,7 +301,7 @@ const handleFinish = async () => {
                         :class="[
                           backendError(item.id, 'credentialUrl')
                             ? 'border-red-400 focus:border-red-500 focus:ring-red-400/20'
-                            : 'border-gray-300 focus:border-[#C54A22] focus:ring-[#C54A22]/20',
+                            : 'border-gray-300 focus:border-brand-600 focus:ring-brand-600/20',
                         ]"
                       >
                       <ExternalLink
@@ -336,7 +336,7 @@ const handleFinish = async () => {
                     rows="4"
                     aria-label="Description & Key Competencies"
                     placeholder="• Key skills, domains, or competencies demonstrated by this credential..."
-                    class="w-full p-4 text-[16px] text-gray-900 border border-gray-300 rounded-xl bg-white focus:outline-none focus:border-[#C54A22] focus:ring-2 focus:ring-[#C54A22]/20 transition resize-y min-h-[110px]"
+                    class="w-full p-4 text-[16px] text-gray-900 border border-gray-300 rounded-xl bg-white focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 transition resize-y min-h-[110px]"
                   />
                 </div>
               </div>
@@ -352,7 +352,7 @@ const handleFinish = async () => {
                 </button>
                 <button
                   type="button"
-                  class="px-6 py-2.5 bg-[#C54A22] hover:bg-[#A83D1B] active:scale-95 text-white font-bold text-sm rounded-xl flex items-center gap-1.5 shadow-xs transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/40"
+                  class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold text-sm rounded-xl flex items-center gap-1.5 shadow-xs transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600/40"
                   @click="activeId = null"
                 >
                   <Check
@@ -371,7 +371,7 @@ const handleFinish = async () => {
               tabindex="0"
               :aria-expanded="false"
               :aria-label="'Expand ' + (item.name.trim() || 'certification') + ' details'"
-              class="border border-gray-200 bg-white rounded-xl p-4 sm:px-5 flex items-center justify-between shadow-xs hover:border-gray-300 transition-all cursor-grab group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/30"
+              class="border border-gray-200 bg-white rounded-xl p-4 sm:px-5 flex items-center justify-between shadow-xs hover:border-gray-300 transition-all cursor-grab group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600/30"
               :class="[
                 showErrors && !validateCertification(item)
                   ? 'border-red-300 bg-red-50/20'
@@ -407,7 +407,7 @@ const handleFinish = async () => {
                   type="button"
                   aria-label="Edit entry"
                   :title="'Edit ' + (item.name.trim() || 'certification')"
-                  class="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/30"
+                  class="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600/30"
                   @click="activeId = item.id"
                 >
                   <Edit
@@ -435,7 +435,7 @@ const handleFinish = async () => {
 
       <!-- Add Entry Button -->
       <Button
-        class="w-full py-5 border-2 border-dashed border-gray-200 hover:border-[#C54A22]/50 hover:bg-[#C54A22]/5 rounded-xl flex items-center justify-center gap-2 text-sm font-medium text-[#C54A22] transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C54A22]/40"
+        class="w-full py-5 border-2 border-dashed border-gray-200 hover:border-brand-600/50 hover:bg-brand-600/5 rounded-xl flex items-center justify-center gap-2 text-sm font-medium text-brand-600 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600/40"
         type="button"
         variant="outline"
         @click="handleAddEntry"

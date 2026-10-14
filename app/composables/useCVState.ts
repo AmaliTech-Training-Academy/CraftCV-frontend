@@ -1,19 +1,7 @@
+import type { PersonalDetails } from '~/types/cv'
 import { useState } from '#imports'
 import { computed } from 'vue'
 import { templateAccent } from '../utils/templateAccents'
-
-export interface PersonalDetails {
-  firstName: string
-  lastName: string
-  title: string
-  email: string
-  phone: string
-  location: string
-  website: string
-  linkedin: string
-  github: string
-  twitter: string
-}
 
 export interface ExperienceItem {
   id: string
@@ -178,13 +166,13 @@ export const useCVState = () => {
     // blank with "This field may not be blank" — so they sit with the required
     // trio rather than with the optional extras.
     const reqFilled = !!(
-      p.firstName.trim()
-      && p.lastName.trim()
-      && p.email.trim()
-      && p.phone.trim()
-      && p.location.trim()
+      (p.firstName ?? '').trim()
+      && (p.lastName ?? '').trim()
+      && (p.email ?? '').trim()
+      && (p.phone ?? '').trim()
+      && (p.location ?? '').trim()
     )
-    const titleFilled = !!p.title.trim()
+    const titleFilled = !!(p.title ?? '').trim()
 
     if (reqFilled && titleFilled) return 'complete'
     if (reqFilled) return 'incomplete'
@@ -240,16 +228,16 @@ export const useCVState = () => {
     }
     return {
       personal: {
-        firstName: p.firstName.trim() || 'Your',
-        lastName: p.lastName.trim() || 'Name',
-        title: p.title.trim() || 'Professional Title',
-        email: p.email.trim() || 'you@example.com',
-        phone: p.phone.trim() || '0x0000000',
-        location: p.location.trim() || 'City, Country',
-        website: p.website.trim() || 'www.yourwebsite.com',
-        linkedin: p.linkedin?.trim() || '',
-        github: p.github?.trim() || '',
-        twitter: p.twitter?.trim() || '',
+        firstName: (p.firstName ?? '').trim() || 'Your',
+        lastName: (p.lastName ?? '').trim() || 'Name',
+        title: (p.title ?? '').trim() || 'Professional Title',
+        email: (p.email ?? '').trim() || 'you@example.com',
+        phone: (p.phone ?? '').trim() || '0x0000000',
+        location: (p.location ?? '').trim() || 'City, Country',
+        website: (p.website ?? '').trim() || 'www.yourwebsite.com',
+        linkedin: (p.linkedin ?? '').trim() || '',
+        github: (p.github ?? '').trim() || '',
+        twitter: (p.twitter ?? '').trim() || '',
       },
       summary: summary.value.trim() || 'Your professional summary will appear here. Write a short, impactful paragraph highlighting your key achievements, skills, and career goals.',
       experience: experience.value.length > 0

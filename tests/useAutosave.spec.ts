@@ -3,7 +3,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { nextTick } from 'vue'
 import { useAutosave } from '../app/composables/useAutosave'
-import { type ExperienceItem, type PersonalDetails, useCVState } from '../app/composables/useCVState'
+import { type ExperienceItem, useCVState } from '../app/composables/useCVState'
+import type { PersonalDetails } from '../app/types/cv'
 
 const { mockApi } = vi.hoisted(() => ({
   mockApi: vi.fn(),

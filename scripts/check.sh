@@ -106,6 +106,7 @@ run_typecheck() {
 
 run_test() {
   require_bin vitest
+  require_prepared
 
   step 'test: vitest run'
   "$bin_dir/vitest" run

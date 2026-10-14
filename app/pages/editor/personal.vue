@@ -28,11 +28,11 @@ const backendError = (key: string) => saveErrorFor('personal', key)
 // rejects either one blank with "This field may not be blank", so a save cannot
 // succeed without them and Next should not wave them through.
 const isValid = computed(() => {
-  return personal.value.firstName.trim() !== ''
-    && personal.value.lastName.trim() !== ''
-    && personal.value.email.trim() !== ''
-    && personal.value.phone.trim() !== ''
-    && personal.value.location.trim() !== ''
+  return (personal.value.firstName ?? '').trim() !== ''
+    && (personal.value.lastName ?? '').trim() !== ''
+    && (personal.value.email ?? '').trim() !== ''
+    && (personal.value.phone ?? '').trim() !== ''
+    && (personal.value.location ?? '').trim() !== ''
 })
 
 const handleNext = () => {
@@ -94,7 +94,7 @@ const additionalFieldConfigs = [
           placeholder="e.g. Alexandra"
           autocomplete="given-name"
           required
-          :error="backendError('firstName') || (showErrors && !personal.firstName.trim() ? 'First name is required' : '')"
+          :error="backendError('firstName') || (showErrors && !(personal.firstName ?? '').trim() ? 'First name is required' : '')"
         />
         <EditorFormField
           v-model="personal.lastName"
@@ -103,7 +103,7 @@ const additionalFieldConfigs = [
           placeholder="e.g. Chen"
           autocomplete="family-name"
           required
-          :error="backendError('lastName') || (showErrors && !personal.lastName.trim() ? 'Last name is required' : '')"
+          :error="backendError('lastName') || (showErrors && !(personal.lastName ?? '').trim() ? 'Last name is required' : '')"
         />
       </div>
 
@@ -128,7 +128,7 @@ const additionalFieldConfigs = [
           autocomplete="email"
           placeholder="e.g. email@example.com"
           required
-          :error="backendError('email') || (showErrors && !personal.email.trim() ? 'Email address is required' : '')"
+          :error="backendError('email') || (showErrors && !(personal.email ?? '').trim() ? 'Email address is required' : '')"
         />
         <EditorFormField
           v-model="personal.phone"
@@ -139,7 +139,7 @@ const additionalFieldConfigs = [
           autocomplete="tel"
           placeholder="e.g. +1 (555) 382-9014"
           required
-          :error="backendError('phone') || (showErrors && !personal.phone.trim() ? 'Phone number is required' : '')"
+          :error="backendError('phone') || (showErrors && !(personal.phone ?? '').trim() ? 'Phone number is required' : '')"
         />
         <EditorFormField
           v-model="personal.location"
@@ -148,7 +148,7 @@ const additionalFieldConfigs = [
           autocomplete="address-level2"
           placeholder="e.g. San Francisco, CA"
           required
-          :error="backendError('location') || (showErrors && !personal.location.trim() ? 'Location is required' : '')"
+          :error="backendError('location') || (showErrors && !(personal.location ?? '').trim() ? 'Location is required' : '')"
         />
       </div>
 
