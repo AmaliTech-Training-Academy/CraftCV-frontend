@@ -4,6 +4,8 @@ import { useAutosave } from '../app/composables/useAutosave'
 import { type ExperienceItem, useCVState } from '../app/composables/useCVState'
 import type { PersonalDetails } from '../app/types/cv'
 
+// @vitest-environment nuxt
+
 const { mockApi } = vi.hoisted(() => ({
   mockApi: vi.fn(),
 }))
