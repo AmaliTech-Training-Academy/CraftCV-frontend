@@ -86,6 +86,10 @@ export function buildPrismPdf(
       sidebarContent.push({ text: degreeText, style: 'sidebarItemTitle' })
       sidebarContent.push({ text: edu.institution || '', style: 'sidebarItemSub' })
       sidebarContent.push({ text: formatDateRange(edu.startDate, edu.endDate).toUpperCase(), style: 'sidebarDate' })
+      const bullets = normalizeBullets(edu.description)
+      if (bullets.length > 0) {
+        sidebarContent.push({ ul: bullets, style: 'sidebarList' })
+      }
       sidebarContent.push({ text: '', margin: [0, 0, 0, 10] })
     })
     sidebarContent.push({ text: '', margin: [0, 0, 0, 6] })
@@ -146,7 +150,7 @@ export function buildPrismPdf(
 
       const jobBlock: Content[] = [
         { text: exp.role || '', style: 'jobTitle' },
-        { text: `${exp.company || ''}  |  ${formatDateRange(exp.startDate, exp.endDate)}`, style: 'jobMeta' },
+        { text: `${[exp.company, exp.location].filter(Boolean).join(', ')}  |  ${formatDateRange(exp.startDate, exp.endDate)}`, style: 'jobMeta' },
       ]
 
       if (bullets.length > 0) {
@@ -250,6 +254,13 @@ export function buildPrismPdf(
         fontSize: 9,
         color: '#4B5563',
         margin: [0, 0, 0, 2],
+      },
+      sidebarList: {
+        fontSize: 8.5,
+        color: '#4B5563',
+        lineHeight: 1.3,
+        markerColor: PRIMARY_COLOR,
+        margin: [0, 3, 0, 0],
       },
       sidebarNote: {
         fontSize: 8.5,

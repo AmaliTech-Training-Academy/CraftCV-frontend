@@ -114,7 +114,7 @@ export function buildInkwellPdf(
         style: 'jobTitle',
       })
       content.push({
-        text: `${exp.company || ''} • ${formatDateRange(exp.startDate, exp.endDate)}`,
+        text: `${[exp.company, exp.location].filter(Boolean).join(', ')} • ${formatDateRange(exp.startDate, exp.endDate)}`,
         style: 'jobMeta',
       })
 

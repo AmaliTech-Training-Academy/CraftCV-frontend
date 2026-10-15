@@ -133,7 +133,7 @@ const { accentColor } = useCVState()
               {{ exp.role }}
             </h3>
             <div class="text-[13.5px] text-gray-500 mb-1">
-              {{ exp.company }} &middot; {{ dateRangeLabel(exp.start_date, exp.end_date, exp.is_current) }}
+              {{ exp.company }}<span v-if="exp.location">, {{ exp.location }}</span> &middot; {{ dateRangeLabel(exp.start_date, exp.end_date, exp.is_current) }}
             </div>
             <template
               v-for="(blk, idx) in parseDescription(exp.description)"
@@ -298,6 +298,33 @@ const { accentColor } = useCVState()
             <div class="text-[13.5px] text-gray-500">
               {{ edu.institution }} &middot; {{ dateRangeLabel(edu.start_date, edu.end_date, edu.is_current) }}
             </div>
+            <template
+              v-for="(blk, idx) in parseDescription(edu.description)"
+              :key="idx"
+            >
+              <p
+                v-if="blk.type === 'p'"
+                class="text-[13.5px] text-gray-700 leading-relaxed mt-1"
+              >
+                {{ blk.text }}
+              </p>
+              <ul
+                v-else
+                class="text-[13.5px] text-gray-700 space-y-1.5 mt-1"
+              >
+                <li
+                  v-for="(bullet, bIdx) in blk.items"
+                  :key="bIdx"
+                  class="flex gap-2"
+                >
+                  <span
+                    class="text-[14px] mt-0.5 shrink-0"
+                    :style="{ color: accentColor }"
+                  >&bull;</span>
+                  <span class="flex-1 min-w-0 break-words">{{ bullet }}</span>
+                </li>
+              </ul>
+            </template>
           </div>
         </div>
       </section>

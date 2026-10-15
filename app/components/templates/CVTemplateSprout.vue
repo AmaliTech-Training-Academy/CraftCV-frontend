@@ -201,7 +201,7 @@ const { accentColor } = useCVState()
               {{ exp.role }}
             </h3>
             <div class="text-[11.5px] text-gray-500 font-medium">
-              {{ exp.company }} &middot; {{ dateRangeLabel(exp.start_date, exp.end_date, exp.is_current) }}
+              {{ exp.company }}<span v-if="exp.location">, {{ exp.location }}</span> &middot; {{ dateRangeLabel(exp.start_date, exp.end_date, exp.is_current) }}
             </div>
             <template
               v-for="(blk, idx) in parseDescription(exp.description)"

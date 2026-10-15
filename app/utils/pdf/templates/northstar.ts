@@ -95,7 +95,7 @@ export function buildNorthstarPdf(
     data.experiences.forEach((exp, idx) => {
       const isLast = idx === data.experiences!.length - 1
       leftStack.push({ text: exp.role || '', style: 'itemTitle' })
-      leftStack.push({ text: `${exp.company || ''} • ${formatDateRange(exp.startDate, exp.endDate)}`, style: 'itemMeta' })
+      leftStack.push({ text: `${[exp.company, exp.location].filter(Boolean).join(', ')} • ${formatDateRange(exp.startDate, exp.endDate)}`, style: 'itemMeta' })
 
       const bullets = normalizeBullets(exp.description)
       if (bullets.length > 0) {
@@ -185,6 +185,10 @@ export function buildNorthstarPdf(
       rightStack.push({ text: degreeText, style: 'itemTitle' })
       rightStack.push({ text: edu.institution || '', style: 'itemMetaRight' })
       rightStack.push({ text: formatDateRange(edu.startDate, edu.endDate), style: 'itemMetaRight' })
+      const bullets = normalizeBullets(edu.description)
+      if (bullets.length > 0) {
+        rightStack.push({ ul: bullets, style: 'listCompact' })
+      }
 
       if (!isLast) rightStack.push({ text: '', margin: [0, 0, 0, 10] })
     })
@@ -289,6 +293,14 @@ export function buildNorthstarPdf(
       fontSize: 9.5,
       color: '#6B7280',
       margin: [0, 0, 0, 2],
+    },
+    listCompact: {
+      font: 'Roboto',
+      fontSize: 9,
+      color: '#4B5563',
+      lineHeight: 1.3,
+      markerColor: PRIMARY_COLOR,
+      margin: [0, 3, 0, 0],
     },
     itemMetaRight: {
       font: 'Roboto',

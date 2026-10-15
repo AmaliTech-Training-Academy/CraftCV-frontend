@@ -147,7 +147,7 @@ export function buildSproutPdf(
     data.experiences.forEach((exp, idx) => {
       const isLast = idx === data.experiences!.length - 1
       content.push({ text: exp.role || '', style: 'itemTitle' })
-      content.push({ text: `${exp.company || ''} • ${formatDateRange(exp.startDate, exp.endDate)}`, style: 'itemMeta' })
+      content.push({ text: `${[exp.company, exp.location].filter(Boolean).join(', ')} • ${formatDateRange(exp.startDate, exp.endDate)}`, style: 'itemMeta' })
 
       const bullets = normalizeBullets(exp.description)
       if (bullets.length > 0) {

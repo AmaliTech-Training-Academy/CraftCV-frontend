@@ -139,7 +139,7 @@ export function buildCampusPdf(
     data.experiences.forEach((exp, idx) => {
       const isLast = idx === data.experiences!.length - 1
       expStack.push({ text: exp.role || '', style: 'itemTitle' })
-      expStack.push({ text: `${exp.company || ''} • ${formatDateRange(exp.startDate, exp.endDate)}`, style: 'itemMeta' })
+      expStack.push({ text: `${[exp.company, exp.location].filter(Boolean).join(', ')} • ${formatDateRange(exp.startDate, exp.endDate)}`, style: 'itemMeta' })
 
       const bullets = normalizeBullets(exp.description)
       if (bullets.length > 0) {
