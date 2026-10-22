@@ -140,16 +140,13 @@ export const useCVs = () => {
     state.lastSavedAt.value = cv.lastSavedAt ?? null
     if (cv.template) {
       state.selectedTemplateId.value = cv.template
-      const { templates } = useTemplates()
-      const clean = cv.template === 'modern' ? 'single-column' : cv.template.toLowerCase()
-      const matched = templates.value.find(
-        t => t.templateId === cv.template || t.slug.toLowerCase() === clean,
-      )
+      const { findTemplate } = useTemplates()
+      const matched = findTemplate(cv.template)
       if (matched) {
         state.selectedTemplateSlug.value = matched.slug
       }
       else if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cv.template)) {
-        state.selectedTemplateSlug.value = clean
+        state.selectedTemplateSlug.value = cv.template.toLowerCase() === 'modern' ? 'single-column' : cv.template.toLowerCase()
       }
     }
     await navigateTo('/editor/personal')

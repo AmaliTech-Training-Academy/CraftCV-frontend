@@ -288,5 +288,46 @@ describe('useCVs', () => {
       expect(state.selectedTemplateId.value).toBe('single-column')
       expect(state.selectedTemplateSlug.value).toBe('single-column')
     })
+
+    it('maps a CV with the legacy Modern template UUID to Single Column', async () => {
+      mockApi.mockResolvedValueOnce([
+        {
+          templateId: '11111111-1111-1111-1111-111111111111',
+          name: 'Modern',
+          slug: 'modern',
+          description: 'Legacy modern template',
+        },
+        {
+          templateId: '22222222-2222-2222-2222-222222222222',
+          name: 'Single Column',
+          slug: 'single-column',
+          description: 'Clean single column',
+        },
+      ])
+
+      const { templates, fetchTemplates, findTemplate } = useTemplates()
+      await fetchTemplates()
+
+      // Modern remains hidden from the template picker list
+      expect(templates.value.map(t => t.slug)).toEqual(['single-column'])
+
+      // Lookup by Modern's UUID resolves to the Single Column template meta
+      const resolved = findTemplate('11111111-1111-1111-1111-111111111111')
+      expect(resolved?.slug).toBe('single-column')
+      expect(resolved?.name).toBe('Single Column')
+      expect(resolved?.image).toBe('/templates/SingleCol.png')
+
+      const { selectCV } = useCVs()
+      await selectCV({
+        cvId: 'cv-modern-uuid',
+        title: 'Legacy Modern CV',
+        template: '11111111-1111-1111-1111-111111111111',
+      }).catch(() => {})
+      await nextTick()
+
+      const state = useCVState()
+      expect(state.selectedTemplateId.value).toBe('11111111-1111-1111-1111-111111111111')
+      expect(state.selectedTemplateSlug.value).toBe('single-column')
+    })
   })
 })

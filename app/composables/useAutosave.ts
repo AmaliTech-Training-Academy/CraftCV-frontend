@@ -115,7 +115,7 @@ export function useAutosave() {
     const value = typeof template === 'string' ? template.trim() : ''
     if (!value) return
 
-    const { templates, fetchTemplates } = useTemplates()
+    const { templates, fetchTemplates, findTemplate } = useTemplates()
     if (templates.value.length === 0) {
       try {
         await fetchTemplates()
@@ -125,14 +125,10 @@ export function useAutosave() {
       }
     }
 
-    const bySlug = templates.value.find(t => t.slug === value.toLowerCase())
-    if (bySlug) {
-      selectedTemplateSlug.value = bySlug.slug
-      return
+    const matched = findTemplate(value)
+    if (matched) {
+      selectedTemplateSlug.value = matched.slug
     }
-
-    const byId = templates.value.find(t => t.templateId === value)
-    if (byId) selectedTemplateSlug.value = byId.slug
   }
 
   // Fetch the CV when the editor opens

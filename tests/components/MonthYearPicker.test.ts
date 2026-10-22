@@ -252,16 +252,24 @@ describe('MonthYearPicker.vue', () => {
   })
 
   it('does not offer future dates in day mode', async () => {
-    const wrapper = mountPicker({ mode: 'day' })
-    await openPicker(wrapper)
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 5, 10))
+    try {
+      const wrapper = mountPicker({ mode: 'day' })
+      await openPicker(wrapper)
 
-    // The 15th of next month is always in the future, whatever today is.
-    click('[aria-label="Next month"]')
-    await nextTick()
+      // Next month is blocked outright because maxValue is in the current month.
+      const nextMonth = document.querySelector<HTMLButtonElement>('[aria-label="Next month"]')
+      expect(nextMonth?.disabled).toBe(true)
 
-    const fifteenth = cellLabeled(DAY, '15')
-    expect(fifteenth).toBeDefined()
-    expect(fifteenth!.hasAttribute('data-disabled')).toBe(true)
+      // Days after today in the current month are disabled.
+      const fifteenth = cellLabeled(DAY, '15')
+      expect(fifteenth).toBeDefined()
+      expect(fifteenth!.hasAttribute('data-disabled')).toBe(true)
+    }
+    finally {
+      vi.useRealTimers()
+    }
   })
 
   it('blocks future years when disableFuture is set', async () => {

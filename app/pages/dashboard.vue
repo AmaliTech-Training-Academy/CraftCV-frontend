@@ -12,7 +12,7 @@ definePageMeta({
 })
 
 const { cvs, loading, loaded, error, fetchCVs, deleteCV, duplicateCV, selectCV } = useCVs()
-const { templates, fetchTemplates } = useTemplates()
+const { templates, fetchTemplates, findTemplate } = useTemplates()
 
 onMounted(async () => {
   const promises: Promise<unknown>[] = [fetchCVs()]
@@ -39,18 +39,7 @@ const onImageError = (cvId: string) => {
 
 const isUuid = (val?: string) => Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val.trim()))
 
-const getTemplateMeta = (identifier?: string) => {
-  if (!identifier) return null
-  let clean = String(identifier).toLowerCase().trim()
-  if (clean === 'modern') clean = 'single-column'
-  return (
-    templates.value.find(
-      t => t.slug?.toLowerCase() === clean
-        || t.templateId?.toLowerCase() === clean
-        || t.name?.toLowerCase() === clean,
-    ) || null
-  )
-}
+const getTemplateMeta = (identifier?: string) => findTemplate(identifier)
 
 const getTemplateDisplayName = (identifier?: string) => {
   const meta = getTemplateMeta(identifier)
@@ -67,7 +56,12 @@ const formatLastEdited = (iso?: string): string | null => {
   if (!iso) return null
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) return null
-  const dateStr = date.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })
+  const isCurrentYear = date.getFullYear() === new Date().getFullYear()
+  const dateStr = date.toLocaleDateString([], {
+    day: 'numeric',
+    month: 'short',
+    ...(isCurrentYear ? {} : { year: 'numeric' }),
+  })
   const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   return `${dateStr} · ${timeStr}`
 }
@@ -236,7 +230,7 @@ const openCV = async (cv: CVSummary) => {
           <!-- Template Pill Badge (top-left) -->
           <div
             v-if="getTemplateDisplayName(cv.template)"
-            class="absolute top-2.5 left-2.5 z-10 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur-xs text-[11px] font-semibold text-gray-700 shadow-xs border border-gray-200/60 uppercase tracking-wider"
+            class="pointer-events-none absolute top-2.5 left-2.5 z-10 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur-xs text-[11px] font-semibold text-gray-700 shadow-xs border border-gray-200/60 uppercase tracking-wider"
           >
             {{ getTemplateDisplayName(cv.template) }}
           </div>
@@ -312,7 +306,7 @@ const openCV = async (cv: CVSummary) => {
           <div class="flex items-center gap-1.5 text-xs text-gray-500">
             <Clock class="w-3.5 h-3.5 text-gray-400 shrink-0" />
             <span
-              class="truncate"
+              class="leading-snug"
               :title="formatLastEdited(cv.lastSavedAt) ? `Saved ${formatLastEdited(cv.lastSavedAt)}` : 'Not saved yet'"
             >
               {{ formatLastEdited(cv.lastSavedAt) ? `Saved ${formatLastEdited(cv.lastSavedAt)}` : 'Not saved yet' }}

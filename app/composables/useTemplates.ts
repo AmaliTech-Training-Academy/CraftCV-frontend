@@ -16,6 +16,7 @@ export interface APITemplate {
 
 export const useTemplates = () => {
   const templates = useState<APITemplate[]>('cv-templates', () => [])
+  const modernTemplateIds = useState<string[]>('cv-modern-template-ids', () => [])
   const loading = useState<boolean>('cv-templates-loading', () => true)
   const error = useState<string | null>('cv-templates-error', () => null)
   const activeCategory = useState<string>('cv-templates-active-category', () => 'All')
@@ -27,6 +28,28 @@ export const useTemplates = () => {
     })
     return ['All', ...Array.from(cats).sort()]
   })
+
+  /**
+   * Look up a template by slug, ID, or name.
+   * The legacy "Modern" template is hidden from the picker list (`templates`),
+   * but existing CVs may still carry its slug or backend UUID; map those to the
+   * "Single Column" entry so cards and the editor still resolve a name and preview.
+   */
+  const findTemplate = (identifier?: string): APITemplate | null => {
+    if (!identifier) return null
+    let clean = String(identifier).toLowerCase().trim()
+    const isModern = clean === 'modern' || modernTemplateIds.value.includes(clean)
+    if (isModern) clean = 'single-column'
+    return (
+      templates.value.find((t) => {
+        const slug = t.slug?.toLowerCase()
+        if (isModern && (slug === 'single-column' || slug === 'single_column')) return true
+        return slug === clean
+          || t.templateId?.toLowerCase() === clean
+          || t.name?.toLowerCase() === clean
+      }) || null
+    )
+  }
 
   const fetchTemplates = async () => {
     loading.value = true
@@ -43,6 +66,11 @@ export const useTemplates = () => {
       }
 
       const normalizedData = Array.isArray(data) ? data : []
+
+      // Record any IDs belonging to the retired "Modern" template before filtering it out
+      modernTemplateIds.value = normalizedData
+        .filter((t: any) => (t.slug || t.name || '').toLowerCase() === 'modern' && t.templateId)
+        .map((t: any) => String(t.templateId).toLowerCase().trim())
 
       // Inject some mock images for the known slugs as the API doesn't provide them
       templates.value = normalizedData
@@ -134,10 +162,12 @@ export const useTemplates = () => {
 
   return {
     templates,
+    modernTemplateIds,
     loading,
     error,
     activeCategory,
     categories,
     fetchTemplates,
+    findTemplate,
   }
 }
